@@ -45,6 +45,14 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
    <button class="small danger" id="logoutBtn" onclick="signOutCloud()" style="display:none">Çıkış</button>
   </div>
  </div>
+ <div class="card" id="firstSetupCard" style="display:none">
+  <b>🐑 İlk Sürünü Oluştur</b>
+  <p class="muted">Bu hesap boş başladı. Kendi koyun, koç ve kuzularını ekleyerek sürünü kur.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+   <button class="primary" onclick="openInitialSetup()">Sürümü Kur</button>
+   <button onclick="openAddAnimal()">Tek Hayvan Ekle</button>
+  </div>
+ </div>
  <div class="grid">
   <div class="card stat"><b id="sEwe">24</b><span>Koyun</span></div>
   <div class="card stat"><b id="sRam">1</b><span>Koç</span></div>
@@ -57,7 +65,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
  <h3>Son hareketler</h3><div class="card" id="recent"></div>
 </section>
 
-<section id="herd" class="screen"><div class="row"><h3>Sürü</h3><div><button class="small" onclick="openBulkSex()">Kuzu Cinsiyetleri</button> <button class="small primary" onclick="openBulkTags()">Toplu Küpe</button></div></div>
+<section id="herd" class="screen"><div class="row"><h3>Sürü</h3><div><button class="small primary" onclick="openAddAnimal()">+ Hayvan Ekle</button> <button class="small" onclick="openBulkSex()">Kuzu Cinsiyetleri</button> <button class="small" onclick="openBulkTags()">Toplu Küpe</button></div></div>
  <input id="herdSearch" placeholder="Küpe veya hayvan ara..." oninput="renderHerd()">
  <div class="tabs" id="herdTabs"></div><div id="herdList"></div>
 </section>
@@ -132,12 +140,16 @@ let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTi
 
 const today=()=>new Date().toISOString().slice(0,10);
 function seed(){
- let animals=[]; for(let i=1;i<=24;i++) animals.push({id:'e'+i,type:'Koyun',sex:'Dişi',tag:'',status:'Aktif',birth:'',weight:''});
- animals.push({id:'r1',type:'Koç',sex:'Erkek',tag:'',status:'Aktif',birth:'',weight:''});
- for(let i=1;i<=7;i++) animals.push({id:'sl'+i,type:'Kuzu',sex:'Erkek',tag:'',status:'Satılacak',birth:'',weight:''});
- let d=new Date(); d.setMonth(d.getMonth()-3); let b=d.toISOString().slice(0,10);
- for(let i=1;i<=4;i++) animals.push({id:'l3'+i,type:'Kuzu',sex:'Erkek',tag:'',status:'Aktif',birth:b,weight:''});
- return {animals,records:[],stock:{'Kuzu besi yemi':0,'Arpa':0,'Balya':0,'Saman':0,'İlaç':0},tasks:[],report:'monthly'};
+ return {
+  animals:[],
+  records:[],
+  stock:{'Kuzu besi yemi':0,'Arpa':0,'Balya':0,'Saman':0,'İlaç':0},
+  tasks:[],
+  report:'monthly',
+  farmName:'',
+  setupDone:false,
+  _meta:{initialized:false}
+ };
 }
 let db=JSON.parse(localStorage.getItem(KEY)||'null')||seed(); let herdFilter='Tümü';
 db.animals.forEach(a=>{if(a.type==='Koyun'&&a.sex==='Dişi'&&!a.breedingStatus)a.breedingStatus='Anaç'});
@@ -189,7 +201,7 @@ function setCloudUI(mode,msg){
   if(badge)badge.textContent=navigator.onLine?'Yerel':'Offline';
  }
 }
-function cloudDataHasContent(x){return x&&typeof x==='object'&&Array.isArray(x.animals)&&x.animals.length>0}
+function cloudDataHasContent(x){return !!(x&&typeof x==='object'&&Array.isArray(x.animals)&&(x.animals.length>0||x.setupDone===true||x._meta?.initialized===true))}
 function localStamp(){return db?._meta?.updatedAt||'1970-01-01T00:00:00.000Z'}
 async function initCloud(){
  if(!window.supabase){setCloudUI('local','Bulut kütüphanesi yüklenemedi. Yerel kayıt çalışmaya devam eder.');return}
@@ -279,6 +291,7 @@ window.addEventListener('offline',()=>{let b=document.getElementById('netBadge')
 
 function renderAll(){
  let A=db.animals.filter(a=>!['Satıldı','Öldü','Kesildi'].includes(a.status)), e=A.filter(a=>a.type==='Koyun').length,r=A.filter(a=>a.type==='Koç').length,l=A.filter(a=>a.type==='Kuzu').length,f=A.filter(a=>a.status==='Takipte').length;
+ let setupCard=document.getElementById('firstSetupCard');if(setupCard)setupCard.style.display=(db.animals.length===0&&!db.setupDone)?'block':'none';
  heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
  todayBox.innerHTML=db.tasks.length?db.tasks.map((x,i)=>`<div class="listitem row"><span>${x.text}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join(''):'<div class="muted">Bugün için kayıtlı iş yok.</div>';
  let fin=calcFinance('all');homeNet.textContent=money(fin.income-fin.expense);
@@ -302,6 +315,65 @@ function renderHerd(){
  herdList.innerHTML=arr.length?arr.map(a=>`<div class="card"><div class="row"><div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.weight? a.weight+' kg · ':''}${a.status}</div></div><span class="tag">${a.type}</span></div><div style="margin-top:10px"><button class="small" onclick="editTag('${a.id}')">${a.tag?'Küpe Düzenle':'Küpe No Ekle'}</button> <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div></div>`).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>';
 }
 
+function openInitialSetup(){
+ showModal('İlk Sürünü Oluştur',`
+  <label>Çiftlik / İşletme adı</label><input id="setupFarmName" value="${db.farmName||''}" placeholder="Örn. Karpaz Küçükbaş">
+  <label>Anaç koyun sayısı</label><input id="setupEwes" type="number" min="0" value="0">
+  <label>Koç sayısı</label><input id="setupRams" type="number" min="0" value="0">
+  <label>Erkek kuzu sayısı</label><input id="setupMaleLambs" type="number" min="0" value="0">
+  <label>Dişi kuzu sayısı</label><input id="setupFemaleLambs" type="number" min="0" value="0">
+  <label>Cinsiyeti bilinmeyen kuzu</label><input id="setupUnknownLambs" type="number" min="0" value="0">
+  <div class="muted" style="margin-bottom:10px">Hayvanları ekledikten sonra küpe numaralarını “Toplu Küpe” bölümünden girebilirsin.</div>
+  <button class="primary" onclick="saveInitialSetup()">Sürüyü Oluştur</button>`)
+}
+async function saveInitialSetup(){
+ const nums=[setupEwes,setupRams,setupMaleLambs,setupFemaleLambs,setupUnknownLambs].map(x=>Math.max(0,parseInt(x.value||'0',10)||0));
+ const total=nums.reduce((a,b)=>a+b,0);
+ if(!total)return toast('En az bir hayvan ekle');
+ if(db.animals.length&&!confirm('Mevcut hayvanların yanına bu hayvanlar eklenecek. Devam edilsin mi?'))return;
+ db.farmName=setupFarmName.value.trim()||db.farmName||'Sürü Takip';
+ const addMany=(n,type,sex,breedingStatus='')=>{for(let i=0;i<n;i++)db.animals.push({id:uid(type==='Koç'?'r':type==='Kuzu'?'l':'e'),type,sex,tag:'',status:'Aktif',birth:'',weight:'',breedingStatus})};
+ addMany(nums[0],'Koyun','Dişi','Anaç');
+ addMany(nums[1],'Koç','Erkek','');
+ addMany(nums[2],'Kuzu','Erkek','');
+ addMany(nums[3],'Kuzu','Dişi','');
+ addMany(nums[4],'Kuzu','Bilinmiyor','');
+ db.setupDone=true;
+ if(!db._meta)db._meta={}; db._meta.initialized=true;
+ db.records.push({id:uid('rec'),kind:'setup',label:'İlk sürü oluşturuldu · '+total+' hayvan',date:today(),note:db.farmName});
+ save();closeModal();toast(total+' hayvan sürüye eklendi');
+ if(sb&&cloudSession&&cloudFarmId&&db.farmName)await sb.from('farms').update({name:db.farmName}).eq('id',cloudFarmId);
+}
+function openAddAnimal(){
+ showModal('Hayvan Ekle',`
+  <label>Hayvan türü</label><select id="newAnimalType" onchange="syncNewAnimalSex()"><option>Koyun</option><option>Koç</option><option>Kuzu</option></select>
+  <label>Cinsiyet</label><select id="newAnimalSex"><option>Dişi</option><option>Erkek</option><option>Bilinmiyor</option></select>
+  <label>Küpe No</label><input id="newAnimalTag" placeholder="İsteğe bağlı">
+  <label>Doğum tarihi</label><input id="newAnimalBirth" type="date">
+  <label>Kilo (kg)</label><input id="newAnimalWeight" type="number" step=".1">
+  <label>Durum</label><select id="newAnimalStatus"><option>Aktif</option><option>Satılacak</option><option>Takipte</option></select>
+  <button class="primary" onclick="saveNewAnimal()">Hayvanı Ekle</button>`);
+ syncNewAnimalSex();
+}
+function syncNewAnimalSex(){
+ if(typeof newAnimalType==='undefined'||typeof newAnimalSex==='undefined')return;
+ if(newAnimalType.value==='Koyun')newAnimalSex.value='Dişi';
+ if(newAnimalType.value==='Koç')newAnimalSex.value='Erkek';
+}
+function saveNewAnimal(){
+ const tag=(newAnimalTag.value||'').trim();
+ if(tag&&db.animals.some(a=>a.tag===tag))return toast('Bu küpe numarası zaten kullanılıyor');
+ const type=newAnimalType.value, sex=newAnimalSex.value;
+ db.animals.push({
+  id:uid(type==='Koç'?'r':type==='Kuzu'?'l':'e'),
+  type,sex,tag,status:newAnimalStatus.value,
+  birth:newAnimalBirth.value||'',weight:+newAnimalWeight.value||'',
+  breedingStatus:type==='Koyun'&&sex==='Dişi'?'Anaç':''
+ });
+ db.setupDone=true;if(!db._meta)db._meta={};db._meta.initialized=true;
+ db.records.push({id:uid('rec'),kind:'animal_add',label:'Hayvan eklendi · '+(tag?'#'+tag:type),date:today()});
+ save();closeModal();toast('Hayvan sürüye eklendi');
+}
 function openBulkSex(){
  let lambs=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a));
  showModal('Kuzu Cinsiyetlerini Düzenle',
