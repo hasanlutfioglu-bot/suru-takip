@@ -196,6 +196,11 @@ async function initCloud(){
  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  const {data}=await sb.auth.getSession(); cloudSession=data.session;
  sb.auth.onAuthStateChange(async (_event,session)=>{cloudSession=session;if(session)await connectCloud();else disconnectCloudUI()});
+ if(cloudSession&&localStorage.getItem('suru_v13_return_after_login')==='1'){
+  localStorage.removeItem('suru_v13_return_after_login');
+  location.replace(location.origin+'/suru-takip/test-v13.html?v=6');
+  return;
+ }
  if(cloudSession)await connectCloud(); else setCloudUI('local','Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.');
 }
 async function signInGoogle(){
