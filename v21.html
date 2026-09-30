@@ -89,7 +89,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
  <button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Bu Yıl 🔒</button>
  <button class="tab" onclick="toggleDetailedReports()">Detaylı Raporlar ▾</button>
  </div>
- <div class="card" id="reportPlanNote"><div class="muted">Ana ekran sade; geçmiş yıllar, ay seçimi ve üretim dönemleri Detaylı Raporlar içindedir.</div></div>
+ <div class="card" id="reportPlanNote"><div class="muted">Özet ekranda gelir, gider, net sonuç, satışa hazır kuzu ve yeni doğan kuzu görünür. Diğer ayrıntılar aşağıdadır.</div></div>
  <div id="detailedReportsPanel" style="display:none">
   <div class="card">
    <b>Geçmişe dönük rapor</b>
@@ -127,13 +127,15 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
    </div>
   </div>
  </div>
- <div class="card"><div class="muted" id="reportLabel">Bu ay</div><div class="grid" style="margin-top:10px"><div class="stat"><b id="rIncome">0</b><span>Gelir</span></div><div class="stat"><b id="rExpense">0</b><span>Gider</span></div><div class="stat"><b id="rNet">0</b><span>Net</span></div><div class="stat"><b id="rBirths">0</b><span>Doğan kuzu</span></div></div></div>
- <h3>İşletme Özeti</h3><div class="grid">
-  <div class="card stat"><b id="rBusinessIncome">0</b><span>Toplam gelir</span></div>
-  <div class="card stat"><b id="rBusinessExpense">0</b><span>Toplam gider</span></div>
-  <div class="card stat"><b id="rBusinessNet">0</b><span>Net kâr / zarar</span></div>
-  <div class="card stat clickcard" onclick="openHerdFilter('Anaçlar')"><b id="rBusinessEwes">0</b><span>Koyun · dokun</span></div>
-  <div class="card stat clickcard" onclick="openHerdFilter('Kuzular')"><b id="rBusinessLambs">0</b><span>Kuzu · dokun</span></div>
+ <div class="card">
+  <div class="muted" id="reportLabel">Bu ay</div>
+  <div class="grid" style="margin-top:10px">
+   <div class="stat"><b id="rIncome">0</b><span>Gelir</span></div>
+   <div class="stat"><b id="rExpense">0</b><span>Gider</span></div>
+   <div class="stat"><b id="rNet">0</b><span>Net kâr / zarar</span></div>
+   <div class="stat clickcard" onclick="openSaleCandidates()"><b id="rSaleReadyTop">0</b><span>Satışa hazır kuzu · dokun</span></div>
+   <div class="stat"><b id="rBirths">0</b><span>Yeni doğan kuzu</span></div>
+  </div>
  </div>
  <div id="plusReportDetails">
   <h3>Kuzu Detayı</h3><div class="grid">
@@ -1051,6 +1053,7 @@ function renderReports(){
  if(detailTab)detailTab.textContent=isPlus()?'Detaylı Raporlar ▾':'Detaylı Raporlar 🔒';
  reportTabs.forEach(x=>x.classList.toggle('active',x.dataset.report===m));
  rIncome.textContent=money(f.income);rExpense.textContent=money(f.expense);rNet.textContent=money(f.income-f.expense);rBirths.textContent=births;
+ if(document.getElementById('rSaleReadyTop'))rSaleReadyTop.textContent=db.animals.filter(a=>isActiveAnimal(a)&&isSaleCandidate(a)).length;
  rLambedEwes.textContent=metrics.lambedIds.length;rProlificacy.textContent=pct(metrics.prolificacy);rLambingRate.textContent=pct(metrics.lambingRate);rNonLambingCount.textContent=metrics.nonLambing.length;
  nonLambingHint.textContent=`${metrics.ewes.length} aktif anaçtan ${metrics.lambedIds.length} tanesi bu seçili dönemde doğurdu; ${metrics.nonLambing.length} tanesinin doğum kaydı yok.`;
  nonLambingList.innerHTML=metrics.nonLambing.length?metrics.nonLambing.map(a=>{let last=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id&&r.date).map(r=>r.date).sort().pop()||'Hiç doğum kaydı yok';return `<div class="listitem row"><div><b>${animalName(a)}</b><div class="muted">Bu dönemde doğurmadı · son doğum: ${last}</div></div><button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div>`}).join(''):'<div class="muted">Bu dönemde doğurmayan aktif anaç yok.</div>';
