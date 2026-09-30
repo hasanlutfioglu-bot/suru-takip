@@ -139,7 +139,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
    <div class="card stat"><b id="rMaleLambs">0</b><span>Erkek kuzu</span></div>
    <div class="card stat"><b id="rFemaleLambs">0</b><span>Dişi kuzu</span></div>
    <div class="card stat"><b id="rUnknownLambs">0</b><span>Cinsiyet bilinmiyor</span></div>
-   <div class="card stat"><b id="rSaleCandidates">0</b><span>Satılacak</span></div>
+   <div class="card stat clickcard" onclick="openSaleCandidates()" title="Satış adaylarını aç"><b id="rSaleCandidates">0</b><span>Satılacak · dokun</span></div>
   </div>
   <h3>Kayıt Özeti</h3><div class="grid">
    <div class="card stat"><b id="rHealth">0</b><span>Sağlık kaydı</span></div>
@@ -455,6 +455,19 @@ function saleCandidateAge(a){
  return months>=5.5;
 }
 function isSaleCandidate(a){return !!a && (a.status==='Satılacak'||saleCandidateAge(a));}
+function openSaleCandidates(){
+ let arr=db.animals.filter(a=>isSaleCandidate(a));
+ if(!arr.length)return showModal('Satılacak Kuzular','<div class="empty">Şu anda satış adayı kuzu yok.</div>');
+ let rows=arr.map(a=>`<label class="pickRow"><input type="checkbox" class="saleAnimal" value="${a.id}"><span><b>${animalName(a)}</b><br><span class="muted">${a.sex} · ${age(a.birth)}${a.weight?' · '+a.weight+' kg':''} · ${a.status}${saleCandidateAge(a)?' · 5,5+ ay':''}</span></span></label>`).join('');
+ showModal('Satılacak Kuzular',`
+  <div class="muted" style="margin-bottom:8px">5,5 ayı dolduran erkek kuzular otomatik burada görünür. Satacaklarını işaretle.</div>
+  <div class="pickList">${rows}</div>
+  <label>Toplam satış tutarı (TL)</label><input id="amount" type="number" inputmode="decimal">
+  <label>Tarih</label><input id="date" type="date" value="${today()}">
+  <label>Açıklama</label><input id="note" placeholder="İsteğe bağlı">
+  <button class="primary" onclick="submitSelectedSale('sale_candidates')">Seçilenleri Sat</button>
+ `);
+}
 function renderHerd(){
  let filters=['Tümü','Anaçlar','Anaç Adayları','Kuzular','Erkek Kuzular','Dişi Kuzular','Koç','Satılacaklar','Takipte','Pasif'];herdTabs.innerHTML=filters.map(f=>`<button class="tab ${herdFilter===f?'active':''}" onclick="herdFilter='${f}';renderHerd()">${f}</button>`).join('');
  let q=(herdSearch?.value||'').toLowerCase(); let arr=db.animals.filter(a=>{
