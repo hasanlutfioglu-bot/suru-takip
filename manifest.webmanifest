@@ -1,0 +1,26 @@
+{
+  "id": "./",
+  "name": "Sürü Takip",
+  "short_name": "Sürü Takip",
+  "lang": "tr",
+  "description": "Koyun, kuzu, doğum, anaç performansı ve gelir-gider takibi.",
+  "start_url": "./v21.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7f3",
+  "theme_color": "#245c3b",
+  "icons": [
+    {
+      "src": "./icons/app-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/app-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

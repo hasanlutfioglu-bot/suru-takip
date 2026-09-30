@@ -1,0 +1,5 @@
+<resources>
+ <string name="app_name">Sürü Takip</string>
+ <color name="brand">#245c3b</color>
+ <string name="asset_statements" translatable="false">[{\"relation\":[\"delegate_permission/common.handle_all_urls\"],\"target\":{\"namespace\":\"web\",\"site\":\"https://hasanlutfioglu-bot.github.io\"}}]</string>
+</resources>

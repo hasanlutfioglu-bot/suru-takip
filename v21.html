@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Sürü Takip V21</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#245c3b">
+<link rel="icon" href="./icons/app.svg" type="image/svg+xml">
 <style>
 :root{--bg:#f4f7f3;--card:#fff;--ink:#172018;--muted:#68736a;--green:#245c3b;--green2:#347a50;--line:#dfe7df;--warn:#b77716;--bad:#a53d3d;--shadow:0 8px 24px #1b3b2614}
 *{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink)}
@@ -37,6 +40,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 <main>
 <section id="home" class="screen active">
  <div class="hero"><small>GENEL DURUM</small><h2 id="heroTotal">36 hayvan</h2><div id="heroSub">24 koyun · 1 koç · 11 kuzu</div></div>
+ <div class="card" id="installCard" hidden><b>📲 Sürü Takip’i Telefona Kur</b><p class="muted">Ana ekranından uygulama olarak aç.</p><button class="primary" id="installAppBtn" type="button" onclick="installApp()">Uygulamayı Kur</button></div>
  <div class="card" id="cloudCard">
   <div class="row"><div><b>☁️ Bulut Senkronizasyonu</b><div class="muted" id="cloudText">Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.</div></div><span class="tag" id="netBadge">Hazır</span></div>
   <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
@@ -1384,5 +1388,9 @@ async function toggleVoice(){
 if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
 renderAll();
 initCloud();
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;document.getElementById('installCard').hidden=false});
+window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;document.getElementById('installCard').hidden=true});
+async function installApp(){const prompt=deferredInstallPrompt;if(!prompt)return;deferredInstallPrompt=null;document.getElementById('installCard').hidden=true;try{await prompt.prompt();await prompt.userChoice;}catch(e){toast('Tarayıcı menüsünden Ana ekrana ekle seçeneğini kullan.')}}
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script></body></html>
