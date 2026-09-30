@@ -124,10 +124,11 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 <div class="modal" id="modal"><div class="sheet"><div class="row"><h3 id="modalTitle">Kayıt</h3><button onclick="closeModal()">Kapat</button></div><div id="modalBody"></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
-const V13_PREVIEW_URL=location.origin+'/suru-takip/test-v13.html?v=8';
-const V13_AUTH_RETURN=/[?#](?:.*(?:code|access_token|error)=)/.test(location.href);
-if(localStorage.getItem('suru_use_v13_preview')==='1' && !V13_AUTH_RETURN){
- location.replace(V13_PREVIEW_URL);
+if(localStorage.getItem('suru_use_v13_preview')==='1'){
+ const qs=new URLSearchParams(location.search);
+ qs.set('v','9');
+ const target=location.origin+'/suru-takip/test-v13.html?'+qs.toString()+location.hash;
+ location.replace(target);
 }
 const KEY='suru_takip_v5';
 const SUPABASE_URL='https://nqbfyahiijdkrroojlct.supabase.co';
@@ -200,20 +201,7 @@ async function initCloud(){
  if(!window.supabase){setCloudUI('local','Bulut kütüphanesi yüklenemedi. Yerel kayıt çalışmaya devam eder.');return}
  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  const {data}=await sb.auth.getSession(); cloudSession=data.session;
- sb.auth.onAuthStateChange(async (_event,session)=>{
-  cloudSession=session;
-  if(session&&localStorage.getItem('suru_v13_return_after_login')==='1'){
-    localStorage.removeItem('suru_v13_return_after_login');
-    location.replace(location.origin+'/suru-takip/test-v13.html?v=7');
-    return;
-  }
-  if(session)await connectCloud();else disconnectCloudUI()
-});
- if(cloudSession&&localStorage.getItem('suru_v13_return_after_login')==='1'){
-  localStorage.removeItem('suru_v13_return_after_login');
-  location.replace(location.origin+'/suru-takip/test-v13.html?v=6');
-  return;
- }
+ sb.auth.onAuthStateChange(async (_event,session)=>{cloudSession=session;if(session)await connectCloud();else disconnectCloudUI()});
  if(cloudSession)await connectCloud(); else setCloudUI('local','Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.');
 }
 async function signInGoogle(){
