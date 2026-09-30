@@ -213,7 +213,7 @@ async function signOutCloud(){
 function disconnectCloudUI(){setCloudUI('local','Yerel kayıtlar cihazda duruyor. Google ile giriş yapınca bulut verisi tekrar bağlanır.')}
 async function connectCloud(){
  if(!sb||!cloudSession)return;
- setCloudUI('connecting','Bulut hesabına bağlanılıyor…');
+ setCloudUI('connecting','Bulut verileri eşitleniyor…');
  const {data:members,error:memErr}=await sb.from('farm_members').select('farm_id,role').eq('user_id',cloudSession.user.id).limit(1);
  if(memErr||!members?.length){setCloudUI('local','Bulut çiftliği bulunamadı: '+(memErr?.message||'hesap kaydı yok'));return}
  cloudFarmId=members[0].farm_id;
@@ -229,7 +229,7 @@ async function connectCloud(){
  }
  subscribeCloud();
  let who=cloudSession.user.user_metadata?.full_name||cloudSession.user.email||'Google hesabı';
- setCloudUI('online',who+' ile bağlı. Telefon ve bilgisayar aynı bulut verisini kullanır.');
+ setCloudUI('online','✓ Güncel – Otomatik senkron açık · '+who);
 }
 function applyRemoteState(remote){
  if(!cloudDataHasContent(remote))return;
@@ -254,7 +254,7 @@ async function uploadCloudState(first=false){
  const {error}=await sb.from('farm_state').upsert({farm_id:cloudFarmId,data:payload},{onConflict:'farm_id'});
  if(error){setCloudUI('online','Yerelde kaydedildi; buluta gönderilemedi: '+error.message);return}
  lastCloudStamp=payload._meta.updatedAt||'';
- setCloudUI('online',(cloudSession.user.user_metadata?.full_name||cloudSession.user.email||'Google hesabı')+' ile bağlı · Son kayıt buluta gönderildi');
+ setCloudUI('online','✓ Güncel – Otomatik senkron açık · Son kayıt buluta gönderildi');
 }
 async function syncNow(){
  if(!cloudSession)return signInGoogle();
@@ -269,7 +269,7 @@ function subscribeCloud(){
    let rs=remote?._meta?.updatedAt||'';
    if(rs&&rs!==lastCloudStamp&&rs>localStamp()){
     applyRemoteState(remote);
-    setCloudUI('online','Diğer cihazdaki yeni kayıtlar geldi.');
+    setCloudUI('online','✓ Güncel – Otomatik senkron açık · Diğer cihazdaki yeni kayıtlar geldi.');
     toast('Bulut verisi güncellendi')
    }
   }).subscribe();
