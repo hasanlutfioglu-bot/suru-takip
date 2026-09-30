@@ -82,6 +82,19 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
  <button class="tab active" data-report="monthly" onclick="setReport('monthly',this)">Aylık</button><button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Yıllık 🔒</button><button class="tab" data-report="birthperiod" onclick="setReport('birthperiod',this)">Doğum Dönemi 🔒</button><button class="tab" data-report="all" onclick="setReport('all',this)">Genel 🔒</button>
  </div>
  <div class="card" id="reportPlanNote"><div class="muted">Ücretsiz pakette aylık temel rapor açıktır. Plus ile tüm dönemler ve detaylı analizler açılır.</div></div>
+ <div class="card" id="customReportRange">
+  <b>Özel tarih aralığı</b>
+  <div class="row" style="gap:8px;margin-top:8px">
+   <input id="reportStart" type="date" style="flex:1">
+   <input id="reportEnd" type="date" style="flex:1">
+  </div>
+  <div class="row" style="gap:8px;margin-top:8px">
+   <button class="small" onclick="applyCustomReport()">Uygula</button>
+   <button class="small" onclick="clearCustomReport()">Temizle</button>
+   <button class="small" onclick="exportReportCSV()">Excel/CSV</button>
+   <button class="small" onclick="window.print()">PDF / Yazdır</button>
+  </div>
+ </div>
  <div class="card"><div class="muted" id="reportLabel">Bu ay</div><div class="grid" style="margin-top:10px"><div class="stat"><b id="rIncome">0</b><span>Gelir</span></div><div class="stat"><b id="rExpense">0</b><span>Gider</span></div><div class="stat"><b id="rNet">0</b><span>Net</span></div><div class="stat"><b id="rBirths">0</b><span>Doğan kuzu</span></div></div></div>
  <div id="plusReportDetails">
   <h3>Sürü Özeti</h3><div class="grid">
@@ -102,6 +115,17 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
    <div class="card stat"><b id="rSales">0</b><span>Satış kaydı</span></div>
    <div class="card stat"><b id="rStockMoves">0</b><span>Stok alımı</span></div>
   </div>
+  <h3>İşletme Özeti</h3><div class="grid">
+   <div class="card stat"><b id="rFeedExpense">0</b><span>Yem gideri</span></div>
+   <div class="card stat"><b id="rMedicineExpense">0</b><span>İlaç/sağlık gideri</span></div>
+   <div class="card stat"><b id="rSaleIncome">0</b><span>Hayvan satış geliri</span></div>
+   <div class="card stat"><b id="rPrevNet">-</b><span>Önceki döneme göre net</span></div>
+  </div>
+  <h3>Anaç Performansı</h3><div class="card" id="ewePerformanceList"></div>
+  <h3>Kuzu Gelişimi</h3><div class="card" id="lambPerformanceList"></div>
+  <h3>Sağlık Özeti</h3><div class="card" id="healthReportList"></div>
+  <h3>Satış Özeti</h3><div class="card" id="salesReportList"></div>
+  <h3>Stok Durumu</h3><div class="card" id="stockReportList"></div>
  </div>
  <h3>Doğum performansı</h3>
  <div class="grid">
@@ -616,9 +640,50 @@ function latestBirthPeriodRange(){
  for(let i=1;i<ds.length;i++){let gap=(oldest-ds[i])/864e5;if(gap>60)break;oldest=ds[i]}
  return {start:oldest,end:newest}
 }
+let customReportStart='',customReportEnd='';
 function reportRecords(mode){
  let now=new Date(), range=mode==='birthperiod'?latestBirthPeriodRange():null;
- return db.records.filter(x=>{if(mode==='all')return true;if(!x.date)return false;let d=new Date(x.date+'T00:00:00');if(isNaN(d))return false;if(mode==='monthly')return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();if(mode==='yearly')return d.getFullYear()===now.getFullYear();if(mode==='birthperiod')return range?d>=range.start&&d<=range.end:false;return true})
+ return db.records.filter(x=>{
+  if(!x.date)return mode==='all'&&!customReportStart&&!customReportEnd;
+  let d=new Date(x.date+'T00:00:00');if(isNaN(d))return false;
+  if(customReportStart||customReportEnd){
+   let s=customReportStart?new Date(customReportStart+'T00:00:00'):null,e=customReportEnd?new Date(customReportEnd+'T23:59:59'):null;
+   return (!s||d>=s)&&(!e||d<=e)
+  }
+  if(mode==='all')return true;
+  if(mode==='monthly')return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();
+  if(mode==='yearly')return d.getFullYear()===now.getFullYear();
+  if(mode==='birthperiod')return range?d>=range.start&&d<=range.end:false;
+  return true
+ })
+}
+function applyCustomReport(){
+ if(!isPlus())return showReportPlusRequired();
+ customReportStart=document.getElementById('reportStart')?.value||'';
+ customReportEnd=document.getElementById('reportEnd')?.value||'';
+ if(customReportStart&&customReportEnd&&customReportStart>customReportEnd)return toast('Başlangıç tarihi bitişten sonra olamaz');
+ renderReports()
+}
+function clearCustomReport(){customReportStart='';customReportEnd='';if(reportStart)reportStart.value='';if(reportEnd)reportEnd.value='';renderReports()}
+function reportDateLabel(mode){
+ if(customReportStart||customReportEnd)return 'Özel dönem · '+(customReportStart||'Başlangıç')+' - '+(customReportEnd||'Bugün');
+ let range=mode==='birthperiod'?latestBirthPeriodRange():null;
+ return mode==='monthly'?'Bu ay':mode==='yearly'?'Bu yıl':mode==='all'?'Tüm zamanlar':range?`Doğum dönemi · ${range.start.toLocaleDateString('tr-TR')} - ${range.end.toLocaleDateString('tr-TR')}`:'Doğum dönemi · kayıt yok'
+}
+function previousPeriodRecords(){
+ let rows=reportRecords(db.report||'monthly'), dates=rows.map(r=>r.date).filter(Boolean).sort();
+ if(!dates.length)return [];
+ let s=new Date(dates[0]+'T00:00:00'),e=new Date(dates[dates.length-1]+'T00:00:00'),days=Math.max(1,Math.round((e-s)/864e5)+1);
+ let pe=new Date(s);pe.setDate(pe.getDate()-1);let ps=new Date(pe);ps.setDate(ps.getDate()-days+1);
+ return db.records.filter(r=>{if(!r.date)return false;let d=new Date(r.date+'T00:00:00');return d>=ps&&d<=pe})
+}
+function exportReportCSV(){
+ if(!isPlus())return showReportPlusRequired();
+ let rows=reportRecords(db.report||'monthly');
+ let csv=['Tarih,Tür,Başlık,Kategori,Tutar,Not'];
+ rows.forEach(r=>csv.push([r.date||'',r.kind||'',r.label||'',r.category||'',r.amount||'',r.note||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')));
+ let blob=new Blob(['\ufeff'+csv.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download='suru-takip-rapor.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 }
 
 function recordQty(r){
@@ -754,12 +819,12 @@ function renderReports(){
  if(!isPlus() && m!=='monthly'){m='monthly';db.report='monthly'}
  let f=calcFinance(m), metrics=birthMetrics(m), births=f.arr.filter(x=>x.kind==='birth').reduce((s,x)=>s+(+x.count||0),0);
  let range=m==='birthperiod'?latestBirthPeriodRange():null;
- reportLabel.textContent=m==='monthly'?'Bu ay':m==='yearly'?'Bu yıl':m==='all'?'Tüm zamanlar':range?`Doğum dönemi · ${range.start.toLocaleDateString('tr-TR')} - ${range.end.toLocaleDateString('tr-TR')}`:'Doğum dönemi · kayıt yok';
+ reportLabel.textContent=reportDateLabel(m);
  document.querySelectorAll('#reports .tab').forEach(x=>x.classList.toggle('active',x.dataset.report===m));
  rIncome.textContent=money(f.income);rExpense.textContent=money(f.expense);rNet.textContent=money(f.income-f.expense);rBirths.textContent=births;
  rLambedEwes.textContent=metrics.lambedIds.length;rProlificacy.textContent=pct(metrics.prolificacy);rLambingRate.textContent=pct(metrics.lambingRate);rNonLambingCount.textContent=metrics.nonLambing.length;
  nonLambingHint.textContent=`${metrics.ewes.length} aktif anaçtan ${metrics.lambedIds.length} tanesi bu seçili dönemde doğurdu; ${metrics.nonLambing.length} tanesinin doğum kaydı yok.`;
- nonLambingList.innerHTML=metrics.nonLambing.length?metrics.nonLambing.map(a=>`<div class="listitem row"><div><b>${animalName(a)}</b><div class="muted">Aktif anaç · ${a.tag?'Küpe '+a.tag:'Küpe numarası yok'}</div></div><button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div>`).join(''):'<div class="muted">Bu dönemde doğurmayan aktif anaç yok.</div>';
+ nonLambingList.innerHTML=metrics.nonLambing.length?metrics.nonLambing.map(a=>{let last=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id&&r.date).map(r=>r.date).sort().pop()||'Hiç doğum kaydı yok';return `<div class="listitem row"><div><b>${animalName(a)}</b><div class="muted">Bu dönemde doğurmadı · son doğum: ${last}</div></div><button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div>`}).join(''):'<div class="muted">Bu dönemde doğurmayan aktif anaç yok.</div>';
  let cats={};f.arr.filter(x=>x.amount).forEach(x=>cats[x.category||x.label]=(cats[x.category||x.label]||0)+(+x.amount||0));
  let deathRows=f.arr.filter(x=>x.kind==='death');
  let deathAnimals=deathRows.map(r=>db.animals.find(a=>a.id===r.animalId)).filter(Boolean);
@@ -790,6 +855,42 @@ function renderReports(){
  if(document.getElementById('rWeights'))rWeights.textContent=periodRows.filter(x=>x.kind==='weight').length;
  if(document.getElementById('rSales'))rSales.textContent=periodRows.filter(x=>x.kind==='sale').length;
  if(document.getElementById('rStockMoves'))rStockMoves.textContent=periodRows.filter(x=>x.kind==='stock').length;
+
+
+ // Profesyonel rapor ayrıntıları
+ let finRows=periodRows.filter(x=>['income','expense','sale','stock'].includes(x.kind));
+ let lower=x=>String(x||'').toLocaleLowerCase('tr-TR');
+ let feedExpense=finRows.filter(x=>['expense','stock'].includes(x.kind)&&(lower(x.category).includes('yem')||lower(x.label).includes('yem')||lower(x.label).includes('arpa')||lower(x.stockItem).includes('arpa')||lower(x.stockItem).includes('balya')||lower(x.stockItem).includes('saman'))).reduce((s,x)=>s+(+x.amount||0),0);
+ let medExpense=finRows.filter(x=>['expense','stock'].includes(x.kind)&&(lower(x.category).includes('ilaç')||lower(x.category).includes('ilac')||lower(x.category).includes('sağlık')||lower(x.label).includes('ilaç')||lower(x.label).includes('ilac')||lower(x.stockItem).includes('ilaç'))).reduce((s,x)=>s+(+x.amount||0),0);
+ let saleIncome=finRows.filter(x=>x.kind==='sale'||(x.kind==='income'&&lower(x.category).includes('hayvan'))).reduce((s,x)=>s+(+x.amount||0),0);
+ if(document.getElementById('rFeedExpense'))rFeedExpense.textContent=money(feedExpense);
+ if(document.getElementById('rMedicineExpense'))rMedicineExpense.textContent=money(medExpense);
+ if(document.getElementById('rSaleIncome'))rSaleIncome.textContent=money(saleIncome);
+
+ let prev=previousPeriodRecords(),prevIncome=prev.filter(x=>['income','sale'].includes(x.kind)).reduce((s,x)=>s+(+x.amount||0),0),prevExpense=prev.filter(x=>['expense','stock'].includes(x.kind)).reduce((s,x)=>s+(+x.amount||0),0),prevNet=prevIncome-prevExpense,curNet=f.income-f.expense;
+ if(document.getElementById('rPrevNet'))rPrevNet.textContent=!prev.length?'-':((curNet-prevNet)>=0?'+':'')+money(curNet-prevNet);
+
+ let eweRows=activeBreedingEwes().map(a=>{
+  let br=periodRows.filter(r=>r.kind==='birth'&&r.motherId===a.id),kids=br.reduce((s,r)=>s+(+r.count||0),0),last=br.map(r=>r.date).filter(Boolean).sort().pop()||'Doğum yok';
+  return {a,kids,births:br.length,last}
+ }).sort((x,y)=>y.kids-x.kids);
+ if(document.getElementById('ewePerformanceList'))ewePerformanceList.innerHTML=eweRows.length?eweRows.map(x=>`<div class="listitem row"><div><b>${animalName(x.a)}</b><div class="muted">${x.births} doğum · son: ${x.last}</div></div><b>${x.kids} kuzu</b></div>`).join(''):'<div class="muted">Anaç kaydı yok.</div>';
+
+ function wval(r){let m=String(r.note||'').replace(',','.').match(/[\d.]+/);return m?+m[0]:0}
+ let lambRows=active.filter(a=>a.type==='Kuzu').map(a=>{
+  let wr=periodRows.filter(r=>r.kind==='weight'&&r.animalId===a.id&&wval(r)>0).sort((x,y)=>String(x.date).localeCompare(String(y.date)));
+  let gain=null;if(wr.length>1){let d=Math.max(1,(new Date(wr.at(-1).date)-new Date(wr[0].date))/864e5);gain=(wval(wr.at(-1))-wval(wr[0]))/d}
+  return {a,gain,last:a.weight||0}
+ }).sort((x,y)=>(y.gain??-999)-(x.gain??-999));
+ if(document.getElementById('lambPerformanceList'))lambPerformanceList.innerHTML=lambRows.length?lambRows.map(x=>`<div class="listitem row"><div><b>${animalName(x.a)}</b><div class="muted">${age(x.a.birth)} · ${x.a.status}</div></div><div style="text-align:right"><b>${x.last?x.last+' kg':'-'}</b><div class="muted">${x.gain==null?'Kilo artışı için 2 tartım gerekir':(x.gain*1000).toLocaleString('tr-TR',{maximumFractionDigits:0})+' g/gün'}</div></div></div>`).join(''):'<div class="muted">Aktif kuzu yok.</div>';
+
+ let healthRows=periodRows.filter(r=>r.kind==='health');
+ if(document.getElementById('healthReportList'))healthReportList.innerHTML=healthRows.length?healthRows.slice().reverse().map(r=>{let a=db.animals.find(x=>x.id===r.animalId);return `<div class="listitem"><b>${a?animalName(a):r.label}</b><div class="muted">${r.date||''} · ${r.note||r.label||''}</div></div>`}).join(''):'<div class="muted">Bu dönemde sağlık kaydı yok.</div>';
+
+ let sales=periodRows.filter(r=>r.kind==='sale'),soldCount=sales.reduce((s,r)=>s+((r.animalIds||[]).length||1),0),salesAmount=sales.reduce((s,r)=>s+(+r.amount||0),0);
+ if(document.getElementById('salesReportList'))salesReportList.innerHTML=sales.length?`<div class="listitem row"><span>Satılan hayvan</span><b>${soldCount}</b></div><div class="listitem row"><span>Toplam satış</span><b>${money(salesAmount)}</b></div><div class="listitem row"><span>Hayvan başı ortalama</span><b>${money(soldCount?salesAmount/soldCount:0)}</b></div>`:'<div class="muted">Bu dönemde satış yok.</div>';
+
+ if(document.getElementById('stockReportList'))stockReportList.innerHTML=Object.entries(db.stock).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${v}</b></div>`).join('')||'<div class="muted">Stok kaydı yok.</div>';
 
  let pd=document.getElementById('plusReportDetails'), pn=document.getElementById('reportPlanNote');
  if(pd)pd.style.display=isPlus()?'block':'none';
