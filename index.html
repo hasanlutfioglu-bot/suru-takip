@@ -137,7 +137,8 @@ const KEY='suru_takip_v5';
 const SUPABASE_URL='https://nqbfyahiijdkrroojlct.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_OnTZGx8h0RwxDV7X6DhXQQ_-jJbxfRN';
 const LIVE_APP_URL='https://hasanlutfioglu-bot.github.io/suru-takip/';
-let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTimer=null, cloudApplying=false, lastCloudStamp='';
+let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTimer=null, cloudApplying=false, lastCloudStamp='', currentPlan='free';
+const FREE_ANIMAL_LIMIT=20;
 
 const today=()=>new Date().toISOString().slice(0,10);
 function seed(){
@@ -180,6 +181,21 @@ function showModal(title,body){modalTitle.textContent=title;modalBody.innerHTML=
 function animalName(a){return (a.tag?'#'+a.tag:'Küpesiz')+' · '+a.type}
 function age(b){if(!b)return 'Yaş bilinmiyor';let m=Math.max(0,Math.floor((Date.now()-new Date(b))/(864e5*30.44)));return m<12?m+' aylık':Math.floor(m/12)+' yaş '+m%12+' ay'}
 function isActiveAnimal(a){return !['Satıldı','Öldü','Kesildi'].includes(a.status)}
+function activeAnimalCount(){return db.animals.filter(isActiveAnimal).length}
+function isPlus(){return currentPlan==='plus'}
+function canAddAnimals(n=1){return isPlus() || (activeAnimalCount()+n)<=FREE_ANIMAL_LIMIT}
+function showPlusRequired(extra=1){
+ showModal('Sürü Takip Plus',`
+  <div class="card">
+   <b>Ücretsiz paket: 20 hayvana kadar</b>
+   <div class="muted" style="margin-top:6px">Bu işlemle aktif hayvan sayın ${activeAnimalCount()+extra} olacak. 20 hayvandan fazlası için Plus üyelik gerekir.</div>
+  </div>
+  <div class="card">
+   <b>Plus</b>
+   <div class="muted" style="margin-top:6px">20 hayvan sınırı kalkar. Abonelik ve ödeme bağlantısını sonraki adımda ekleyeceğiz.</div>
+  </div>
+ `);
+}
 function animalOptions(types){return db.animals.filter(a=>isActiveAnimal(a)&&(!types||types.includes(a.type))).map(a=>`<option value="${a.id}">${animalName(a)}</option>`).join('')}
 function motherOptions(){return db.animals.filter(a=>isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı')).map(a=>`<option value="${a.id}">${animalName(a)}${a.breedingStatus==='Anaç Adayı'?' · Anaç Adayı':''}</option>`).join('')}
 function salePickList(){let arr=db.animals.filter(a=>isActiveAnimal(a));return arr.length?`<div class="pickList">${arr.map(a=>`<label class="pickRow"><input type="checkbox" class="saleAnimal" value="${a.id}"><span><b>${animalName(a)}</b><br><span class="muted">${a.sex} · ${age(a.birth)} · ${a.status}</span></span></label>`).join('')}</div>`:'<div class="pickList"><div class="pickEmpty">Satılabilecek aktif hayvan yok.</div></div>'}
@@ -230,6 +246,8 @@ async function connectCloud(){
  const {data:members,error:memErr}=await sb.from('farm_members').select('farm_id,role').eq('user_id',cloudSession.user.id).limit(1);
  if(memErr||!members?.length){setCloudUI('local','Bulut çiftliği bulunamadı: '+(memErr?.message||'hesap kaydı yok'));return}
  cloudFarmId=members[0].farm_id;
+ const {data:sub}=await sb.from('subscriptions').select('plan,status').eq('farm_id',cloudFarmId).maybeSingle();
+ currentPlan=(sub?.status==='active'||sub?.status==='trialing')?(sub?.plan||'free'):'free';
  const {data:state,error}=await sb.from('farm_state').select('data,updated_at').eq('farm_id',cloudFarmId).single();
  if(error){setCloudUI('local','Bulut verisi okunamadı: '+error.message);return}
  let remote=state?.data||{};
@@ -322,7 +340,7 @@ function openAccount(){
  const name=user?.user_metadata?.full_name||user?.user_metadata?.name||'';
  const email=user?.email||'Google hesabı bağlı değil';
  const farm=db.farmName||'İşletme adı girilmedi';
- const active=db.animals.filter(isActiveAnimal).length;
+ const active=activeAnimalCount();
  showModal('Hesabım / İşletmem',`
   <div class="card">
    <div class="muted">Google hesabı</div><b>${escHtml(name||email)}</b>
@@ -335,8 +353,8 @@ function openAccount(){
    <div class="card stat"><b>${db.records.length}</b><span>Toplam kayıt</span></div>
   </div>
   <div class="card">
-   <div class="row"><div><b>Üyelik</b><div class="muted">Ticari sürüm hazırlığı</div></div><span class="tag">Deneme</span></div>
-   <div class="muted" style="margin-top:8px">Paket ve ödeme sistemi sonraki adımda bağlanacak.</div>
+   <div class="row"><div><b>Üyelik</b><div class="muted">${isPlus()?'20 hayvan sınırı yok':'20 hayvana kadar ücretsiz'}</div></div><span class="tag">${isPlus()?'PLUS':'ÜCRETSİZ'}</span></div>
+   <div class="muted" style="margin-top:8px">${isPlus()?'Plus üyeliğin aktif.':'21. aktif hayvandan itibaren Plus üyelik gerekir.'}</div>
   </div>
   <button class="primary" onclick="saveAccountFarmName()">İşletme Bilgisini Kaydet</button>
  `);
@@ -368,6 +386,7 @@ async function saveInitialSetup(){
  const nums=[setupEwes,setupRams,setupMaleLambs,setupFemaleLambs,setupUnknownLambs].map(x=>Math.max(0,parseInt(x.value||'0',10)||0));
  const total=nums.reduce((a,b)=>a+b,0);
  if(!total)return toast('En az bir hayvan ekle');
+ if(!canAddAnimals(total))return showPlusRequired(total);
  if(db.animals.length&&!confirm('Mevcut hayvanların yanına bu hayvanlar eklenecek. Devam edilsin mi?'))return;
  db.farmName=setupFarmName.value.trim()||db.farmName||'Sürü Takip';
  const addMany=(n,type,sex,breedingStatus='')=>{for(let i=0;i<n;i++)db.animals.push({id:uid(type==='Koç'?'r':type==='Kuzu'?'l':'e'),type,sex,tag:'',status:'Aktif',birth:'',weight:'',breedingStatus})};
@@ -399,6 +418,7 @@ function syncNewAnimalSex(){
  if(newAnimalType.value==='Koç')newAnimalSex.value='Erkek';
 }
 function saveNewAnimal(){
+ if(!canAddAnimals(1))return showPlusRequired(1);
  const tag=(newAnimalTag.value||'').trim();
  if(tag&&db.animals.some(a=>a.tag===tag))return toast('Bu küpe numarası zaten kullanılıyor');
  const type=newAnimalType.value, sex=newAnimalSex.value;
@@ -528,6 +548,7 @@ function submitSimple(kind){if(!+amount.value)return toast('Tutar gir');if(kind=
 function submitBirth(){
  let n=+count.value, ss=sexes.value.split(',').map(x=>x.trim()).filter(Boolean), mom=db.animals.find(x=>x.id===mother.value);
  if(!mom)return toast('Anaç seç');
+ if(!canAddAnimals(n))return showPlusRequired(n);
  if(mom.breedingStatus==='Anaç Adayı'){mom.breedingStatus='Anaç';mom.type='Koyun';mom.status='Aktif'}
  else if(!mom.breedingStatus)mom.breedingStatus='Anaç';
  let childIds=[];
