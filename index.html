@@ -25,7 +25,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 .menuGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.menuBtn{text-align:left;background:white;border:1px solid var(--line);padding:16px;min-height:72px}
 .modal{position:fixed;inset:0;background:#0008;z-index:30;display:none;align-items:flex-end;justify-content:center}.modal.show{display:flex}.sheet{background:var(--bg);width:min(760px,100%);max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#172018;color:white;padding:11px 15px;border-radius:99px;display:none;z-index:50}
-.empty{padding:24px;text-align:center;color:var(--muted)}.money.plus{color:#277044}.money.minus{color:#a44747}.clickcard{cursor:pointer}.clickcard:active{transform:scale(.99)}.reportList{margin-top:10px}.reportList .card{box-shadow:none;background:#fafcf9}.rateHelp{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}
+.empty{padding:24px;text-align:center;color:var(--muted)}.money.plus{color:#277044}.money.minus{color:#a44747}.clickcard{cursor:pointer}.clickcard:active{transform:scale(.99)}.reportList{margin-top:10px}.reportList .card{box-shadow:none;background:#fafcf9}.rateHelp{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}.reportFold{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between}.reportFold:after{content:'▾';font-size:13px;color:var(--muted);transition:transform .15s}.reportFold.closed:after{transform:rotate(-90deg)}.quickResults{margin-top:6px}.quickResult{padding:10px 0;border-top:1px solid var(--line)}.quickActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 @media(min-width:620px){.grid{grid-template-columns:repeat(4,1fr)}.menuGrid{grid-template-columns:repeat(3,1fr)}}
 
 .chatBox{min-height:180px;max-height:320px;overflow:auto}.chatMsg{padding:10px 12px;border-radius:14px;margin:8px 0;line-height:1.35}.botMsg{background:#eef4ef;margin-right:12%}.userMsg{background:#dfeee3;margin-left:12%;text-align:right}.talkBtn{width:100%;border:0;border-radius:18px;padding:16px;margin:10px 0 6px;background:var(--green);color:white;font-size:17px;font-weight:800;box-shadow:var(--shadow)}.talkBtn.listening{background:var(--bad);animation:pulse 1s infinite}.voiceStatus{text-align:center;color:var(--muted);font-size:12px;margin-bottom:10px}.chatComposer{display:flex;gap:8px;margin-bottom:10px}.chatComposer input{flex:1;min-width:0;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}@keyframes pulse{50%{opacity:.72}}
@@ -33,7 +33,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V13</span></h1><span class="pill" id="cloudStatus">Yerel mod</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V15</span></h1><span class="pill" id="cloudStatus">Yerel mod</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="hero"><small>GENEL DURUM</small><h2 id="heroTotal">36 hayvan</h2><div id="heroSub">24 koyun · 1 koç · 11 kuzu</div></div>
@@ -58,6 +58,12 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
   <div class="card stat"><b id="sRam">1</b><span>Koç</span></div>
   <div class="card stat"><b id="sLamb">11</b><span>Kuzu</span></div>
   <div class="card stat"><b id="sFollow">0</b><span>Takipte</span></div>
+ </div>
+ <div class="card">
+  <b>🔎 Hayvan Bul / Hızlı İşlem</b>
+  <div class="muted" style="margin-top:4px">Küpe numarasını yaz; hayvan kartı ve işlemler hemen açılsın.</div>
+  <input id="quickAnimalSearch" inputmode="numeric" placeholder="Örn. 245" oninput="quickAnimalLookup()">
+  <div id="quickAnimalResults" class="quickResults"></div>
  </div>
  <h3>Bugün</h3><div class="card" id="todayBox"></div>
  <h3>Bu dönem finans</h3><div class="card row"><div><div class="muted">Net kâr / zarar</div><b id="homeNet">0 TL</b></div><button class="small" onclick="go('reports')">Raporlar</button></div>
@@ -384,7 +390,7 @@ function renderAll(){
  let fin=calcFinance('all');homeNet.textContent=money(fin.income-fin.expense);
  recent.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz hareket yok.</div>';
  last5.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz kayıt yok.</div>';
- renderHerd();renderReports();
+ renderHerd();renderReports();setupReportFolds();
  chatHints.innerHTML='<b>Örnek komutlar</b><div class="listitem">“Bugün yapılacak ne var?”</div><div class="listitem">“Bu ay ne kadar yem masrafı yaptım?”</div><div class="listitem">“245 numaralı koyun ikiz doğurdu; biri erkek biri dişi.”</div>';
 }
 function recordHtml(x){
@@ -601,6 +607,50 @@ function saveAnimalEdit(id){
  save();closeModal();toast('Hayvan bilgileri güncellendi')
 }
 
+function quickAnimalLookup(){
+ const input=document.getElementById('quickAnimalSearch'), box=document.getElementById('quickAnimalResults');
+ if(!input||!box)return;
+ const q=(input.value||'').trim().toLocaleLowerCase('tr-TR');
+ if(!q){box.innerHTML='';return}
+ let arr=db.animals.filter(a=>{
+  const tag=String(a.tag||'').toLocaleLowerCase('tr-TR');
+  const name=animalName(a).toLocaleLowerCase('tr-TR');
+  return tag.includes(q)||name.includes(q);
+ });
+ arr.sort((a,b)=>{
+  const ae=String(a.tag||'').toLocaleLowerCase('tr-TR')===q?0:1;
+  const be=String(b.tag||'').toLocaleLowerCase('tr-TR')===q?0:1;
+  return ae-be;
+ });
+ arr=arr.slice(0,8);
+ box.innerHTML=arr.length?arr.map(a=>{
+  const canBirth=isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı');
+  return `<div class="quickResult">
+   <div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.status}${a.weight?' · '+a.weight+' kg':''}</div></div>
+   <div class="quickActions">
+    <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button>
+    <button class="small" onclick="openAddForAnimal('health','${a.id}')">💉 Sağlık</button>
+    <button class="small" onclick="openAddForAnimal('weight','${a.id}')">⚖️ Tartım</button>
+    ${canBirth?`<button class="small primary" onclick="openAddForAnimal('birth','${a.id}')">🐑 Doğum</button>`:''}
+   </div>
+  </div>`
+ }).join(''):'<div class="muted">Bu küpe numarasıyla hayvan bulunamadı.</div>';
+}
+function openAddForAnimal(kind,id){
+ openAdd(kind);
+ const selectId=kind==='birth'?'mother':'animal';
+ const sel=document.getElementById(selectId);
+ if(sel&&[...sel.options].some(o=>o.value===id))sel.value=id;
+}
+function setupReportFolds(){
+ const root=document.getElementById('plusReportDetails');if(!root)return;
+ root.querySelectorAll(':scope > h3').forEach(h=>{
+  if(h.dataset.foldReady==='1')return;
+  h.dataset.foldReady='1';h.classList.add('reportFold');
+  const target=h.nextElementSibling;if(!target)return;
+  h.onclick=()=>{const closed=target.style.display==='none';target.style.display=closed?'':'none';h.classList.toggle('closed',!closed)};
+ });
+}
 function openAdd(kind){
  let forms={
  income:['Gelir Ekle',`<label>Gelir türü</label><select id="cat" onchange="toggleIncomeAnimals()"><option>Devlet desteği</option><option>Hayvan satışı</option><option>Kuzu satışı dışı gelir</option><option>Diğer gelir</option></select><div id="incomeAnimals" style="display:none"><label>Satılan hayvanları seç</label>${salePickList()}</div><label>Tutar (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Açıklama</label><input id="note"><button class="primary" onclick="submitSimple('income')">Geliri Kaydet</button>`],
