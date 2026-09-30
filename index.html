@@ -124,6 +124,11 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 <div class="modal" id="modal"><div class="sheet"><div class="row"><h3 id="modalTitle">Kayıt</h3><button onclick="closeModal()">Kapat</button></div><div id="modalBody"></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
+const V13_PREVIEW_URL=location.origin+'/suru-takip/test-v13.html?v=8';
+const V13_AUTH_RETURN=/[?#](?:.*(?:code|access_token|error)=)/.test(location.href);
+if(localStorage.getItem('suru_use_v13_preview')==='1' && !V13_AUTH_RETURN){
+ location.replace(V13_PREVIEW_URL);
+}
 const KEY='suru_takip_v5';
 const SUPABASE_URL='https://nqbfyahiijdkrroojlct.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_OnTZGx8h0RwxDV7X6DhXQQ_-jJbxfRN';
