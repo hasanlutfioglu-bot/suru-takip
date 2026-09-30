@@ -454,7 +454,7 @@ function saleCandidateAge(a){
  let months=(n.getFullYear()-b.getFullYear())*12+(n.getMonth()-b.getMonth())+(n.getDate()-b.getDate())/30.44;
  return months>=5.5;
 }
-function isSaleCandidate(a){return !!a && (a.status==='Satılacak'||saleCandidateAge(a));}
+function isSaleCandidate(a){return !!a&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a)&&(a.status==='Satılacak'||saleCandidateAge(a));}
 function openSaleCandidates(){
  let arr=db.animals.filter(a=>isSaleCandidate(a));
  if(!arr.length)return showModal('Satılacak Kuzular','<div class="empty">Şu anda satış adayı kuzu yok.</div>');
