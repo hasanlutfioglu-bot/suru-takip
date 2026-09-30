@@ -139,6 +139,7 @@ const SUPABASE_PUBLISHABLE_KEY='sb_publishable_OnTZGx8h0RwxDV7X6DhXQQ_-jJbxfRN';
 const LIVE_APP_URL='https://hasanlutfioglu-bot.github.io/suru-takip/';
 let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTimer=null, cloudApplying=false, lastCloudStamp='', currentPlan='free';
 const FREE_ANIMAL_LIMIT=20;
+const FREE_MONTHLY_FINANCE_LIMIT=30;
 
 const today=()=>new Date().toISOString().slice(0,10);
 function seed(){
@@ -184,6 +185,27 @@ function isActiveAnimal(a){return !['Satıldı','Öldü','Kesildi'].includes(a.s
 function activeAnimalCount(){return db.animals.filter(isActiveAnimal).length}
 function isPlus(){return currentPlan==='plus'}
 function canAddAnimals(n=1){return isPlus() || (activeAnimalCount()+n)<=FREE_ANIMAL_LIMIT}
+function monthKey(d=new Date()){return d.toISOString().slice(0,7)}
+function monthlyFinanceCount(){
+ const mk=monthKey();
+ return db.records.filter(r=>{
+  const isFinance=['income','expense','sale','stock'].includes(r.kind);
+  return isFinance && (r.date||'').slice(0,7)===mk;
+ }).length;
+}
+function canAddFinance(n=1){return isPlus() || (monthlyFinanceCount()+n)<=FREE_MONTHLY_FINANCE_LIMIT}
+function showFinancePlusRequired(){
+ showModal('Sürü Takip Plus',`
+  <div class="card">
+   <b>Ücretsiz paket: ayda 30 gelir-gider kaydı</b>
+   <div class="muted" style="margin-top:6px">Bu ay ${monthlyFinanceCount()} finans kaydı oluşturdun. Yeni kayıt için Plus üyelik gerekir.</div>
+  </div>
+  <div class="card">
+   <b>Plus</b>
+   <div class="muted" style="margin-top:6px">Gelir-gider kayıt sınırı kalkar ve gelişmiş raporlar açılır.</div>
+  </div>
+ `);
+}
 function showPlusRequired(extra=1){
  showModal('Sürü Takip Plus',`
   <div class="card">
@@ -355,6 +377,7 @@ function openAccount(){
   <div class="card">
    <div class="row"><div><b>Üyelik</b><div class="muted">${isPlus()?'20 hayvan sınırı yok':'20 hayvana kadar ücretsiz'}</div></div><span class="tag">${isPlus()?'PLUS':'ÜCRETSİZ'}</span></div>
    <div class="muted" style="margin-top:8px">${isPlus()?'Plus üyeliğin aktif.':'21. aktif hayvandan itibaren Plus üyelik gerekir.'}</div>
+   <div class="muted" style="margin-top:4px">${isPlus()?'Gelir-gider kaydı sınırsız.':'Bu ay '+monthlyFinanceCount()+'/'+FREE_MONTHLY_FINANCE_LIMIT+' finans kaydı kullanıldı.'}</div>
   </div>
   <button class="primary" onclick="saveAccountFarmName()">İşletme Bilgisini Kaydet</button>
  `);
@@ -544,7 +567,7 @@ function openAdd(kind){
  note:['Not Ekle',`<label>Not</label><textarea id="note"></textarea><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitNote()">Kaydet</button>`]
  };showModal(forms[kind][0],forms[kind][1])
 }
-function submitSimple(kind){if(!+amount.value)return toast('Tutar gir');if(kind==='income'&&cat.value==='Hayvan satışı')return submitSelectedSale('income');db.records.push({id:uid('rec'),kind,label:(kind==='income'?'Gelir · ':'Gider · ')+cat.value,category:cat.value,amount:+amount.value,date:date.value,note:note.value});save();closeModal();toast(kind==='income'?'Gelir kaydedildi ve rapora işlendi':'Gider kaydedildi ve rapora işlendi')}
+function submitSimple(kind){if(!+amount.value)return toast('Tutar gir');if(!canAddFinance(1))return showFinancePlusRequired();if(kind==='income'&&cat.value==='Hayvan satışı')return submitSelectedSale('income');db.records.push({id:uid('rec'),kind,label:(kind==='income'?'Gelir · ':'Gider · ')+cat.value,category:cat.value,amount:+amount.value,date:date.value,note:note.value});save();closeModal();toast(kind==='income'?'Gelir kaydedildi ve rapora işlendi':'Gider kaydedildi ve rapora işlendi')}
 function submitBirth(){
  let n=+count.value, ss=sexes.value.split(',').map(x=>x.trim()).filter(Boolean), mom=db.animals.find(x=>x.id===mother.value);
  if(!mom)return toast('Anaç seç');
@@ -561,9 +584,9 @@ function submitBirth(){
 }
 function submitAnimal(kind){let a=db.animals.find(x=>x.id===animal.value);if(kind==='weight'){if(!+weight.value)return toast('Kilo gir');a.weight=+weight.value;db.records.push({id:uid('rec'),kind,label:'Tartım · '+animalName(a),date:date.value,animalId:a.id,note:weight.value+' kg'})}else db.records.push({id:uid('rec'),kind,label:'Sağlık · '+animalName(a),date:date.value,animalId:a.id,note:note.value});save();closeModal();toast('Kayıt işlendi')}
 function selectedSaleAnimals(){return [...document.querySelectorAll('.saleAnimal:checked')].map(x=>db.animals.find(a=>a.id===x.value)).filter(Boolean).filter(isActiveAnimal)}
-function submitSelectedSale(source){if(!+amount.value)return toast('Satış tutarı gir');let arr=selectedSaleAnimals();if(!arr.length)return toast('En az bir hayvan seç');let names=arr.map(animalName),ids=arr.map(a=>a.id),previousStatuses={};arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});db.records.push({id:uid('rec'),kind:'sale',label:`Satış · ${arr.length} hayvan`,category:'Kuzu/Hayvan satışı',amount:+amount.value,date:date.value,note:(typeof note!=='undefined'&&note?.value)||'',animalIds:ids,animalNames:names,previousStatuses,source:source||'sale'});save();closeModal();toast(arr.length+' hayvan satıldı; gelir kaydına bağlandı')}
+function submitSelectedSale(source){if(!+amount.value)return toast('Satış tutarı gir');if(!canAddFinance(1))return showFinancePlusRequired();let arr=selectedSaleAnimals();if(!arr.length)return toast('En az bir hayvan seç');let names=arr.map(animalName),ids=arr.map(a=>a.id),previousStatuses={};arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});db.records.push({id:uid('rec'),kind:'sale',label:`Satış · ${arr.length} hayvan`,category:'Kuzu/Hayvan satışı',amount:+amount.value,date:date.value,note:(typeof note!=='undefined'&&note?.value)||'',animalIds:ids,animalNames:names,previousStatuses,source:source||'sale'});save();closeModal();toast(arr.length+' hayvan satıldı; gelir kaydına bağlandı')}
 function submitSale(){return submitSelectedSale('sale')}
-function submitStock(){if(!+qty.value)return toast('Miktar gir');db.stock[cat.value]=(db.stock[cat.value]||0)+(+qty.value);db.records.push({id:uid('rec'),kind:'stock',label:'Stok alımı · '+cat.value,category:'Stok/Yem',stockItem:cat.value,qty:+qty.value,amount:+amount.value||0,date:date.value,note:qty.value+' birim'});save();closeModal();toast('Stok arttı ve maliyet gidere işlendi')}
+function submitStock(){if(!+qty.value)return toast('Miktar gir');if(!canAddFinance(1))return showFinancePlusRequired();db.stock[cat.value]=(db.stock[cat.value]||0)+(+qty.value);db.records.push({id:uid('rec'),kind:'stock',label:'Stok alımı · '+cat.value,category:'Stok/Yem',stockItem:cat.value,qty:+qty.value,amount:+amount.value||0,date:date.value,note:qty.value+' birim'});save();closeModal();toast('Stok arttı ve maliyet gidere işlendi')}
 function submitNote(){db.records.push({id:uid('rec'),kind:'note',label:'Not',date:date.value,note:note.value});save();closeModal();toast('Not kaydedildi')}
 function latestBirthPeriodRange(){
  let ds=db.records.filter(x=>x.kind==='birth'&&x.date).map(x=>new Date(x.date+'T00:00:00')).filter(x=>!isNaN(x)).sort((a,b)=>b-a);
