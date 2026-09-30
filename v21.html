@@ -749,11 +749,21 @@ function renderProductionPeriods(){
   return `<div class="listitem"><div class="row"><b>${p}</b><b>${money(exp)} gider</b></div><div class="muted" style="margin-top:4px">${htxt}</div></div>`
  }).join('')
 }
+function birthSexFields(n){
+ n=Math.max(1,Math.min(3,+n||1));
+ return Array.from({length:n},(_,i)=>`<label>Kuzu ${i+1} cinsiyeti</label><select class="birthSex"><option value="Erkek">Erkek</option><option value="Dişi">Dişi</option></select>`).join('');
+}
+function renderBirthSexFields(n){
+ let box=document.getElementById('birthSexFields');if(!box)return;
+ let old=[...box.querySelectorAll('.birthSex')].map(x=>x.value);
+ box.innerHTML=birthSexFields(n);
+ [...box.querySelectorAll('.birthSex')].forEach((x,i)=>{if(old[i])x.value=old[i]});
+}
 function openAdd(kind){
  let forms={
  income:['Gelir Ekle',`<label>Gelir türü</label><select id="cat" onchange="toggleIncomeAnimals()"><option>Devlet desteği</option><option>Hayvan satışı</option><option>Kuzu satışı dışı gelir</option><option>Diğer gelir</option></select><div id="incomeAnimals" style="display:none"><label>Satılan hayvanları seç</label>${salePickList()}</div><label>Tutar (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Açıklama</label><input id="note"><button class="primary" onclick="submitSimple('income')">Geliri Kaydet</button>`],
  expense:['Gider Ekle',`<label>Gider türü</label><select id="cat" onchange="toggleExpenseProduction()"><option>Yem</option><option>İlaç</option><option>Tarla · Tohum</option><option>Tarla · Libazma/Sürüm</option><option>Tarla · Mazot</option><option>Tarla · Gübre</option><option>Tarla · İlaçlama</option><option>Tarla · Biçim/Balya</option><option>Tarla · İşçilik</option><option>Tarla · Diğer</option><option>Veteriner</option><option>Diğer gider</option></select><div id="expenseProductionFields" style="display:none"><label>Üretim dönemi</label><input id="productionPeriod" value="${productionPeriodDefault()}" placeholder="2026-2027"><div class="muted" style="margin-bottom:8px">Tarla tarla dağıtım yok; bu gider doğrudan seçilen sezona yazılır.</div></div><label>Tutar (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Açıklama</label><input id="note"><button class="primary" onclick="submitSimple('expense')">Gideri Kaydet</button>`],
- birth:['Doğum Kaydı',`<label>Anaç</label><select id="mother">${motherOptions()}</select><label>Doğum tarihi</label><input id="date" type="date" value="${today()}"><label>Kuzu sayısı</label><select id="count"><option>1</option><option>2</option><option>3</option></select><label>Cinsiyetler (örn: Erkek,Dişi)</label><input id="sexes" placeholder="Erkek,Dişi"><button class="primary" onclick="submitBirth()">Doğumu Kaydet ve Kuzuları Sürüye Ekle</button>`],
+ birth:['Doğum Kaydı',`<label>Anaç</label><select id="mother">${motherOptions()}</select><label>Doğum tarihi</label><input id="date" type="date" value="${today()}"><label>Kuzu sayısı</label><select id="count" onchange="renderBirthSexFields(this.value)"><option>1</option><option>2</option><option>3</option></select><div id="birthSexFields">${birthSexFields(1)}</div><button class="primary" onclick="submitBirth()">Doğumu Kaydet ve Kuzuları Sürüye Ekle</button>`],
  health:['Sağlık Kaydı',`<label>Hayvan</label><select id="animal">${animalOptions()}</select><label>İşlem / durum</label><input id="note" placeholder="İlaç, aşı, takip..."><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Tekrar / hatırlatma</label><select id="reminderDays" onchange="document.getElementById('reminderDate').style.display=this.value==='custom'?'block':'none'"><option value="0">Hatırlatma yok</option><option value="7">7 gün sonra</option><option value="15">15 gün sonra</option><option value="30">30 gün sonra</option><option value="custom">Tarih seç</option></select><input id="reminderDate" type="date" style="display:none"><div class="muted" style="margin-bottom:8px">İstersen boş bırak; sadece gereken işlemlerde kullan.</div><button class="primary" onclick="submitAnimal('health')">Kaydet</button>`],
  weight:['Tartım Kaydı',`<label>Hayvan</label><select id="animal">${animalOptions()}</select><label>Kilo (kg)</label><input id="weight" type="number" step=".1"><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitAnimal('weight')">Kaydet</button>`],
  sale:['Satış Kaydı',`<label>Satılan hayvanları seç</label>${salePickList()}<label>Toplam satış tutarı (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Açıklama</label><input id="note"><button class="primary" onclick="submitSale()">Satışı Kaydet</button>`],
@@ -764,7 +774,7 @@ function openAdd(kind){
 }
 function submitSimple(kind){if(!+amount.value)return toast('Tutar gir');if(!canAddFinance(1))return showFinancePlusRequired();if(kind==='income'&&cat.value==='Hayvan satışı')return submitSelectedSale('income');let rec={id:uid('rec'),kind,label:(kind==='income'?'Gelir · ':'Gider · ')+cat.value,category:cat.value,amount:+amount.value,date:date.value,note:note.value};if(kind==='expense'&&String(cat.value).startsWith('Tarla'))rec.productionPeriod=(document.getElementById('productionPeriod')?.value||productionPeriodDefault(date.value)).trim();db.records.push(rec);save();closeModal();toast(kind==='income'?'Gelir kaydedildi ve rapora işlendi':'Gider kaydedildi ve rapora işlendi')}
 function submitBirth(){
- let n=+count.value, ss=sexes.value.split(',').map(x=>x.trim()).filter(Boolean), mom=db.animals.find(x=>x.id===mother.value);
+ let n=+count.value, ss=[...document.querySelectorAll('.birthSex')].map(x=>x.value), mom=db.animals.find(x=>x.id===mother.value);
  if(!mom)return toast('Anaç seç');
  if(!canAddAnimals(n))return showPlusRequired(n);
  if(mom.breedingStatus==='Anaç Adayı'){mom.breedingStatus='Anaç';mom.type='Koyun';mom.status='Aktif'}
