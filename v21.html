@@ -899,6 +899,10 @@ function editRecord(id){
   let sexes=kids.length?kids.map(k=>k.sex||'Bilinmiyor'):String(r.note||'').split(',').map(x=>x.trim()).filter(Boolean);
   showModal('Doğum Kaydını Düzenle',\`\${commonDate}<label>Kuzu sayısı</label><select id="editCount" onchange="renderEditBirthSexFields(this.value)"><option \${r.count==1?'selected':''}>1</option><option \${r.count==2?'selected':''}>2</option><option \${r.count==3?'selected':''}>3</option></select><div id="editBirthSexFields">\${birthEditSexFields(r.count||1,sexes)}</div><div class="muted">Bu kayıtla bağlı kuzular da birlikte güncellenir.</div><button class="primary" onclick="saveRecordEdit('\${id}','birth')">Değişiklikleri Kaydet</button>\${del}\`);return
  }
+ if(r.kind==='death'){
+  let a=db.animals.find(x=>x.id===r.animalId);
+  showModal('Ölüm Kaydını Düzenle',\`\${commonDate}<label>Ölüm nedeni</label><input id="editNote" value="\${r.note||a?.deathReason||''}"><button class="primary" onclick="saveRecordEdit('\${id}','death')">Değişiklikleri Kaydet</button>\${del}\`);return
+ }
  if(r.kind==='weight'){
   let w=String(r.note||'').replace(/[^\d.,]/g,'').replace(',','.');
   showModal('Tartımı Düzenle',`${commonDate}<label>Kilo (kg)</label><input id="editWeight" type="number" step=".1" value="${w}"><button class="primary" onclick="saveRecordEdit('${id}','weight')">Değişiklikleri Kaydet</button>${del}`);return
@@ -907,6 +911,9 @@ function editRecord(id){
   let item=r.stockItem||String(r.label||'').replace('Stok alımı · ','');
   showModal('Stok Kaydını Düzenle',`${commonDate}<label>Kalem</label><select id="editStockItem">${Object.keys(db.stock).map(x=>`<option ${x===item?'selected':''}>${x}</option>`).join('')}</select><label>Miktar</label><input id="editQty" type="number" value="${recordQty(r)}"><label>Maliyet (TL)</label><input id="editAmount" type="number" value="${r.amount||0}"><button class="primary" onclick="saveRecordEdit('${id}','stock')">Değişiklikleri Kaydet</button>${del}`);return
  }
+ if(r.kind==='harvest'){
+  showModal('Hasat Kaydını Düzenle',\`\${commonDate}<label>Ürün</label><input id="editHarvestItem" value="\${r.stockItem||''}"><label>Miktar</label><input id="editQty" type="number" step=".1" value="\${recordQty(r)}"><label>Birim</label><select id="editHarvestUnit"><option \${r.unit==='kg'?'selected':''}>kg</option><option \${r.unit==='adet'?'selected':''}>adet</option><option \${r.unit==='balya'?'selected':''}>balya</option><option \${r.unit==='ton'?'selected':''}>ton</option></select><label>Üretim dönemi</label><input id="editProductionPeriod" value="\${r.productionPeriod||''}"><label>Not</label><input id="editNote" value="\${r.note||''}"><button class="primary" onclick="saveRecordEdit('\${id}','harvest')">Değişiklikleri Kaydet</button>\${del}\`);return
+ }
  showModal('Kaydı Düzenle',`${commonDate}<label>Açıklama</label><input id="editNote" value="${r.note||''}"><button class="primary" onclick="saveRecordEdit('${id}','basic')">Değişiklikleri Kaydet</button>${del}`)
 }
 function saveRecordEdit(id,mode){
@@ -914,6 +921,7 @@ function saveRecordEdit(id,mode){
  let newDate=document.getElementById('editDate')?.value||r.date;
  if(mode==='finance'||mode==='sale'){r.date=newDate;r.amount=+document.getElementById('editAmount').value||0;r.note=document.getElementById('editNote').value||''}
  else if(mode==='basic'){r.date=newDate;r.note=document.getElementById('editNote').value||''}
+ else if(mode==='death'){r.date=newDate;r.note=document.getElementById('editNote').value||'Neden belirtilmedi';let a=db.animals.find(x=>x.id===r.animalId);if(a){a.status='Öldü';a.deathDate=newDate;a.deathReason=r.note}}
  else if(mode==='weight'){
   r.date=newDate;let w=+document.getElementById('editWeight').value||0;r.note=w+' kg';recalcAnimalWeight(r.animalId)
  }
@@ -923,6 +931,13 @@ function saveRecordEdit(id,mode){
   db.stock[oldItem]=Math.max(0,(db.stock[oldItem]||0)-oldQty);
   db.stock[newItem]=(db.stock[newItem]||0)+newQty;
   r.stockItem=newItem;r.qty=newQty;r.label='Stok alımı · '+newItem;r.category='Stok/Yem';r.amount=+document.getElementById('editAmount').value||0;r.date=newDate;r.note=newQty+' birim'
+ }
+ else if(mode==='harvest'){
+  let oldItem=r.stockItem||'',oldQty=recordQty(r),newItem=(document.getElementById('editHarvestItem').value||'').trim(),newQty=+document.getElementById('editQty').value||0;
+  if(!newItem||!newQty)return toast('Ürün ve miktar gir');
+  db.stock[oldItem]=Math.max(0,(db.stock[oldItem]||0)-oldQty);
+  db.stock[newItem]=(db.stock[newItem]||0)+newQty;
+  r.stockItem=newItem;r.qty=newQty;r.unit=document.getElementById('editHarvestUnit').value;r.productionPeriod=(document.getElementById('editProductionPeriod').value||'').trim();r.date=newDate;r.note=document.getElementById('editNote').value||'';r.label='Hasat · '+newItem;r.category='Tarla/Hasat'
  }
  else if(mode==='birth'){
   let oldCount=+r.count||0,newCount=+document.getElementById('editCount').value||1;
@@ -954,6 +969,9 @@ function deleteRecord(id){
  if(r.kind==='stock'){
   let item=r.stockItem||String(r.label||'').replace('Stok alımı · ','');db.stock[item]=Math.max(0,(db.stock[item]||0)-recordQty(r))
  }
+ if(r.kind==='harvest'){
+  let item=r.stockItem||'';db.stock[item]=Math.max(0,(db.stock[item]||0)-recordQty(r))
+ }
  if(r.kind==='birth'){
   let ids=new Set(r.childIds||[]);
   let blocked=[...ids].some(cid=>{let a=db.animals.find(x=>x.id===cid);return a&&(!isActiveAnimal(a)||db.records.some(z=>z.id!==r.id&&(z.animalId===cid||(Array.isArray(z.animalIds)&&z.animalIds.includes(cid)))))});
@@ -965,6 +983,9 @@ function deleteRecord(id){
  }
  if(r.kind==='promotion'){
   let a=db.animals.find(x=>x.id===r.animalId);if(a&&a.breedingStatus==='Anaç'){a.type='Kuzu';a.breedingStatus='Anaç Adayı'}
+ }
+ if(r.kind==='death'){
+  let a=db.animals.find(x=>x.id===r.animalId);if(a){a.status='Aktif';a.deathDate='';a.deathReason=''}
  }
  let animalId=r.animalId;
  db.records=db.records.filter(x=>x.id!==id);
