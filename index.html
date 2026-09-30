@@ -40,7 +40,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
  <div class="card" id="cloudCard">
   <div class="row"><div><b>☁️ Bulut Senkronizasyonu</b><div class="muted" id="cloudText">Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.</div></div><span class="tag" id="netBadge">Hazır</span></div>
   <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-   <a class="btn primary" id="googleLoginBtn" href="https://nqbfyahiijdkrroojlct.supabase.co/auth/v1/authorize?provider=google&redirect_to=https%3A%2F%2Fhasanlutfioglu-bot.github.io%2Fsuru-takip%2F">Google ile Giriş Yap</a>
+   <button class="primary" id="googleLoginBtn" type="button" onclick="signInGoogle()">Google ile Giriş Yap</button>
    <button class="small" id="syncNowBtn" onclick="syncNow()" style="display:none">Şimdi Eşitle</button>
    <button class="small danger" id="logoutBtn" onclick="signOutCloud()" style="display:none">Çıkış</button>
   </div>
