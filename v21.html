@@ -778,7 +778,7 @@ function renderBirthSexFields(n){
 }
 function birthEditSexFields(n,sexes=[]){
  n=Math.max(1,Math.min(3,+n||1));
- return Array.from({length:n},(_,i)=>\`<label>Kuzu \${i+1} cinsiyeti</label><select class="editBirthSex"><option value="Erkek" \${sexes[i]==='Erkek'?'selected':''}>Erkek</option><option value="Dişi" \${sexes[i]==='Dişi'?'selected':''}>Dişi</option><option value="Bilinmiyor" \${(!sexes[i]||sexes[i]==='Bilinmiyor')?'selected':''}>Bilinmiyor</option></select>\`).join('');
+ return Array.from({length:n},(_,i)=>`<label>Kuzu ${i+1} cinsiyeti</label><select class="editBirthSex"><option value="Erkek" ${sexes[i]==='Erkek'?'selected':''}>Erkek</option><option value="Dişi" ${sexes[i]==='Dişi'?'selected':''}>Dişi</option><option value="Bilinmiyor" ${(!sexes[i]||sexes[i]==='Bilinmiyor')?'selected':''}>Bilinmiyor</option></select>`).join('');
 }
 function renderEditBirthSexFields(n){
  let box=document.getElementById('editBirthSexFields');if(!box)return;
@@ -897,11 +897,11 @@ function editRecord(id){
  if(r.kind==='birth'){
   let kids=(r.childIds||[]).map(cid=>db.animals.find(a=>a.id===cid)).filter(Boolean);
   let sexes=kids.length?kids.map(k=>k.sex||'Bilinmiyor'):String(r.note||'').split(',').map(x=>x.trim()).filter(Boolean);
-  showModal('Doğum Kaydını Düzenle',\`\${commonDate}<label>Kuzu sayısı</label><select id="editCount" onchange="renderEditBirthSexFields(this.value)"><option \${r.count==1?'selected':''}>1</option><option \${r.count==2?'selected':''}>2</option><option \${r.count==3?'selected':''}>3</option></select><div id="editBirthSexFields">\${birthEditSexFields(r.count||1,sexes)}</div><div class="muted">Bu kayıtla bağlı kuzular da birlikte güncellenir.</div><button class="primary" onclick="saveRecordEdit('\${id}','birth')">Değişiklikleri Kaydet</button>\${del}\`);return
+  showModal('Doğum Kaydını Düzenle',`${commonDate}<label>Kuzu sayısı</label><select id="editCount" onchange="renderEditBirthSexFields(this.value)"><option ${r.count==1?'selected':''}>1</option><option ${r.count==2?'selected':''}>2</option><option ${r.count==3?'selected':''}>3</option></select><div id="editBirthSexFields">${birthEditSexFields(r.count||1,sexes)}</div><div class="muted">Bu kayıtla bağlı kuzular da birlikte güncellenir.</div><button class="primary" onclick="saveRecordEdit('${id}','birth')">Değişiklikleri Kaydet</button>${del}`);return
  }
  if(r.kind==='death'){
   let a=db.animals.find(x=>x.id===r.animalId);
-  showModal('Ölüm Kaydını Düzenle',\`\${commonDate}<label>Ölüm nedeni</label><input id="editNote" value="\${r.note||a?.deathReason||''}"><button class="primary" onclick="saveRecordEdit('\${id}','death')">Değişiklikleri Kaydet</button>\${del}\`);return
+  showModal('Ölüm Kaydını Düzenle',`${commonDate}<label>Ölüm nedeni</label><input id="editNote" value="${r.note||a?.deathReason||''}"><button class="primary" onclick="saveRecordEdit('${id}','death')">Değişiklikleri Kaydet</button>${del}`);return
  }
  if(r.kind==='weight'){
   let w=String(r.note||'').replace(/[^\d.,]/g,'').replace(',','.');
@@ -912,7 +912,7 @@ function editRecord(id){
   showModal('Stok Kaydını Düzenle',`${commonDate}<label>Kalem</label><select id="editStockItem">${Object.keys(db.stock).map(x=>`<option ${x===item?'selected':''}>${x}</option>`).join('')}</select><label>Miktar</label><input id="editQty" type="number" value="${recordQty(r)}"><label>Maliyet (TL)</label><input id="editAmount" type="number" value="${r.amount||0}"><button class="primary" onclick="saveRecordEdit('${id}','stock')">Değişiklikleri Kaydet</button>${del}`);return
  }
  if(r.kind==='harvest'){
-  showModal('Hasat Kaydını Düzenle',\`\${commonDate}<label>Ürün</label><input id="editHarvestItem" value="\${r.stockItem||''}"><label>Miktar</label><input id="editQty" type="number" step=".1" value="\${recordQty(r)}"><label>Birim</label><select id="editHarvestUnit"><option \${r.unit==='kg'?'selected':''}>kg</option><option \${r.unit==='adet'?'selected':''}>adet</option><option \${r.unit==='balya'?'selected':''}>balya</option><option \${r.unit==='ton'?'selected':''}>ton</option></select><label>Üretim dönemi</label><input id="editProductionPeriod" value="\${r.productionPeriod||''}"><label>Not</label><input id="editNote" value="\${r.note||''}"><button class="primary" onclick="saveRecordEdit('\${id}','harvest')">Değişiklikleri Kaydet</button>\${del}\`);return
+  showModal('Hasat Kaydını Düzenle',`${commonDate}<label>Ürün</label><input id="editHarvestItem" value="${r.stockItem||''}"><label>Miktar</label><input id="editQty" type="number" step=".1" value="${recordQty(r)}"><label>Birim</label><select id="editHarvestUnit"><option ${r.unit==='kg'?'selected':''}>kg</option><option ${r.unit==='adet'?'selected':''}>adet</option><option ${r.unit==='balya'?'selected':''}>balya</option><option ${r.unit==='ton'?'selected':''}>ton</option></select><label>Üretim dönemi</label><input id="editProductionPeriod" value="${r.productionPeriod||''}"><label>Not</label><input id="editNote" value="${r.note||''}"><button class="primary" onclick="saveRecordEdit('${id}','harvest')">Değişiklikleri Kaydet</button>${del}`);return
  }
  showModal('Kaydı Düzenle',`${commonDate}<label>Açıklama</label><input id="editNote" value="${r.note||''}"><button class="primary" onclick="saveRecordEdit('${id}','basic')">Değişiklikleri Kaydet</button>${del}`)
 }
