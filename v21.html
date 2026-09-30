@@ -33,7 +33,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V18</span></h1><span class="pill" id="cloudStatus">Yerel mod</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></h1><span class="pill" id="cloudStatus">Yerel mod</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="hero"><small>GENEL DURUM</small><h2 id="heroTotal">36 hayvan</h2><div id="heroSub">24 koyun · 1 koç · 11 kuzu</div></div>
@@ -130,14 +130,14 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
  <div class="card"><div class="muted" id="reportLabel">Bu ay</div><div class="grid" style="margin-top:10px"><div class="stat"><b id="rIncome">0</b><span>Gelir</span></div><div class="stat"><b id="rExpense">0</b><span>Gider</span></div><div class="stat"><b id="rNet">0</b><span>Net</span></div><div class="stat"><b id="rBirths">0</b><span>Doğan kuzu</span></div></div></div>
  <div id="plusReportDetails">
   <h3>Sürü Özeti</h3><div class="grid">
-   <div class="card stat"><b id="rActiveAnimals">0</b><span>Aktif hayvan</span></div>
+   <div class="card stat clickcard" onclick="openHerdFilter('Tümü')"><b id="rActiveAnimals">0</b><span>Aktif hayvan · dokun</span></div>
    <div class="card stat"><b id="rSoldAnimals">0</b><span>Satılan</span></div>
    <div class="card stat"><b id="rTrackedAnimals">0</b><span>Takipte</span></div>
    <div class="card stat"><b id="rAvgWeight">0</b><span>Ort. kilo</span></div>
   </div>
   <h3>Kuzu Dağılımı</h3><div class="grid">
-   <div class="card stat"><b id="rMaleLambs">0</b><span>Erkek kuzu</span></div>
-   <div class="card stat"><b id="rFemaleLambs">0</b><span>Dişi kuzu</span></div>
+   <div class="card stat clickcard" onclick="openHerdFilter('Erkek Kuzular')"><b id="rMaleLambs">0</b><span>Erkek kuzu · dokun</span></div>
+   <div class="card stat clickcard" onclick="openHerdFilter('Dişi Kuzular')"><b id="rFemaleLambs">0</b><span>Dişi kuzu · dokun</span></div>
    <div class="card stat"><b id="rUnknownLambs">0</b><span>Cinsiyet bilinmiyor</span></div>
    <div class="card stat clickcard" onclick="openSaleCandidates()" title="Satış adaylarını aç"><b id="rSaleCandidates">0</b><span>Satılacak · dokun</span></div>
   </div>
@@ -219,7 +219,8 @@ let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTi
 const FREE_ANIMAL_LIMIT=20;
 const FREE_MONTHLY_FINANCE_LIMIT=30;
 
-const today=()=>new Date().toISOString().slice(0,10);
+function localDateISO(d=new Date()){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+const today=()=>localDateISO();
 function seed(){
  return {
   animals:[],
@@ -264,7 +265,7 @@ function isActiveAnimal(a){return !['Satıldı','Öldü','Kesildi'].includes(a.s
 function activeAnimalCount(){return db.animals.filter(isActiveAnimal).length}
 function isPlus(){return currentPlan==='plus'}
 function canAddAnimals(n=1){return isPlus() || (activeAnimalCount()+n)<=FREE_ANIMAL_LIMIT}
-function monthKey(d=new Date()){return d.toISOString().slice(0,7)}
+function monthKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function monthlyFinanceCount(){
  const mk=monthKey();
  return db.records.filter(r=>{
@@ -362,6 +363,7 @@ async function connectCloud(){
  subscribeCloud();
  let who=cloudSession.user.user_metadata?.full_name||cloudSession.user.email||'Google hesabı';
  setCloudUI('online','✓ Güncel – Otomatik senkron açık · '+who);
+ renderAll();
 }
 function applyRemoteState(remote){
  if(!cloudDataHasContent(remote))return;
@@ -468,6 +470,7 @@ function openSaleCandidates(){
   <button class="primary" onclick="submitSelectedSale('sale_candidates')">Seçilenleri Sat</button>
  `);
 }
+function openHerdFilter(filter){herdFilter=filter;go('herd')}
 function renderHerd(){
  let filters=['Tümü','Anaçlar','Anaç Adayları','Kuzular','Erkek Kuzular','Dişi Kuzular','Koç','Satılacaklar','Takipte','Pasif'];herdTabs.innerHTML=filters.map(f=>`<button class="tab ${herdFilter===f?'active':''}" onclick="herdFilter='${f}';renderHerd()">${f}</button>`).join('');
  let q=(herdSearch?.value||'').toLowerCase(); let arr=db.animals.filter(a=>{
@@ -715,8 +718,9 @@ function setupReportFolds(){
  const root=document.getElementById('plusReportDetails');if(!root)return;
  root.querySelectorAll(':scope > h3').forEach(h=>{
   if(h.dataset.foldReady==='1')return;
-  h.dataset.foldReady='1';h.classList.add('reportFold');
+  h.dataset.foldReady='1';h.classList.add('reportFold','closed');
   const target=h.nextElementSibling;if(!target)return;
+  target.style.display='none';
   h.onclick=()=>{const closed=target.style.display==='none';target.style.display=closed?'':'none';h.classList.toggle('closed',!closed)};
  });
 }
@@ -994,7 +998,10 @@ function renderReports(){
  let f=calcFinance(m), metrics=birthMetrics(m), births=f.arr.filter(x=>x.kind==='birth').reduce((s,x)=>s+(+x.count||0),0);
  let range=m==='birthperiod'?latestBirthPeriodRange():null;
  reportLabel.textContent=reportDateLabel(m);
- document.querySelectorAll('#reports .tab').forEach(x=>x.classList.toggle('active',x.dataset.report===m));
+ let reportTabs=[...document.querySelectorAll('#reports .tab')],yearTab=reportTabs.find(x=>x.dataset.report==='yearly'),detailTab=reportTabs.find(x=>x.textContent.includes('Detaylı Raporlar'));
+ if(yearTab)yearTab.textContent=isPlus()?'Bu Yıl':'Bu Yıl 🔒';
+ if(detailTab)detailTab.textContent=isPlus()?'Detaylı Raporlar ▾':'Detaylı Raporlar 🔒';
+ reportTabs.forEach(x=>x.classList.toggle('active',x.dataset.report===m));
  rIncome.textContent=money(f.income);rExpense.textContent=money(f.expense);rNet.textContent=money(f.income-f.expense);rBirths.textContent=births;
  rLambedEwes.textContent=metrics.lambedIds.length;rProlificacy.textContent=pct(metrics.prolificacy);rLambingRate.textContent=pct(metrics.lambingRate);rNonLambingCount.textContent=metrics.nonLambing.length;
  nonLambingHint.textContent=`${metrics.ewes.length} aktif anaçtan ${metrics.lambedIds.length} tanesi bu seçili dönemde doğurdu; ${metrics.nonLambing.length} tanesinin doğum kaydı yok.`;
