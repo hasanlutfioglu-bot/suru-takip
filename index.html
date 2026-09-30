@@ -33,7 +33,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V15</span></h1><span class="pill" id="cloudStatus">Yerel mod</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V16</span></h1><span class="pill" id="cloudStatus">Yerel mod</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="hero"><small>GENEL DURUM</small><h2 id="heroTotal">36 hayvan</h2><div id="heroSub">24 koyun · 1 koç · 11 kuzu</div></div>
@@ -924,7 +924,7 @@ function renderReports(){
   let br=periodRows.filter(r=>r.kind==='birth'&&r.motherId===a.id),kids=br.reduce((s,r)=>s+(+r.count||0),0),last=br.map(r=>r.date).filter(Boolean).sort().pop()||'Doğum yok';
   return {a,kids,births:br.length,last}
  }).sort((x,y)=>y.kids-x.kids);
- if(document.getElementById('ewePerformanceList'))ewePerformanceList.innerHTML=eweRows.length?eweRows.map(x=>`<div class="listitem row"><div><b>${animalName(x.a)}</b><div class="muted">${x.births} doğum · son: ${x.last}</div></div><b>${x.kids} kuzu</b></div>`).join(''):'<div class="muted">Anaç kaydı yok.</div>';
+ if(document.getElementById('ewePerformanceList'))ewePerformanceList.innerHTML=eweRows.length?eweRows.map(x=>`<div class="listitem row clickcard" onclick="animalCard('${x.a.id}')" title="Hayvan kartını aç"><div><b>${animalName(x.a)}</b><div class="muted">${x.births} doğum · son: ${x.last}</div></div><div style="text-align:right"><b>${x.kids} kuzu</b><div class="muted">Kartı aç ›</div></div></div>`).join(''):'<div class="muted">Anaç kaydı yok.</div>';
 
  function wval(r){let m=String(r.note||'').replace(',','.').match(/[\d.]+/);return m?+m[0]:0}
  let lambRows=active.filter(a=>a.type==='Kuzu').map(a=>{
@@ -932,7 +932,7 @@ function renderReports(){
   let gain=null;if(wr.length>1){let d=Math.max(1,(new Date(wr.at(-1).date)-new Date(wr[0].date))/864e5);gain=(wval(wr.at(-1))-wval(wr[0]))/d}
   return {a,gain,last:a.weight||0}
  }).sort((x,y)=>(y.gain??-999)-(x.gain??-999));
- if(document.getElementById('lambPerformanceList'))lambPerformanceList.innerHTML=lambRows.length?lambRows.map(x=>`<div class="listitem row"><div><b>${animalName(x.a)}</b><div class="muted">${age(x.a.birth)} · ${x.a.status}</div></div><div style="text-align:right"><b>${x.last?x.last+' kg':'-'}</b><div class="muted">${x.gain==null?'Kilo artışı için 2 tartım gerekir':(x.gain*1000).toLocaleString('tr-TR',{maximumFractionDigits:0})+' g/gün'}</div></div></div>`).join(''):'<div class="muted">Aktif kuzu yok.</div>';
+ if(document.getElementById('lambPerformanceList'))lambPerformanceList.innerHTML=lambRows.length?lambRows.map(x=>`<div class="listitem row clickcard" onclick="animalCard('${x.a.id}')" title="Hayvan kartını aç"><div><b>${animalName(x.a)}</b><div class="muted">${age(x.a.birth)} · ${x.a.status}</div></div><div style="text-align:right"><b>${x.last?x.last+' kg':'-'}</b><div class="muted">${x.gain==null?'Kilo artışı için 2 tartım gerekir':(x.gain*1000).toLocaleString('tr-TR',{maximumFractionDigits:0})+' g/gün'} · Kartı aç ›</div></div></div>`).join(''):'<div class="muted">Aktif kuzu yok.</div>';
 
  let healthRows=periodRows.filter(r=>r.kind==='health');
  if(document.getElementById('healthReportList'))healthReportList.innerHTML=healthRows.length?healthRows.slice().reverse().map(r=>{let a=db.animals.find(x=>x.id===r.animalId);return `<div class="listitem"><b>${a?animalName(a):r.label}</b><div class="muted">${r.date||''} · ${r.note||r.label||''}</div></div>`}).join(''):'<div class="muted">Bu dönemde sağlık kaydı yok.</div>';
