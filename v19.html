@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sürü Takip V19</title>
+<style>
+html,body{margin:0;width:100%;height:100%;background:#f4f7f3}
+iframe{border:0;width:100%;height:100%;display:block}
+</style>
+</head>
+<body>
+<iframe id="app" src="./v18.html?v=19"></iframe>
+<script>
+const frame=document.getElementById('app');
+frame.addEventListener('load',()=>{
+  const w=frame.contentWindow, d=frame.contentDocument;
+  try{
+    const oldOpen=w.openAdd;
+    w.renderBirthSexFields=function(){
+      const box=d.getElementById('birthSexFields');
+      const sel=d.getElementById('count');
+      if(!box||!sel)return;
+      const n=+sel.value||1;
+      let out='<label>Kuzuların cinsiyeti</label>';
+      for(let i=0;i<n;i++){
+        out+='<div class="row" style="gap:8px;margin:5px 0 8px"><b style="min-width:62px">Kuzu '+(i+1)+'</b><select id="birthSex_'+i+'" style="margin:0;flex:1"><option value="Erkek">Erkek</option><option value="Dişi">Dişi</option></select></div>';
+      }
+      box.innerHTML=out;
+    };
+    w.openAdd=function(kind){
+      oldOpen(kind);
+      if(kind==='birth'){
+        const count=d.getElementById('count');
+        const sexes=d.getElementById('sexes');
+        if(count){
+          count.setAttribute('onchange','renderBirthSexFields()');
+          if(sexes){
+            const label=sexes.previousElementSibling;
+            const holder=d.createElement('div');
+            holder.id='birthSexFields';
+            sexes.replaceWith(holder);
+            if(label)label.remove();
+          }
+          w.renderBirthSexFields();
+        }
+      }
+    };
+    w.submitBirth=function(){
+      const count=d.getElementById('count');
+      const mother=d.getElementById('mother');
+      const date=d.getElementById('date');
+      const n=+count.value;
+      const ss=[];
+      for(let i=0;i<n;i++)ss.push(d.getElementById('birthSex_'+i)?.value||'Bilinmiyor');
+      const mom=w.db.animals.find(x=>x.id===mother.value);
+      if(!mom)return w.toast('Anaç seç');
+      if(!w.canAddAnimals(n))return w.showPlusRequired(n);
+      if(mom.breedingStatus==='Anaç Adayı'){mom.breedingStatus='Anaç';mom.type='Koyun';mom.status='Aktif'}
+      else if(!mom.breedingStatus)mom.breedingStatus='Anaç';
+      const childIds=[];
+      for(let i=0;i<n;i++){
+        const child={id:w.uid('l'),type:'Kuzu',sex:ss[i],tag:'',status:'Aktif',birth:date.value,weight:'',motherId:mother.value,breedingStatus:''};
+        w.db.animals.push(child);childIds.push(child.id);
+      }
+      w.db.records.push({id:w.uid('rec'),kind:'birth',label:'Doğum · '+n+' kuzu',date:date.value,motherId:mother.value,count:n,note:ss.join(', '),childIds});
+      w.save();w.closeModal();w.toast(n+' kuzu eklendi · '+ss.join(' / '));
+    };
+    const badge=d.querySelector('h1 span');
+    if(badge)badge.textContent='V19';
+  }catch(e){}
+});
+</script>
+</body>
+</html>
