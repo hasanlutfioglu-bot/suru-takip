@@ -447,6 +447,7 @@ function renderAll(){
  recent.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz hareket yok.</div>';
  last5.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz kayıt yok.</div>';
  renderHerd();renderReports();setupReportFolds();setupDetailedReportControls();
+ if(currentSub==='performance')subBody.innerHTML=ewePerformanceHtml('all');
  chatHints.innerHTML='<b>Örnek komutlar</b><div class="listitem">“Bugün yapılacak ne var?”</div><div class="listitem">“Bu ay ne kadar yem masrafı yaptım?”</div><div class="listitem">“245 numaralı koyun ikiz doğurdu; biri erkek biri dişi.”</div>';
 }
 function recordHtml(x){
@@ -1005,6 +1006,46 @@ function calcFinance(mode){
  return {arr,income,expense}
 }
 function activeBreedingEwes(){return db.animals.filter(a=>isActiveAnimal(a)&&a.sex==='Dişi'&&a.type==='Koyun'&&a.breedingStatus!=='Anaç Adayı')}
+function ewePerformanceData(mode){
+ const births=reportRecords(mode).filter(r=>r.kind==='birth'&&r.motherId);
+ const motherIds=new Set(births.map(r=>r.motherId));
+ const ewes=db.animals.filter(a=>(a.sex==='Dişi'&&a.type==='Koyun'&&isActiveAnimal(a)&&a.breedingStatus!=='Anaç Adayı')||motherIds.has(a.id));
+ // Keep historical mothers represented even if an imported animal card is missing.
+ motherIds.forEach(id=>{if(!ewes.some(a=>a.id===id))ewes.push({id,type:'Koyun',tag:'',status:'Kart bulunamadı'})});
+ const deathIds=new Set(db.records.filter(r=>r.kind==='death').map(r=>r.animalId));
+ const rows=ewes.map(a=>{
+  const history=births.filter(r=>r.motherId===a.id).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  let born=0,known=0,dead=0;const seen=new Set();
+  history.forEach(r=>{
+   born+=Math.max(0,+r.count||0);
+   const ids=Array.isArray(r.childIds)?r.childIds:db.animals.filter(k=>k.motherId===a.id&&k.birth===r.date).map(k=>k.id);
+   ids.slice(0,Math.max(0,+r.count||0)).forEach(id=>{if(seen.has(id))return;seen.add(id);const k=db.animals.find(x=>x.id===id);if(!k)return;known++;if(k.status==='Öldü'||deathIds.has(id))dead++});
+  });
+  return {a,history,born,known,dead,unknown:Math.max(0,born-known)};
+ }).sort((a,b)=>b.born-a.born);
+ const born=rows.reduce((n,r)=>n+r.born,0),known=rows.reduce((n,r)=>n+r.known,0),dead=rows.reduce((n,r)=>n+r.dead,0),lambed=rows.filter(r=>r.history.length).length;
+ return {rows,born,known,dead,lambed,births:births.length,unknown:Math.max(0,born-known)};
+}
+function survivalText(row){return row.born===0?'—':row.unknown?'Hesaplanamadı · '+row.unknown+' kuzu bağlantısı eksik':pct((row.born-row.dead)/row.born*100)}
+function ewePerformanceHtml(mode){
+ const d=ewePerformanceData(mode);
+ const rows=d.rows.map(r=>`<div class="card">
+  <div class="row"><b>${escHtml(animalName(r.a))}</b><button class="small" onclick="animalCard('${r.a.id}')">Kartı Aç</button></div>
+  <div class="muted">${escHtml(r.a.status||'Aktif')} · ${r.history.length} doğum · ${r.born} kuzu</div>
+  <div class="listitem"><b>Doğum verimi: ${r.history.length?pct(r.born/r.history.length*100):'—'}</b><div class="muted">${r.history.length?(r.born/r.history.length).toLocaleString('tr-TR',{maximumFractionDigits:2})+' kuzu / doğum':'Henüz doğum kaydı yok'}</div></div>
+  <div class="listitem"><b>Kuzu yaşatma: ${survivalText(r)}</b><div class="muted">${r.dead} kayıtlı ölüm · ${r.known-r.dead} ölüm kaydı olmayan kuzu${r.unknown?' · '+r.unknown+' sonucu doğrulanamayan kuzu':''}</div></div>
+  <details><summary>Doğum geçmişi (${r.history.length})</summary>${r.history.length?r.history.map(b=>`<div class="listitem row"><span>${escHtml(b.date||'Tarih yok')} · <b>${+b.count||0} kuzu</b>${b.note?'<div class="muted">'+escHtml(b.note)+'</div>':''}</span><button class="small" onclick="editRecord('${b.id}')">Düzenle</button></div>`).join(''):'<div class="muted">Bu dönemde doğum yok.</div>'}</details>
+ </div>`).join('');
+ return `<div class="row" style="margin-bottom:10px"><b>${escHtml(reportDateLabel(mode))}</b><button class="small primary" onclick="openAdd('birth')">Doğum Ekle</button></div>${rows||'<div class="muted">Anaç kaydı yok.</div>'}
+ <div class="hero"><h3 style="color:white">Sürünün Doğum ve Yaşatma Özeti</h3>
+ <p>${d.rows.length} anaç · ${d.lambed} doğuran anaç · ${d.births} doğum · ${d.born} kuzu</p>
+ <p><b>Sürü doğum oranı: ${d.rows.length?pct(d.lambed/d.rows.length*100):'—'}</b></p>
+ <p><b>Doğum verimi: ${d.births?pct(d.born/d.births*100):'—'}</b> · doğan kuzu / doğum</p>
+ <p><b>Kuzu yaşatma oranı: ${survivalText(d)}</b></p>
+ <p>${d.dead} kayıtlı ölüm · ${d.known-d.dead} ölüm kaydı olmayan kuzu</p></div>
+ <div class="rateHelp">Doğum verimi = kuzu sayısı ÷ doğum sayısı × 100 (ikiz doğum %200). Sürü doğum oranı = dönemde doğuran farklı anaç ÷ listelenen anaç × 100. Liste aktif anaçları ve dönemde doğurmuş eski anaçları kapsar. Yaşatma oranı, bu doğumlardan gelen kuzuların bugüne kadarki kayıtlı ölümlerine göre hesaplanır; satış ve kesim ölüm sayılmaz. Eksik kuzu bağlantısı varsa oran verilmez. Kayıt öncesi geçmiş ve kaydedilmemiş ölümler hesaba katılamaz.</div>`;
+}
+
 function birthMetrics(mode){
  let ewes=activeBreedingEwes(), eweIds=new Set(ewes.map(a=>a.id)), births=reportRecords(mode).filter(x=>x.kind==='birth'&&eweIds.has(x.motherId));
  let lambedIds=[...new Set(births.map(x=>x.motherId).filter(Boolean))];
@@ -1141,11 +1182,7 @@ function renderReports(){
  let prev=previousPeriodRecords(),prevIncome=prev.filter(x=>['income','sale'].includes(x.kind)).reduce((s,x)=>s+(+x.amount||0),0),prevExpense=prev.filter(x=>['expense','stock'].includes(x.kind)).reduce((s,x)=>s+(+x.amount||0),0),prevNet=prevIncome-prevExpense,curNet=f.income-f.expense;
  if(document.getElementById('rPrevNet'))rPrevNet.textContent=!prev.length?'-':((curNet-prevNet)>=0?'+':'')+money(curNet-prevNet);
 
- let eweRows=activeBreedingEwes().map(a=>{
-  let br=periodRows.filter(r=>r.kind==='birth'&&r.motherId===a.id),kids=br.reduce((s,r)=>s+(+r.count||0),0),last=br.map(r=>r.date).filter(Boolean).sort().pop()||'Doğum yok';
-  return {a,kids,births:br.length,last}
- }).sort((x,y)=>y.kids-x.kids);
- if(document.getElementById('ewePerformanceList'))ewePerformanceList.innerHTML=eweRows.length?eweRows.map(x=>`<div class="listitem row clickcard" onclick="animalCard('${x.a.id}')" title="Hayvan kartını aç"><div><b>${animalName(x.a)}</b><div class="muted">${x.births} doğum · son: ${x.last}</div></div><div style="text-align:right"><b>${x.kids} kuzu</b><div class="muted">Kartı aç ›</div></div></div>`).join(''):'<div class="muted">Anaç kaydı yok.</div>';
+ if(document.getElementById('ewePerformanceList'))ewePerformanceList.innerHTML=ewePerformanceHtml(m);
 
  function wval(r){let m=String(r.note||'').replace(',','.').match(/[\d.]+/);return m?+m[0]:0}
  let lambRows=active.filter(a=>a.type==='Kuzu').map(a=>{
@@ -1167,7 +1204,8 @@ function renderReports(){
  if(pd)pd.style.display='block';
  if(pn)pn.innerHTML='<div class="muted">Bu Ay / Bu Yıl açık. Geçmiş ve üretim dönemi detayları “Detaylı Raporlar” içinde.</div>';
 }
-function openSub(k){let title={health:'Sağlık',births:'Doğum-Kuzulama',performance:'Anaç Performansı',calendar:'Koç & Takvim',weights:'Tartım',stock:'Stok',finance:'Gelir-Gider',moves:'Sürü Hareketleri',today:'Bugün Yapılacaklar'}[k];subTitle.textContent=title;let body='';
+let currentSub='';
+function openSub(k){currentSub=k;let title={health:'Sağlık',births:'Doğum-Kuzulama',performance:'Anaç Performansı',calendar:'Koç & Takvim',weights:'Tartım',stock:'Stok',finance:'Gelir-Gider',moves:'Sürü Hareketleri',today:'Bugün Yapılacaklar'}[k];subTitle.textContent=title;let body='';
  if(k==='stock')body=Object.entries(db.stock).map(([a,v])=>`<div class="card row"><b>${a}</b><span>${v}</span></div>`).join('');
  else if(k==='finance')body=`<div class="row" style="margin-bottom:10px"><button class="primary" onclick="openAdd('income')">Gelir Ekle</button><button onclick="openAdd('expense')">Gider Ekle</button></div>`+db.records.filter(x=>['income','expense','sale','stock'].includes(x.kind)).slice().reverse().map(recordHtml).join('');
  else if(k==='births')body=`<button class="primary" onclick="openAdd('birth')">Yeni Doğum</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='birth').slice().reverse().map(recordHtml).join('');
@@ -1175,7 +1213,7 @@ function openSub(k){let title={health:'Sağlık',births:'Doğum-Kuzulama',perfor
  else if(k==='weights')body=`<button class="primary" onclick="openAdd('weight')">Tartım Ekle</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='weight').slice().reverse().map(recordHtml).join('');
  else if(k==='today'){let rem=reminderItems();body=`<button class="primary" onclick="addTask()">İş Ekle</button><div style="height:8px"></div>`+(rem.map(x=>`<div class="card row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}');openSub('today')">Yapıldı</button></div>`).join('')+db.tasks.map((x,i)=>`<div class="card row"><span>${x.text}</span><button class="small" onclick="doneTask(${i});openSub('today')">Yapıldı</button></div>`).join('')||'<div class="card muted">Yaklaşan iş yok.</div>')}
  else if(k==='calendar'){if(!db.ramCalendar)db.ramCalendar=[];body='<div class="card"><b>Koç & üreme takvimi</b><p class="muted">Sadece koç katım tarihini gir. Flushing tarihi otomatik 30 gün önce hesaplanır.</p><button class="primary" onclick="openRamMating()">Koç Katım Tarihi Ekle</button></div>'+((db.ramCalendar||[]).length?(db.ramCalendar||[]).slice().reverse().map(x=>`<div class="card"><b>Koç katımı · ${x.matingDate}</b><div class="muted">Flushing başlangıcı: ${addDaysISO(x.matingDate,-30)}</div></div>`).join(''):'<div class="card muted">Henüz koç katım tarihi yok.</div>')}
- else if(k==='performance'){let births={};db.records.filter(x=>x.kind==='birth').forEach(x=>births[x.motherId]=(births[x.motherId]||0)+(x.count||0));body=db.animals.filter(x=>x.type==='Koyun').map(a=>`<div class="card row"><b>${animalName(a)}</b><span>${births[a.id]||0} kuzu</span></div>`).join('')}
+ else if(k==='performance')body=ewePerformanceHtml('all');
  else body=db.records.slice().reverse().map(recordHtml).join('')||'<div class="card muted">Henüz kayıt yok.</div>';
  subBody.innerHTML=body;go('sub')
 }
