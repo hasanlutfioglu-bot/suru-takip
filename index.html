@@ -116,6 +116,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
  <button class="menuBtn" onclick="openSub('weights')">⚖️<br><b>Tartım</b></button><button class="menuBtn" onclick="openSub('stock')">📦<br><b>Stok</b></button>
  <button class="menuBtn" onclick="openSub('finance')">₺<br><b>Gelir-Gider</b></button><button class="menuBtn" onclick="openSub('moves')">↔️<br><b>Sürü Hareketleri</b></button>
  <button class="menuBtn" onclick="openSub('today')">✓<br><b>Bugün Yapılacaklar</b></button>
+ <button class="menuBtn" onclick="openAccount()">👤<br><b>Hesabım / İşletmem</b></button>
  </div></section>
 <section id="sub" class="screen"><div class="row"><h3 id="subTitle">Bölüm</h3><button class="small" onclick="go('all')">Geri</button></div><div id="subBody"></div></section>
 </main>
@@ -315,6 +316,43 @@ function renderHerd(){
  herdList.innerHTML=arr.length?arr.map(a=>`<div class="card"><div class="row"><div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.weight? a.weight+' kg · ':''}${a.status}</div></div><span class="tag">${a.type}</span></div><div style="margin-top:10px"><button class="small" onclick="editTag('${a.id}')">${a.tag?'Küpe Düzenle':'Küpe No Ekle'}</button> <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div></div>`).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>';
 }
 
+function escHtml(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function openAccount(){
+ const user=cloudSession?.user||null;
+ const name=user?.user_metadata?.full_name||user?.user_metadata?.name||'';
+ const email=user?.email||'Google hesabı bağlı değil';
+ const farm=db.farmName||'İşletme adı girilmedi';
+ const active=db.animals.filter(isActiveAnimal).length;
+ showModal('Hesabım / İşletmem',`
+  <div class="card">
+   <div class="muted">Google hesabı</div><b>${escHtml(name||email)}</b>
+   ${name?'<div class="muted" style="margin-top:4px">'+escHtml(email)+'</div>':''}
+  </div>
+  <label>Çiftlik / İşletme adı</label>
+  <input id="accountFarmName" value="${escHtml(db.farmName||'')}" placeholder="Örn. Karpaz Küçükbaş">
+  <div class="grid" style="margin:8px 0 12px">
+   <div class="card stat"><b>${active}</b><span>Aktif hayvan</span></div>
+   <div class="card stat"><b>${db.records.length}</b><span>Toplam kayıt</span></div>
+  </div>
+  <div class="card">
+   <div class="row"><div><b>Üyelik</b><div class="muted">Ticari sürüm hazırlığı</div></div><span class="tag">Deneme</span></div>
+   <div class="muted" style="margin-top:8px">Paket ve ödeme sistemi sonraki adımda bağlanacak.</div>
+  </div>
+  <button class="primary" onclick="saveAccountFarmName()">İşletme Bilgisini Kaydet</button>
+ `);
+}
+async function saveAccountFarmName(){
+ const input=document.getElementById('accountFarmName');
+ const name=(input?.value||'').trim();
+ if(!name)return toast('İşletme adını gir');
+ db.farmName=name;db.setupDone=true;if(!db._meta)db._meta={};db._meta.initialized=true;
+ save();
+ if(sb&&cloudSession&&cloudFarmId){
+  const {error}=await sb.from('farms').update({name}).eq('id',cloudFarmId);
+  if(error)return toast('Yerelde kaydedildi; çiftlik adı buluta yazılamadı');
+ }
+ closeModal();toast('İşletme bilgisi kaydedildi');
+}
 function openInitialSetup(){
  showModal('İlk Sürünü Oluştur',`
   <label>Çiftlik / İşletme adı</label><input id="setupFarmName" value="${db.farmName||''}" placeholder="Örn. Karpaz Küçükbaş">
