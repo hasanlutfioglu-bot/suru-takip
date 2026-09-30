@@ -17,6 +17,19 @@ frame.addEventListener('load',()=>{
   const w=frame.contentWindow, d=frame.contentDocument;
   try{
     const oldOpen=w.openAdd;
+    const oldRenderReports=w.renderReports;
+
+    w.isAutoSaleCandidate=function(a){
+      if(!a || !w.isActiveAnimal(a) || a.type!=='Kuzu' || a.sex!=='Erkek' || !a.birth) return false;
+      const birth=new Date(a.birth+'T00:00:00');
+      if(Number.isNaN(birth.getTime())) return false;
+      const ageDays=(Date.now()-birth.getTime())/864e5;
+      return ageDays >= (5.5*30.44);
+    };
+
+    w.isSaleCandidate=function(a){
+      return !!a && (a.status==='Satılacak' || w.isAutoSaleCandidate(a));
+    };
 
     w.syncBirthSexes=function(){
       const count=d.getElementById('count');
@@ -62,10 +75,45 @@ frame.addEventListener('load',()=>{
       }
     };
 
+    w.renderReports=function(){
+      oldRenderReports();
+      const box=d.getElementById('rSaleCandidates');
+      if(box){
+        const active=w.db.animals.filter(w.isActiveAnimal);
+        box.textContent=active.filter(w.isSaleCandidate).length;
+        const label=box.nextElementSibling;
+        if(label)label.textContent='Satış adayı';
+      }
+    };
+
+    w.renderHerd=function(){
+      let filters=['Tümü','Anaçlar','Anaç Adayları','Kuzular','Erkek Kuzular','Dişi Kuzular','Koç','Satılacaklar','Takipte','Pasif'];
+      w.herdTabs.innerHTML=filters.map(f=>'<button class="tab '+(w.herdFilter===f?'active':'')+'" onclick="herdFilter=\''+f+'\';renderHerd()">'+f+'</button>').join('');
+      let q=(w.herdSearch?.value||'').toLowerCase();
+      let arr=w.db.animals.filter(a=>{
+        let ok=w.herdFilter==='Tümü'
+          ||(w.herdFilter==='Anaçlar'&&a.type==='Koyun'&&a.breedingStatus!=='Anaç Adayı'&&w.isActiveAnimal(a))
+          ||(w.herdFilter==='Anaç Adayları'&&a.breedingStatus==='Anaç Adayı'&&w.isActiveAnimal(a))
+          ||(w.herdFilter==='Kuzular'&&a.type==='Kuzu'&&w.isActiveAnimal(a))
+          ||(w.herdFilter==='Erkek Kuzular'&&a.type==='Kuzu'&&a.sex==='Erkek'&&w.isActiveAnimal(a))
+          ||(w.herdFilter==='Dişi Kuzular'&&a.type==='Kuzu'&&a.sex==='Dişi'&&w.isActiveAnimal(a))
+          ||(w.herdFilter==='Koç'&&a.type==='Koç'&&w.isActiveAnimal(a))
+          ||(w.herdFilter==='Satılacaklar'&&w.isSaleCandidate(a))
+          ||(w.herdFilter==='Takipte'&&a.status==='Takipte')
+          ||(w.herdFilter==='Pasif'&&['Satıldı','Öldü','Kesildi'].includes(a.status));
+        return ok&&((a.tag||'').toLowerCase().includes(q)||a.type.toLowerCase().includes(q)||a.status.toLowerCase().includes(q));
+      });
+      w.herdList.innerHTML=arr.length?arr.map(a=>{
+        const auto=w.isAutoSaleCandidate(a)&&a.status!=='Satılacak';
+        return '<div class="card"><div class="row"><div><b>'+w.animalName(a)+'</b><div class="muted">'+a.sex+' · '+w.age(a.birth)+' · '+(a.weight?a.weight+' kg · ':'')+a.status+(auto?' · Satış adayı':'')+'</div></div><span class="tag">'+a.type+'</span></div><div style="margin-top:10px"><button class="small" onclick="editTag(\''+a.id+'\')">'+(a.tag?'Küpe Düzenle':'Küpe No Ekle')+'</button> <button class="small" onclick="animalCard(\''+a.id+'\')">Kartı Aç</button></div></div>';
+      }).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>';
+    };
+
     const badge=d.querySelector('h1 span');
     if(badge)badge.textContent='V19';
+    w.renderAll();
   }catch(e){
-    console.error('V19 birth patch error',e);
+    console.error('V19 patch error',e);
   }
 });
 </script>
