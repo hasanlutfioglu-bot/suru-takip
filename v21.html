@@ -148,10 +148,14 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
    <div class="card stat"><b id="rStockMoves">0</b><span>Stok alımı</span></div>
   </div>
   <h3>İşletme Özeti</h3><div class="grid">
-   <div class="card stat"><b id="rFeedExpense">0</b><span>Yem gideri</span></div>
-   <div class="card stat"><b id="rMedicineExpense">0</b><span>İlaç/sağlık gideri</span></div>
+   <div class="card stat"><b id="rBusinessIncome">0</b><span>Toplam gelir</span></div>
+   <div class="card stat"><b id="rBusinessExpense">0</b><span>Toplam gider</span></div>
+   <div class="card stat"><b id="rBusinessNet">0</b><span>Net kâr / zarar</span></div>
    <div class="card stat"><b id="rSaleIncome">0</b><span>Hayvan satış geliri</span></div>
-   <div class="card stat"><b id="rPrevNet">-</b><span>Önceki döneme göre net</span></div>
+  </div>
+  <div class="card">
+   <div class="reportFold closed" id="expenseBreakdownToggle" onclick="toggleExpenseBreakdown()"><b>Gider Dağılımı</b></div>
+   <div id="expenseBreakdownPanel" style="display:none;margin-top:8px"></div>
   </div>
   <h3>Anaç Performansı</h3><div class="card" id="ewePerformanceList"></div>
   <h3>Kuzu Gelişimi</h3><div class="card" id="lambPerformanceList"></div>
@@ -1022,6 +1026,13 @@ function setReport(m,el){
  renderReports()
 }
 function toggleNonLambing(){let p=document.getElementById('nonLambingPanel');if(p)p.style.display=p.style.display==='none'?'block':'none'}
+function toggleExpenseBreakdown(){
+ let p=document.getElementById('expenseBreakdownPanel'),t=document.getElementById('expenseBreakdownToggle');
+ if(!p)return;
+ let opening=p.style.display==='none';
+ p.style.display=opening?'block':'none';
+ if(t)t.classList.toggle('closed',!opening);
+}
 function renderReports(){
  let m=db.report||'monthly';
  if(!isPlus() && m!=='monthly'){m='monthly';db.report='monthly'}
@@ -1071,12 +1082,39 @@ function renderReports(){
  // Profesyonel rapor ayrıntıları
  let finRows=periodRows.filter(x=>['income','expense','sale','stock'].includes(x.kind));
  let lower=x=>String(x||'').toLocaleLowerCase('tr-TR');
- let feedExpense=finRows.filter(x=>['expense','stock'].includes(x.kind)&&(lower(x.category).includes('yem')||lower(x.label).includes('yem')||lower(x.label).includes('arpa')||lower(x.stockItem).includes('arpa')||lower(x.stockItem).includes('balya')||lower(x.stockItem).includes('saman'))).reduce((s,x)=>s+(+x.amount||0),0);
- let medExpense=finRows.filter(x=>['expense','stock'].includes(x.kind)&&(lower(x.category).includes('ilaç')||lower(x.category).includes('ilac')||lower(x.category).includes('sağlık')||lower(x.label).includes('ilaç')||lower(x.label).includes('ilac')||lower(x.stockItem).includes('ilaç'))).reduce((s,x)=>s+(+x.amount||0),0);
  let saleIncome=finRows.filter(x=>x.kind==='sale'||(x.kind==='income'&&lower(x.category).includes('hayvan'))).reduce((s,x)=>s+(+x.amount||0),0);
- if(document.getElementById('rFeedExpense'))rFeedExpense.textContent=money(feedExpense);
- if(document.getElementById('rMedicineExpense'))rMedicineExpense.textContent=money(medExpense);
+ if(document.getElementById('rBusinessIncome'))rBusinessIncome.textContent=money(f.income);
+ if(document.getElementById('rBusinessExpense'))rBusinessExpense.textContent=money(f.expense);
+ if(document.getElementById('rBusinessNet'))rBusinessNet.textContent=money(f.income-f.expense);
  if(document.getElementById('rSaleIncome'))rSaleIncome.textContent=money(saleIncome);
+
+ let expenseRows=finRows.filter(x=>['expense','stock'].includes(x.kind));
+ let expenseGroups={Yem:0,'İlaç / Veteriner':0,'Tarla':0,'Diğer':0};
+ let fieldGroups={'Tohum':0,'Libazma / Sürüm':0,'Mazot':0,'Gübre':0,'İlaçlama':0,'Biçim / Balya':0,'İşçilik':0,'Diğer tarla':0};
+ expenseRows.forEach(x=>{
+  let txt=lower([x.category,x.label,x.stockItem,x.note].filter(Boolean).join(' ')),amt=+x.amount||0;
+  if(txt.includes('tarla')){
+   expenseGroups['Tarla']+=amt;
+   if(txt.includes('tohum'))fieldGroups['Tohum']+=amt;
+   else if(txt.includes('libazma')||txt.includes('sürüm')||txt.includes('surum'))fieldGroups['Libazma / Sürüm']+=amt;
+   else if(txt.includes('mazot'))fieldGroups['Mazot']+=amt;
+   else if(txt.includes('gübre')||txt.includes('gubre'))fieldGroups['Gübre']+=amt;
+   else if(txt.includes('ilaçlama')||txt.includes('ilaclama'))fieldGroups['İlaçlama']+=amt;
+   else if(txt.includes('biçim')||txt.includes('bicim')||txt.includes('balya'))fieldGroups['Biçim / Balya']+=amt;
+   else if(txt.includes('işçilik')||txt.includes('iscilik'))fieldGroups['İşçilik']+=amt;
+   else fieldGroups['Diğer tarla']+=amt;
+  }else if(txt.includes('veteriner')||txt.includes('ilaç')||txt.includes('ilac')||txt.includes('sağlık')||txt.includes('saglik')){
+   expenseGroups['İlaç / Veteriner']+=amt;
+  }else if(txt.includes('yem')||txt.includes('arpa')||txt.includes('saman')||txt.includes('balya')||txt.includes('kuzu besi')){
+   expenseGroups['Yem']+=amt;
+  }else expenseGroups['Diğer']+=amt;
+ });
+ let expensePanel=document.getElementById('expenseBreakdownPanel');
+ if(expensePanel){
+  let mainHtml=Object.entries(expenseGroups).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${money(v)}</b></div>`).join('');
+  let fieldHtml=expenseGroups['Tarla']>0?'<div class="muted" style="margin:10px 0 4px"><b>Tarla gideri ayrıntısı</b></div>'+Object.entries(fieldGroups).filter(([,v])=>v>0).map(([k,v])=>`<div class="listitem row"><span>↳ ${k}</span><b>${money(v)}</b></div>`).join(''):'';
+  expensePanel.innerHTML=mainHtml+fieldHtml;
+ }
 
  let prev=previousPeriodRecords(),prevIncome=prev.filter(x=>['income','sale'].includes(x.kind)).reduce((s,x)=>s+(+x.amount||0),0),prevExpense=prev.filter(x=>['expense','stock'].includes(x.kind)).reduce((s,x)=>s+(+x.amount||0),0),prevNet=prevIncome-prevExpense,curNet=f.income-f.expense;
  if(document.getElementById('rPrevNet'))rPrevNet.textContent=!prev.length?'-':((curNet-prevNet)>=0?'+':'')+money(curNet-prevNet);
