@@ -291,13 +291,14 @@ function cloudDataHasContent(x){return !!(x&&typeof x==='object'&&Array.isArray(
 function localStamp(){return db?._meta?.updatedAt||'1970-01-01T00:00:00.000Z'}
 async function initCloud(){
  if(!window.supabase){setCloudUI('local','Bulut kütüphanesi yüklenemedi. Yerel kayıt çalışmaya devam eder.');return}
- sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:'suru_takip_v13_test_auth'}});
+ sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  const {data}=await sb.auth.getSession(); cloudSession=data.session;
  sb.auth.onAuthStateChange(async (_event,session)=>{cloudSession=session;if(session)await connectCloud();else disconnectCloudUI()});
  if(cloudSession)await connectCloud(); else setCloudUI('local','Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.');
 }
 async function signInGoogle(){
- let redirectTo=location.protocol==='file:'?LIVE_APP_URL:(location.origin+location.pathname);
+ localStorage.setItem('suru_v13_return_after_login','1');
+ let redirectTo=location.protocol==='file:'?LIVE_APP_URL:(location.origin+'/suru-takip/');
  setCloudUI('connecting','Google giriş ekranı açılıyor…');
  const authUrl=SUPABASE_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(redirectTo);
  window.location.assign(authUrl);
