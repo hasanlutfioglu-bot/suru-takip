@@ -20,6 +20,19 @@ jobs:
           gradle-version: '8.13'
       - name: Build and lint
         run: gradle -p android :app:assembleDebug :app:bundleRelease :app:lintDebug --no-daemon
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Android 16 launch regression tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: gradle -p android :app:connectedDebugAndroidTest --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: suru-takip-android-test
@@ -27,4 +40,6 @@ jobs:
             android/app/build/outputs/apk/debug/*.apk
             android/app/build/outputs/bundle/release/*.aab
             android/app/build/reports/lint-results-debug.html
+            android/app/build/reports/androidTests/connected/debug/**
+            android/app/build/outputs/androidTest-results/connected/debug/**
           if-no-files-found: error
