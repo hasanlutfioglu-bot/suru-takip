@@ -30,7 +30,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 
 .chatBox{min-height:180px;max-height:320px;overflow:auto}.chatMsg{padding:10px 12px;border-radius:14px;margin:8px 0;line-height:1.35}.botMsg{background:#eef4ef;margin-right:12%}.userMsg{background:#dfeee3;margin-left:12%;text-align:right}.talkBtn{width:100%;border:0;border-radius:18px;padding:16px;margin:10px 0 6px;background:var(--green);color:white;font-size:17px;font-weight:800;box-shadow:var(--shadow)}.talkBtn.listening{background:var(--bad);animation:pulse 1s infinite}.voiceStatus{text-align:center;color:var(--muted);font-size:12px;margin-bottom:10px}.chatComposer{display:flex;gap:8px;margin-bottom:10px}.chatComposer input{flex:1;min-width:0;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}@keyframes pulse{50%{opacity:.72}}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
 <header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></h1><span class="pill" id="cloudStatus">Yerel mod</span></div></header>
@@ -200,6 +200,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
  <button class="menuBtn" onclick="openSub('weights')">⚖️<br><b>Tartım</b></button><button class="menuBtn" onclick="openSub('stock')">📦<br><b>Stok</b></button>
  <button class="menuBtn" onclick="openSub('finance')">₺<br><b>Gelir-Gider</b></button><button class="menuBtn" onclick="openSub('moves')">↔️<br><b>Sürü Hareketleri</b></button>
  <button class="menuBtn" onclick="openSub('today')">✓<br><b>Bugün Yapılacaklar</b></button>
+ <button class="menuBtn" onclick="openBackup()">💾<br><b>Yedekleme / Geri Yükleme</b></button>
  <button class="menuBtn" onclick="openAccount()">👤<br><b>Hesabım / İşletmem</b></button>
  </div></section>
 <section id="sub" class="screen"><div class="row"><h3 id="subTitle">Bölüm</h3><button class="small" onclick="go('all')">Geri</button></div><div id="subBody"></div></section>
@@ -219,8 +220,8 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 <script>
 const KEY='suru_takip_v5';
 const SUPABASE_URL='https://nqbfyahiijdkrroojlct.supabase.co';
-let SUPABASE_PUBLISHABLE_KEY='';
-const LIVE_APP_URL='https://hasanlutfioglu-bot.github.io/suru-takip/';
+let SUPABASE_PUBLISHABLE_KEY='sb_publishable_OnTZGx8h0RwxDV7X6DhXQQ_-jJbxfRN';
+const LIVE_APP_URL='https://hasanlutfioglu-bot.github.io/suru-takip/v21.html';
 let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTimer=null, cloudApplying=false, lastCloudStamp='', currentPlan='free';
 const FREE_ANIMAL_LIMIT=20;
 const FREE_MONTHLY_FINANCE_LIMIT=30;
@@ -240,11 +241,12 @@ function seed(){
   _meta:{initialized:false}
  };
 }
-let db=JSON.parse(localStorage.getItem(KEY)||'null')||seed(); if(!db.ramCalendar)db.ramCalendar=[]; let herdFilter='Tümü';
+let db=readStored(KEY+'_guest',seed()); if(!db.ramCalendar)db.ramCalendar=[]; let herdFilter='Tümü';
 db.animals.forEach(a=>{if(a.type==='Koyun'&&a.sex==='Dişi'&&!a.breedingStatus)a.breedingStatus='Anaç'});
 function uid(prefix='r'){return prefix+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)}
 function ensureRecordIds(){
  db.records.forEach(r=>{if(!r.id)r.id=uid('rec')});
+ db.tasks.forEach(t=>{if(!t.id)t.id=uid('task')});
  // Eski doğum kayıtlarını mümkünse doğan kuzularla bağla.
  db.records.filter(r=>r.kind==='birth'&&!Array.isArray(r.childIds)).forEach(r=>{
   let candidates=db.animals.filter(a=>a.motherId===r.motherId&&a.birth===r.date);
@@ -256,7 +258,8 @@ function save(){
  ensureRecordIds();
  if(!db._meta)db._meta={};
  if(!cloudApplying)db._meta.updatedAt=new Date().toISOString();
- localStorage.setItem(KEY,JSON.stringify(db));
+ if(!cloudApplying)cloudDirty=!!cloudFarmId;
+ try{persistLocal()}catch(e){toast('Cihaz hafızası dolu: kayıt cihazda saklanamadı. Yedeği indir.');throw e}
  renderAll();
  if(!cloudApplying)queueCloudSync();
 }
@@ -326,96 +329,153 @@ function setCloudUI(mode,msg){
   if(badge)badge.textContent=navigator.onLine?'Yerel':'Offline';
  }
 }
-function cloudDataHasContent(x){return !!(x&&typeof x==='object'&&Array.isArray(x.animals)&&(x.animals.length>0||x.setupDone===true||x._meta?.initialized===true))}
-function localStamp(){return db?._meta?.updatedAt||'1970-01-01T00:00:00.000Z'}
+function cloudDataHasContent(x){return !!(x&&typeof x==='object'&&Array.isArray(x.animals)&&(x.animals.length||x.records?.length||x.tasks?.length||x.ramCalendar?.length||x.farmName||Object.values(x.stock||{}).some(v=>+v>0)||x.setupDone||x._meta?.initialized))}
+let activeStorageKey=KEY+'_guest', cloudBase=null, cloudVersion=null, cloudDirty=false, syncBusy=false, syncAgain=false, connectBusy=false, sessionEpoch=0, syncConflict=null, cloudRole='';
+function cloneState(x){return JSON.parse(JSON.stringify(x))}
+function normalizeState(x){
+ if(!x||!Array.isArray(x.animals)||!Array.isArray(x.records))throw new Error('Geçerli sürü kaydı bulunamadı');
+ let out=cloneState(x);out.stock=out.stock&&typeof out.stock==='object'&&!Array.isArray(out.stock)?out.stock:{};
+ out.tasks=Array.isArray(out.tasks)?out.tasks:[];out.ramCalendar=Array.isArray(out.ramCalendar)?out.ramCalendar:[];out._meta=out._meta||{};
+ for(const key of ['animals','records','ramCalendar']){let ids=new Set();out[key].forEach(v=>{if(!v||typeof v!=='object'||!v.id||!/^[-A-Za-z0-9_]{1,200}$/.test(v.id)||ids.has(v.id))throw new Error('Eksik veya tekrarlanan kayıt kimliği');ids.add(v.id)})}
+ out.tasks.forEach((t,i)=>{if(!t.id)t.id='task_legacy_'+i+'_'+Array.from(String(t.text||'')).reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,0)});
+ return out;
+}
+function readStored(key,fallback){try{const raw=localStorage.getItem(key);if(!raw)return cloneState(fallback);const parsed=JSON.parse(raw);return normalizeState(parsed._localEnvelope===1?parsed.data:parsed)}catch(e){try{localStorage.setItem(key+'_damaged_'+Date.now(),localStorage.getItem(key)||'')}catch(ignore){}setCloudUI('local','Cihaz kaydı okunamadı. Eski kayıt korunuyor; yedekten geri yükleyebilirsin.');return cloneState(fallback)}}
+function persistLocal(){localStorage.setItem(activeStorageKey,JSON.stringify({_localEnvelope:1,data:db,sync:{base:cloudBase,version:cloudVersion,dirty:cloudDirty}}));}
+function archiveRecovery(data,reason){const key=activeStorageKey+'_recovery_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);localStorage.setItem(key,JSON.stringify({format:'suru-takip-backup',version:1,createdAt:new Date().toISOString(),farmId:cloudFarmId,reason,data}));return key;}
+function mergeStates(base,local,remote){
+ const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b), conflicts=[];let out=cloneState(remote);
+ for(const k of ['animals','records','tasks','ramCalendar']){
+  let bm=new Map((base[k]||[]).map(x=>[x.id,x])),lm=new Map((local[k]||[]).map(x=>[x.id,x])),rm=new Map((remote[k]||[]).map(x=>[x.id,x]));
+  out[k]=[];for(const id of new Set([...rm.keys(),...lm.keys(),...bm.keys()])){let b=bm.get(id),l=lm.get(id),r=rm.get(id),v;
+   if(equal(l,b))v=r;else if(equal(r,b)||equal(l,r))v=l;else{conflicts.push(k+':'+id);continue}if(v)out[k].push(cloneState(v));
+  }
+ }
+ // Stock quantities are aggregates derived from the associated transactions.
+ // Concurrent changes are kept for review rather than adding possibly overlapping amounts.
+ for(const k of new Set([...Object.keys(base),...Object.keys(local),...Object.keys(remote)])){
+  if(['animals','records','tasks','ramCalendar','_meta','report'].includes(k))continue;
+  if(k==='stock'){out.stock={};for(const item of new Set([...Object.keys(base.stock||{}),...Object.keys(local.stock||{}),...Object.keys(remote.stock||{})])){let b=base.stock?.[item],l=local.stock?.[item],r=remote.stock?.[item];if(equal(l,b))out.stock[item]=r;else if(equal(r,b)||equal(l,r))out.stock[item]=l;else conflicts.push('stock:'+item)}continue}
+  if(equal(local[k],base[k]))out[k]=remote[k];else if(equal(remote[k],base[k])||equal(local[k],remote[k]))out[k]=local[k];else conflicts.push(k);
+ }
+ const sold=new Set();out.records.filter(r=>r.kind==='sale').forEach(r=>(r.animalIds||[]).forEach(id=>{if(sold.has(id))conflicts.push('duplicate-sale:'+id);sold.add(id)}));
+ out.report=local.report||'monthly';out._meta={...remote._meta,...local._meta,updatedAt:new Date().toISOString()};
+ return {data:out,conflicts};
+}
+function resetCloudContext(){sessionEpoch++;clearTimeout(cloudSyncTimer);cloudFarmId=null;cloudRole='';currentPlan='free';cloudBase=null;cloudVersion=null;cloudDirty=false;syncConflict=null;if(cloudChannel&&sb)sb.removeChannel(cloudChannel);cloudChannel=null;}
 async function initCloud(){
- if(!window.supabase){setCloudUI('local','Bulut kütüphanesi yüklenemedi. Yerel kayıt çalışmaya devam eder.');return}
+ if(!window.supabase||!SUPABASE_PUBLISHABLE_KEY){setCloudUI('local','Bulut bağlantısı yüklenemedi. Yerel kayıtlar korunuyor.');return}
+ try{
  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
- const {data}=await sb.auth.getSession(); cloudSession=data.session;
- sb.auth.onAuthStateChange(async (_event,session)=>{cloudSession=session;if(session)await connectCloud();else disconnectCloudUI()});
- if(cloudSession)await connectCloud(); else setCloudUI('local','Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.');
+ sb.auth.onAuthStateChange((_event,session)=>{const changed=cloudSession?.user?.id!==session?.user?.id;cloudSession=session;
+  // Run API calls after Supabase releases the auth callback lock.
+  setTimeout(()=>{if(changed)resetCloudContext();if(session)connectCloud();else{activeStorageKey=KEY+'_guest';db=readStored(activeStorageKey,seed());renderAll();disconnectCloudUI()}},0);
+ });
+ const {data,error}=await sb.auth.getSession();if(error)throw error;cloudSession=data.session;if(cloudSession)await connectCloud();else disconnectCloudUI();
+ }catch(e){setCloudUI('local','Giriş bağlantısı kurulamadı. Yerel kayıtlar korunuyor: '+e.message)}
 }
 async function signInGoogle(){
- let redirectTo=location.protocol==='file:'?LIVE_APP_URL:(location.origin+location.pathname);
- setCloudUI('connecting','Google giriş ekranı açılıyor…');
- const authUrl=SUPABASE_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(redirectTo);
- window.location.assign(authUrl);
+ if(!sb)return toast('Giriş bağlantısı hazır değil; internet bağlantını kontrol et');
+ const redirectTo=location.protocol==='file:'?LIVE_APP_URL:(location.origin+location.pathname);
+ try{setCloudUI('connecting','Google giriş ekranı açılıyor…');const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo}});if(error)throw error}catch(e){setCloudUI('local','Google girişi başlatılamadı: '+e.message)}
 }
 async function signOutCloud(){
- if(sb)await sb.auth.signOut();
- cloudSession=null;cloudFarmId=null;
- if(cloudChannel&&sb){await sb.removeChannel(cloudChannel);cloudChannel=null}
- disconnectCloudUI();toast('Bulut hesabından çıkıldı')
+ if(cloudDirty)archiveRecovery(db,'Çıkıştan önce eşitlenmemiş kayıtlar');
+ if(sb){const {error}=await sb.auth.signOut({scope:'local'});if(error)return toast('Çıkış yapılamadı; kayıtlar cihazda korundu')}
+ resetCloudContext();cloudSession=null;activeStorageKey=KEY+'_guest';db=readStored(activeStorageKey,seed());renderAll();disconnectCloudUI();toast('Çıkış yapıldı. Hesabının kayıtları bu cihazda korundu');
 }
-function disconnectCloudUI(){setCloudUI('local','Yerel kayıtlar cihazda duruyor. Google ile giriş yapınca bulut verisi tekrar bağlanır.')}
+function disconnectCloudUI(){setCloudUI('local','Yerel mod. Hesabınla giriş yapınca o hesaba ait sürü açılır.')}
 async function connectCloud(){
- if(!sb||!cloudSession)return;
- setCloudUI('connecting','Bulut verileri eşitleniyor…');
- const {data:members,error:memErr}=await sb.from('farm_members').select('farm_id,role').eq('user_id',cloudSession.user.id).limit(1);
- if(memErr||!members?.length){setCloudUI('local','Bulut çiftliği bulunamadı: '+(memErr?.message||'hesap kaydı yok'));return}
- cloudFarmId=members[0].farm_id;
- const {data:sub}=await sb.from('subscriptions').select('plan,status').eq('farm_id',cloudFarmId).maybeSingle();
- currentPlan=(sub?.status==='active'||sub?.status==='trialing')?(sub?.plan||'free'):'free';
- const {data:state,error}=await sb.from('farm_state').select('data,updated_at').eq('farm_id',cloudFarmId).single();
- if(error){setCloudUI('local','Bulut verisi okunamadı: '+error.message);return}
- let remote=state?.data||{};
- if(!cloudDataHasContent(remote)){
-  await uploadCloudState(true);
- }else{
-  let rs=remote?._meta?.updatedAt||state.updated_at||'1970-01-01T00:00:00.000Z';
-  if(rs>localStamp())applyRemoteState(remote);
-  else if(localStamp()>rs)await uploadCloudState(false);
+ if(!sb||!cloudSession||connectBusy)return;connectBusy=true;const epoch=sessionEpoch,userId=cloudSession.user.id;
+ try{
+ setCloudUI('connecting','Hesabının sürüsü bağlanıyor…');
+ const {data:members,error:memErr}=await sb.from('farm_members').select('farm_id,role').eq('user_id',userId).order('created_at',{ascending:true}).limit(1);
+ if(epoch!==sessionEpoch||cloudSession?.user.id!==userId)return;
+ if(memErr||!members?.length)throw new Error(memErr?.message||'Hesaba ait çiftlik bulunamadı');
+ const farmId=members[0].farm_id,key=KEY+'_user_'+userId+'_farm_'+farmId;
+ if(activeStorageKey!==key){
+  cloudFarmId=farmId;cloudRole=members[0].role;activeStorageKey=key;db=readStored(key,seed());
+  cloudBase=null;cloudVersion=null;cloudDirty=false;let cache={};try{const stored=JSON.parse(localStorage.getItem(key)||'{}');cache=stored.sync||JSON.parse(localStorage.getItem(key+'_sync')||'{}')}catch(e){}
+  cloudBase=cache.base?normalizeState(cache.base):null;cloudVersion=cache.version||null;cloudDirty=!!cache.dirty;syncConflict=null;renderAll();
  }
- subscribeCloud();
- let who=cloudSession.user.user_metadata?.full_name||cloudSession.user.email||'Google hesabı';
- setCloudUI('online','✓ Güncel – Otomatik senkron açık · '+who);
- renderAll();
+ const {data:sub}=await sb.from('subscriptions').select('plan,status').eq('farm_id',farmId).maybeSingle();if(epoch!==sessionEpoch)return;
+ currentPlan=(sub?.status==='active'||sub?.status==='trialing')?(sub?.plan||'free'):'free';
+ await uploadCloudState();if(epoch===sessionEpoch)subscribeCloud();
+ }catch(e){if(epoch===sessionEpoch)setCloudUI('local','Bağlantı kurulamadı; cihazdaki kayıtlar korunuyor: '+e.message)}finally{connectBusy=false;if(epoch!==sessionEpoch&&cloudSession)setTimeout(connectCloud,0)}
 }
 function applyRemoteState(remote){
- if(!cloudDataHasContent(remote))return;
- cloudApplying=true;
- db=remote;
- ensureRecordIds();
- localStorage.setItem(KEY,JSON.stringify(db));
- renderAll();
- cloudApplying=false;
- lastCloudStamp=localStamp();
+ cloudApplying=true;try{db=normalizeState(remote);ensureRecordIds();persistLocal();renderAll()}finally{cloudApplying=false}
 }
 function queueCloudSync(){
  if(!sb||!cloudSession||!cloudFarmId||cloudApplying)return;
- clearTimeout(cloudSyncTimer);
- cloudSyncTimer=setTimeout(()=>uploadCloudState(false),700);
+ clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>uploadCloudState(),700);
 }
-async function uploadCloudState(first=false){
- if(!sb||!cloudSession||!cloudFarmId)return;
- if(!db._meta)db._meta={};
- if(first||!db._meta.updatedAt)db._meta.updatedAt=new Date().toISOString();
- let payload=JSON.parse(JSON.stringify(db));
- const {error}=await sb.from('farm_state').upsert({farm_id:cloudFarmId,data:payload},{onConflict:'farm_id'});
- if(error){setCloudUI('online','Yerelde kaydedildi; buluta gönderilemedi: '+error.message);return}
- lastCloudStamp=payload._meta.updatedAt||'';
- setCloudUI('online','✓ Güncel – Otomatik senkron açık · Son kayıt buluta gönderildi');
+function showSyncConflict(remote,version){
+ archiveRecovery(db,'Eşitleme çakışması: cihaz kopyası');archiveRecovery(remote,'Eşitleme çakışması: bulut kopyası');
+ syncConflict={remote,version};setCloudUI('online','İki cihaz aynı kaydı değiştirdi. İki kopya korundu; seçim gerekiyor.');
+ showModal('Eşitleme Çakışması',`<p>İki cihaz aynı kaydı farklı değiştirmiş. İki sürüm de kurtarma kopyası olarak saklandı.</p><button onclick="exportBackup()">Cihaz Kopyasını İndir</button><button onclick="exportConflictBackup()">Bulut Kopyasını İndir</button><p>İnceledikten sonra hangi sürümü kullanacağını seç.</p><button onclick="resolveSyncConflict('remote')">Bulut Sürümünü Kullan</button><button onclick="resolveSyncConflict('local')">Cihaz Sürümünü Kullan</button>`);
 }
-async function syncNow(){
- if(!cloudSession)return signInGoogle();
- await uploadCloudState(false);toast('Bulut eşitleme tamamlandı')
+async function resolveSyncConflict(choice){
+ if(!syncConflict)return;const c=syncConflict;syncConflict=null;cloudBase=cloneState(c.remote);cloudVersion=c.version;
+ if(choice==='remote'){cloudDirty=false;applyRemoteState(c.remote)}else{cloudDirty=true;persistLocal()}
+ closeModal();await uploadCloudState();
 }
+async function uploadCloudState(){
+ if(!sb||!cloudSession||!cloudFarmId)return false;
+ if(navigator.onLine===false){setCloudUI('online','İnternet yok; kayıt cihazda korundu, eşitleme bekliyor.');return false}
+ if(syncConflict)return false;if(syncBusy){syncAgain=true;return false}syncBusy=true;
+ const epoch=sessionEpoch,farmId=cloudFarmId,key=activeStorageKey;
+ try{
+ for(let attempt=0;attempt<3;attempt++){
+  const {data:row,error}=await sb.from('farm_state').select('data,updated_at').eq('farm_id',farmId).single();if(error)throw error;
+  if(epoch!==sessionEpoch||key!==activeStorageKey)return false;
+  let remote=cloudDataHasContent(row.data)?normalizeState(row.data):seed();remote=normalizeState(remote);
+  if(!cloudDirty){cloudBase=cloneState(remote);cloudVersion=row.updated_at;applyRemoteState(remote);setCloudUI('online','✓ Güncel – Bulut ve cihaz kayıtları eşit');return true}
+  if(!['owner','editor'].includes(cloudRole))throw new Error('Bu hesap yalnızca görüntüleme yetkisine sahip');
+  if(!cloudBase){if(cloudDataHasContent(remote)){showSyncConflict(remote,row.updated_at);return false}cloudBase=normalizeState(seed())}
+  const local=cloneState(db),result=mergeStates(cloudBase,local,remote);
+  if(result.conflicts.length){showSyncConflict(remote,row.updated_at);return false}
+  const candidate=normalizeState(result.data);
+  // Conditional write: only update the exact server version that was just read.
+  const {data:written,error:writeError}=await sb.from('farm_state').update({data:candidate}).eq('farm_id',farmId).eq('updated_at',row.updated_at).select('updated_at').maybeSingle();
+  if(writeError)throw writeError;if(epoch!==sessionEpoch||key!==activeStorageKey)return false;if(!written)continue;
+  cloudBase=cloneState(candidate);cloudVersion=written.updated_at;
+  if(JSON.stringify(db)===JSON.stringify(local)){cloudDirty=false;applyRemoteState(candidate)}else{const pending=mergeStates(local,db,candidate);if(pending.conflicts.length){showSyncConflict(candidate,written.updated_at);return false}db=normalizeState(pending.data);persistLocal();renderAll();syncAgain=true}
+  setCloudUI('online',cloudDirty?'Kayıt cihazda; yeni değişiklikler eşitleme bekliyor.':'✓ Güncel – Kayıtlar buluta gönderildi');return true;
+ }
+ throw new Error('Başka cihaz kayıt değiştiriyor; tekrar eşitlemeyi dene');
+ }catch(e){if(epoch===sessionEpoch)setCloudUI('online','Yerelde kaydedildi; eşitleme tamamlanamadı: '+e.message);return false}
+ finally{syncBusy=false;if(syncAgain){syncAgain=false;queueCloudSync()}}
+}
+async function syncNow(){if(!cloudSession)return signInGoogle();const ok=cloudFarmId?await uploadCloudState():await connectCloud();if(ok)toast('Bulut eşitleme tamamlandı')}
 function subscribeCloud(){
- if(!sb||!cloudFarmId)return;
- if(cloudChannel)sb.removeChannel(cloudChannel);
- cloudChannel=sb.channel('farm-state-'+cloudFarmId)
-  .on('postgres_changes',{event:'*',schema:'public',table:'farm_state',filter:'farm_id=eq.'+cloudFarmId},payload=>{
-   let remote=payload.new?.data;if(!remote||cloudApplying)return;
-   let rs=remote?._meta?.updatedAt||'';
-   if(rs&&rs!==lastCloudStamp&&rs>localStamp()){
-    applyRemoteState(remote);
-    setCloudUI('online','✓ Güncel – Otomatik senkron açık · Diğer cihazdaki yeni kayıtlar geldi.');
-    toast('Bulut verisi güncellendi')
-   }
-  }).subscribe();
+ if(!sb||!cloudFarmId)return;if(cloudChannel)sb.removeChannel(cloudChannel);
+ cloudChannel=sb.channel('farm-state-'+cloudFarmId).on('postgres_changes',{event:'*',schema:'public',table:'farm_state',filter:'farm_id=eq.'+cloudFarmId},()=>queueCloudSync()).subscribe();
 }
-window.addEventListener('online',()=>{if(cloudSession){setCloudUI('online','İnternet geldi; bulut eşitleme hazır.');queueCloudSync()}else setCloudUI('local','İnternet var · Google ile giriş yapabilirsin.')});
-window.addEventListener('offline',()=>{let b=document.getElementById('netBadge');if(b)b.textContent='Offline';let t=document.getElementById('cloudText');if(t)t.textContent='İnternet yok. Kayıtlar cihazda tutulur; bağlantı gelince eşitlenir.'});
+window.addEventListener('online',()=>{if(cloudSession){if(cloudFarmId)queueCloudSync();else connectCloud()}else disconnectCloudUI()});
+window.addEventListener('offline',()=>setCloudUI(cloudSession?'online':'local','İnternet yok. Kayıtlar cihazda tutulur; bağlantı gelince eşitlenir.'));
+window.addEventListener('focus',()=>{if(cloudSession)queueCloudSync()});
+function downloadBackup(data,suffix='',farmId=cloudFarmId){
+ const payload={format:'suru-takip-backup',version:1,createdAt:new Date().toISOString(),farmId,data:normalizeState(data)};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='suru-takip-yedek'+suffix+'-'+today()+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);
+}
+function exportBackup(){downloadBackup(db)}
+function downloadGuestBackup(){downloadBackup(readStored(KEY+'_guest',seed()),'-yerel',null)}
+function exportConflictBackup(){if(syncConflict)downloadBackup(syncConflict.remote,'-bulut')}
+function openBackup(){showModal('Yedekleme / Geri Yükleme',`<p>Sürü, doğumlar, gelir-gider, stok ve takvim kayıtlarını JSON dosyası olarak indir.</p><button class="primary" onclick="exportBackup()">Yedeği İndir</button><h3>Yedekten Geri Yükle</h3><input id="backupFile" type="file" accept=".json,application/json"><button onclick="restoreBackup()">Seçilen Yedeği Geri Yükle</button><h3>Yerel Mod</h3><button onclick="downloadGuestBackup()">Yerel Mod Yedeğini İndir</button><h3>Kurtarma Kopyaları</h3><button onclick="openRecoveryList()">Korunan Kopyaları Göster</button>`)}
+function validateBackup(raw){if(!raw||raw.format!=='suru-takip-backup'||raw.version!==1)throw new Error('Desteklenmeyen yedek dosyası');if(cloudFarmId&&raw.farmId&&raw.farmId!==cloudFarmId)throw new Error('Bu yedek başka bir işletmeye ait');return normalizeState(raw.data)}
+async function restoreBackup(){
+ const file=document.getElementById('backupFile')?.files?.[0];if(!file)return toast('Yedek dosyası seç');if(file.size>20*1024*1024)return toast('Yedek dosyası çok büyük');
+ try{const raw=JSON.parse(await file.text()),restored=validateBackup(raw);if(!confirm('Mevcut kayıtlar kurtarma kopyasına alınacak. Seçilen yedek bu cihazın sürüsü olarak kullanılacak. Devam edilsin mi?'))return;archiveRecovery(db,'Geri yükleme öncesi');db=restored;save();closeModal();toast('Yedek geri yüklendi; bulut durumu üstte gösteriliyor')}catch(e){toast('Yedek yüklenemedi: '+e.message)}
+}
+function openRecoveryList(){
+ const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith(activeStorageKey+'_recovery_'))keys.push(k)}
+ const list=keys.sort().reverse().map(k=>{const r=JSON.parse(localStorage.getItem(k));return `<div class="card"><b>${escHtml(r.reason||'Kurtarma kopyası')}</b><div class="muted">${escHtml(r.createdAt||'')}</div><button onclick="downloadRecovery('${k}')">İndir</button></div>`}).join('');
+ const legacy=localStorage.getItem(KEY);showModal('Kurtarma Kopyaları',list+(legacy?'<button onclick="downloadLegacyBackup()">Eski V21 Cihaz Kaydını İndir</button>':'')||'<p>Kurtarma kopyası yok.</p>');
+}
+function downloadRecovery(key){if(!key.startsWith(activeStorageKey+'_recovery_'))return;const r=JSON.parse(localStorage.getItem(key)||'null');if(r)downloadBackup(r.data,'-kurtarma')}
+function downloadLegacyBackup(){const old=JSON.parse(localStorage.getItem(KEY)||'null');if(!old)return toast('Eski kayıt yok');ensureLegacyIds(old);downloadBackup(old,'-eski',null)}
+function ensureLegacyIds(data){data.records?.forEach(r=>{if(!r.id)r.id=uid('rec')});data.ramCalendar?.forEach(r=>{if(!r.id)r.id=uid('ramcal')})}
 
 function dateDiffDays(from,to){let a=new Date(from+'T00:00:00'),b=new Date(to+'T00:00:00');return Math.round((b-a)/864e5)}
 function reminderItems(){
@@ -455,7 +515,7 @@ function recordHtml(x){
  let cls=sign==='+'?'plus':sign==='-'?'minus':'';
  let sold=x.animalNames?.length?' · '+x.animalNames.join(', '):'';
  let period=x.productionPeriod?' · Dönem '+x.productionPeriod:'';
- return `<div class="listitem row"><div><b>${x.label}</b><div class="muted">${x.date||''}${period}${x.note?' · '+x.note:''}${sold}</div></div><div class="recordActions">${x.amount?`<b class="money ${cls}">${sign}${money(x.amount)}</b>`:''}<button class="small" onclick="editRecord('${x.id}')">Düzenle</button></div></div>`
+ return `<div class="listitem row"><div><b>${escHtml(x.label)}</b><div class="muted">${escHtml(x.date||'')}${escHtml(period)}${x.note?' · '+escHtml(x.note):''}${escHtml(sold)}</div></div><div class="recordActions">${x.amount?`<b class="money ${cls}">${sign}${money(x.amount)}</b>`:''}<button class="small" onclick="editRecord('${x.id}')">Düzenle</button></div></div>`
 }
 function saleCandidateAge(a){
  if(!a||a.type!=='Kuzu'||a.sex!=='Erkek'||!a.birth||!isActiveAnimal(a))return false;
@@ -519,7 +579,7 @@ async function saveAccountFarmName(){
  if(!name)return toast('İşletme adını gir');
  db.farmName=name;db.setupDone=true;if(!db._meta)db._meta={};db._meta.initialized=true;
  save();
- if(sb&&cloudSession&&cloudFarmId){
+ if(sb&&cloudSession&&cloudFarmId&&cloudRole==='owner'){
   const {error}=await sb.from('farms').update({name}).eq('id',cloudFarmId);
   if(error)return toast('Yerelde kaydedildi; çiftlik adı buluta yazılamadı');
  }
@@ -1321,14 +1381,8 @@ async function toggleVoice(){
  speechRec.onend=()=>{voiceListening=false;talkBtn.classList.remove('listening');talkBtn.textContent='🎙️ Bas ve Konuş';if(finalText.trim()){chatInput.value=finalText.trim();sendChatCommand(finalText.trim())}else if(voiceStatus.textContent==='Konuşabilirsin…')voiceStatus.textContent='Ses algılanmadı; tekrar basabilirsin.'};
  try{speechRec.start()}catch(e){voiceStatus.textContent='Mikrofon başlatılamadı. Dosyayı Chrome ile açmayı dene.'}
 }
-async function loadPublicConfig(){
- try{
-  let t=await fetch('./index.html',{cache:'no-store'}).then(r=>r.text());
-  let m=t.match(/const SUPABASE_PUBLISHABLE_KEY='([^']+)'/);
-  SUPABASE_PUBLISHABLE_KEY=m?m[1]:'';
- }catch(e){}
-}
 if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
 renderAll();
-loadPublicConfig().then(initCloud);
+initCloud();
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script></body></html>
