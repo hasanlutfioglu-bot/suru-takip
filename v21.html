@@ -128,14 +128,15 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
   </div>
  </div>
  <div class="card"><div class="muted" id="reportLabel">Bu ay</div><div class="grid" style="margin-top:10px"><div class="stat"><b id="rIncome">0</b><span>Gelir</span></div><div class="stat"><b id="rExpense">0</b><span>Gider</span></div><div class="stat"><b id="rNet">0</b><span>Net</span></div><div class="stat"><b id="rBirths">0</b><span>Doğan kuzu</span></div></div></div>
+ <h3>İşletme Özeti</h3><div class="grid">
+  <div class="card stat"><b id="rBusinessIncome">0</b><span>Toplam gelir</span></div>
+  <div class="card stat"><b id="rBusinessExpense">0</b><span>Toplam gider</span></div>
+  <div class="card stat"><b id="rBusinessNet">0</b><span>Net kâr / zarar</span></div>
+  <div class="card stat clickcard" onclick="openHerdFilter('Anaçlar')"><b id="rBusinessEwes">0</b><span>Koyun · dokun</span></div>
+  <div class="card stat clickcard" onclick="openHerdFilter('Kuzular')"><b id="rBusinessLambs">0</b><span>Kuzu · dokun</span></div>
+ </div>
  <div id="plusReportDetails">
-  <h3>Sürü Özeti</h3><div class="grid">
-   <div class="card stat clickcard" onclick="openHerdFilter('Tümü')"><b id="rActiveAnimals">0</b><span>Aktif hayvan · dokun</span></div>
-   <div class="card stat"><b id="rSoldAnimals">0</b><span>Satılan</span></div>
-   <div class="card stat"><b id="rTrackedAnimals">0</b><span>Takipte</span></div>
-   <div class="card stat"><b id="rAvgWeight">0</b><span>Ort. kilo</span></div>
-  </div>
-  <h3>Kuzu Dağılımı</h3><div class="grid">
+  <h3>Kuzu Detayı</h3><div class="grid">
    <div class="card stat clickcard" onclick="openHerdFilter('Erkek Kuzular')"><b id="rMaleLambs">0</b><span>Erkek kuzu · dokun</span></div>
    <div class="card stat clickcard" onclick="openHerdFilter('Dişi Kuzular')"><b id="rFemaleLambs">0</b><span>Dişi kuzu · dokun</span></div>
    <div class="card stat"><b id="rUnknownLambs">0</b><span>Cinsiyet bilinmiyor</span></div>
@@ -147,15 +148,19 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
    <div class="card stat"><b id="rSales">0</b><span>Satış kaydı</span></div>
    <div class="card stat"><b id="rStockMoves">0</b><span>Stok alımı</span></div>
   </div>
-  <h3>İşletme Özeti</h3><div class="grid">
-   <div class="card stat"><b id="rBusinessIncome">0</b><span>Toplam gelir</span></div>
-   <div class="card stat"><b id="rBusinessExpense">0</b><span>Toplam gider</span></div>
-   <div class="card stat"><b id="rBusinessNet">0</b><span>Net kâr / zarar</span></div>
-   <div class="card stat"><b id="rSaleIncome">0</b><span>Hayvan satış geliri</span></div>
+  <div class="card">
+   <div class="reportFold closed" id="incomeBreakdownToggle" onclick="toggleIncomeBreakdown()"><b>Gelir Dağılımı</b></div>
+   <div id="incomeBreakdownPanel" style="display:none;margin-top:8px"></div>
   </div>
   <div class="card">
    <div class="reportFold closed" id="expenseBreakdownToggle" onclick="toggleExpenseBreakdown()"><b>Gider Dağılımı</b></div>
    <div id="expenseBreakdownPanel" style="display:none;margin-top:8px"></div>
+  </div>
+  <h3>Sürü Detayı</h3><div class="grid">
+   <div class="card stat clickcard" onclick="openHerdFilter('Tümü')"><b id="rActiveAnimals">0</b><span>Aktif hayvan · dokun</span></div>
+   <div class="card stat"><b id="rSoldAnimals">0</b><span>Satılan</span></div>
+   <div class="card stat"><b id="rTrackedAnimals">0</b><span>Takipte</span></div>
+   <div class="card stat"><b id="rAvgWeight">0</b><span>Ort. kilo</span></div>
   </div>
   <h3>Anaç Performansı</h3><div class="card" id="ewePerformanceList"></div>
   <h3>Kuzu Gelişimi</h3><div class="card" id="lambPerformanceList"></div>
@@ -1026,6 +1031,13 @@ function setReport(m,el){
  renderReports()
 }
 function toggleNonLambing(){let p=document.getElementById('nonLambingPanel');if(p)p.style.display=p.style.display==='none'?'block':'none'}
+function toggleIncomeBreakdown(){
+ let p=document.getElementById('incomeBreakdownPanel'),t=document.getElementById('incomeBreakdownToggle');
+ if(!p)return;
+ let opening=p.style.display==='none';
+ p.style.display=opening?'block':'none';
+ if(t)t.classList.toggle('closed',!opening);
+}
 function toggleExpenseBreakdown(){
  let p=document.getElementById('expenseBreakdownPanel'),t=document.getElementById('expenseBreakdownToggle');
  if(!p)return;
@@ -1086,7 +1098,19 @@ function renderReports(){
  if(document.getElementById('rBusinessIncome'))rBusinessIncome.textContent=money(f.income);
  if(document.getElementById('rBusinessExpense'))rBusinessExpense.textContent=money(f.expense);
  if(document.getElementById('rBusinessNet'))rBusinessNet.textContent=money(f.income-f.expense);
- if(document.getElementById('rSaleIncome'))rSaleIncome.textContent=money(saleIncome);
+ if(document.getElementById('rBusinessEwes'))rBusinessEwes.textContent=active.filter(a=>a.type==='Koyun').length;
+ if(document.getElementById('rBusinessLambs'))rBusinessLambs.textContent=lambsActive.length;
+
+ let incomeRows=finRows.filter(x=>['income','sale'].includes(x.kind));
+ let incomeGroups={'Hayvan satışı':0,'Devlet desteği':0,'Diğer gelir':0};
+ incomeRows.forEach(x=>{
+  let txt=lower([x.category,x.label,x.note].filter(Boolean).join(' ')),amt=+x.amount||0;
+  if(x.kind==='sale'||txt.includes('hayvan satış')||txt.includes('kuzu satış'))incomeGroups['Hayvan satışı']+=amt;
+  else if(txt.includes('devlet desteği')||txt.includes('destek'))incomeGroups['Devlet desteği']+=amt;
+  else incomeGroups['Diğer gelir']+=amt;
+ });
+ let incomePanel=document.getElementById('incomeBreakdownPanel');
+ if(incomePanel)incomePanel.innerHTML=Object.entries(incomeGroups).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${money(v)}</b></div>`).join('');
 
  let expenseRows=finRows.filter(x=>['expense','stock'].includes(x.kind));
  let expenseGroups={Yem:0,'İlaç / Veteriner':0,'Tarla':0,'Diğer':0};
