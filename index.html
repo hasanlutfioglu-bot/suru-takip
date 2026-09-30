@@ -199,12 +199,10 @@ async function initCloud(){
  if(cloudSession)await connectCloud(); else setCloudUI('local','Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.');
 }
 async function signInGoogle(){
- if(!sb)await initCloud();
- if(!sb)return;
  let redirectTo=location.protocol==='file:'?LIVE_APP_URL:(location.origin+location.pathname);
  setCloudUI('connecting','Google giriş ekranı açılıyor…');
- const {error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
- if(error){setCloudUI('local','Google girişi başlatılamadı: '+error.message);toast('Google giriş ayarı gerekiyor')}
+ const authUrl=SUPABASE_URL+'/auth/v1/authorize?provider=google&redirect_to='+encodeURIComponent(redirectTo);
+ window.location.assign(authUrl);
 }
 async function signOutCloud(){
  if(sb)await sb.auth.signOut();
