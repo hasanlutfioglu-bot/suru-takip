@@ -86,6 +86,41 @@ frame.addEventListener('load',()=>{
       }
     };
 
+    w.openCandidateSale=function(){
+      const ids=[...d.querySelectorAll('.candidateSalePick:checked')].map(x=>x.value);
+      if(!ids.length)return w.toast('En az bir hayvan seç');
+      const animals=ids.map(id=>w.db.animals.find(a=>a.id===id)).filter(Boolean);
+      w.showModal('Seçilenleri Sat',`
+        <div class="card"><b>${animals.length} hayvan seçildi</b><div class="muted" style="margin-top:6px">${animals.map(a=>w.animalName(a)).join(', ')}</div></div>
+        <label>Toplam satış geliri (TL)</label><input id="candidateSaleAmount" type="number" inputmode="decimal">
+        <label>Satış tarihi</label><input id="candidateSaleDate" type="date" value="${w.today()}">
+        <label>Açıklama</label><input id="candidateSaleNote" placeholder="İsteğe bağlı">
+        <button class="primary" onclick="submitCandidateSale()">Satışı Kaydet</button>
+      `);
+      w._candidateSaleIds=ids;
+    };
+
+    w.submitCandidateSale=function(){
+      const ids=w._candidateSaleIds||[];
+      const amount=+d.getElementById('candidateSaleAmount')?.value||0;
+      const saleDate=d.getElementById('candidateSaleDate')?.value||w.today();
+      const note=(d.getElementById('candidateSaleNote')?.value||'').trim();
+      if(!ids.length)return w.toast('Seçili hayvan yok');
+      if(!amount)return w.toast('Satış tutarı gir');
+      if(!w.canAddFinance(1))return w.showFinancePlusRequired();
+      const arr=ids.map(id=>w.db.animals.find(a=>a.id===id)).filter(a=>a&&w.isActiveAnimal(a));
+      if(!arr.length)return w.toast('Satılabilir hayvan bulunamadı');
+      const names=arr.map(w.animalName), previousStatuses={};
+      arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});
+      w.db.records.push({
+        id:w.uid('rec'),kind:'sale',label:'Satış · '+arr.length+' hayvan',
+        category:'Kuzu/Hayvan satışı',amount,date:saleDate,note,
+        animalIds:arr.map(a=>a.id),animalNames:names,previousStatuses,source:'sale_candidates'
+      });
+      w._candidateSaleIds=[];
+      w.save();w.closeModal();w.toast(arr.length+' hayvan satıldı; gelir kaydına işlendi');
+    };
+
     w.renderHerd=function(){
       let filters=['Tümü','Anaçlar','Anaç Adayları','Kuzular','Erkek Kuzular','Dişi Kuzular','Koç','Satılacaklar','Takipte','Pasif'];
       w.herdTabs.innerHTML=filters.map(f=>'<button class="tab '+(w.herdFilter===f?'active':'')+'" onclick="herdFilter=\''+f+'\';renderHerd()">'+f+'</button>').join('');
@@ -103,10 +138,13 @@ frame.addEventListener('load',()=>{
           ||(w.herdFilter==='Pasif'&&['Satıldı','Öldü','Kesildi'].includes(a.status));
         return ok&&((a.tag||'').toLowerCase().includes(q)||a.type.toLowerCase().includes(q)||a.status.toLowerCase().includes(q));
       });
-      w.herdList.innerHTML=arr.length?arr.map(a=>{
+      const saleMode=w.herdFilter==='Satılacaklar';
+      const saleBar=saleMode&&arr.length?'<div class="card" style="margin-bottom:10px"><div class="row"><div><b>Satış adayları</b><div class="muted">Satacağın kuzuları seç</div></div><button class="primary small" onclick="openCandidateSale()">Seçilenleri Sat</button></div></div>':'';
+      w.herdList.innerHTML=saleBar+(arr.length?arr.map(a=>{
         const auto=w.isAutoSaleCandidate(a)&&a.status!=='Satılacak';
-        return '<div class="card"><div class="row"><div><b>'+w.animalName(a)+'</b><div class="muted">'+a.sex+' · '+w.age(a.birth)+' · '+(a.weight?a.weight+' kg · ':'')+a.status+(auto?' · Satış adayı':'')+'</div></div><span class="tag">'+a.type+'</span></div><div style="margin-top:10px"><button class="small" onclick="editTag(\''+a.id+'\')">'+(a.tag?'Küpe Düzenle':'Küpe No Ekle')+'</button> <button class="small" onclick="animalCard(\''+a.id+'\')">Kartı Aç</button></div></div>';
-      }).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>';
+        const pick=saleMode?'<label style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input class="candidateSalePick" type="checkbox" value="'+a.id+'"><b>Satışa seç</b></label>':'';
+        return '<div class="card">'+pick+'<div class="row"><div><b>'+w.animalName(a)+'</b><div class="muted">'+a.sex+' · '+w.age(a.birth)+' · '+(a.weight?a.weight+' kg · ':'')+a.status+(auto?' · Satış adayı':'')+'</div></div><span class="tag">'+a.type+'</span></div><div style="margin-top:10px"><button class="small" onclick="editTag(\''+a.id+'\')">'+(a.tag?'Küpe Düzenle':'Küpe No Ekle')+'</button> <button class="small" onclick="animalCard(\''+a.id+'\')">Kartı Aç</button></div></div>';
+      }).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>');
     };
 
     const badge=d.querySelector('h1 span');
