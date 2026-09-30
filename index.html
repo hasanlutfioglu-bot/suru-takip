@@ -79,8 +79,30 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 </section>
 
 <section id="reports" class="screen"><h3>Raporlar</h3><div class="tabs">
- <button class="tab active" data-report="monthly" onclick="setReport('monthly',this)">Aylık</button><button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Yıllık</button><button class="tab" data-report="birthperiod" onclick="setReport('birthperiod',this)">Doğum Dönemi</button><button class="tab" data-report="all" onclick="setReport('all',this)">Genel</button>
- </div><div class="card"><div class="muted" id="reportLabel">Bu ay</div><div class="grid" style="margin-top:10px"><div class="stat"><b id="rIncome">0</b><span>Gelir</span></div><div class="stat"><b id="rExpense">0</b><span>Gider</span></div><div class="stat"><b id="rNet">0</b><span>Net</span></div><div class="stat"><b id="rBirths">0</b><span>Doğan kuzu</span></div></div></div>
+ <button class="tab active" data-report="monthly" onclick="setReport('monthly',this)">Aylık</button><button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Yıllık 🔒</button><button class="tab" data-report="birthperiod" onclick="setReport('birthperiod',this)">Doğum Dönemi 🔒</button><button class="tab" data-report="all" onclick="setReport('all',this)">Genel 🔒</button>
+ </div>
+ <div class="card" id="reportPlanNote"><div class="muted">Ücretsiz pakette aylık temel rapor açıktır. Plus ile tüm dönemler ve detaylı analizler açılır.</div></div>
+ <div class="card"><div class="muted" id="reportLabel">Bu ay</div><div class="grid" style="margin-top:10px"><div class="stat"><b id="rIncome">0</b><span>Gelir</span></div><div class="stat"><b id="rExpense">0</b><span>Gider</span></div><div class="stat"><b id="rNet">0</b><span>Net</span></div><div class="stat"><b id="rBirths">0</b><span>Doğan kuzu</span></div></div></div>
+ <div id="plusReportDetails">
+  <h3>Sürü Özeti</h3><div class="grid">
+   <div class="card stat"><b id="rActiveAnimals">0</b><span>Aktif hayvan</span></div>
+   <div class="card stat"><b id="rSoldAnimals">0</b><span>Satılan</span></div>
+   <div class="card stat"><b id="rTrackedAnimals">0</b><span>Takipte</span></div>
+   <div class="card stat"><b id="rAvgWeight">0</b><span>Ort. kilo</span></div>
+  </div>
+  <h3>Kuzu Dağılımı</h3><div class="grid">
+   <div class="card stat"><b id="rMaleLambs">0</b><span>Erkek kuzu</span></div>
+   <div class="card stat"><b id="rFemaleLambs">0</b><span>Dişi kuzu</span></div>
+   <div class="card stat"><b id="rUnknownLambs">0</b><span>Cinsiyet bilinmiyor</span></div>
+   <div class="card stat"><b id="rSaleCandidates">0</b><span>Satılacak</span></div>
+  </div>
+  <h3>Kayıt Özeti</h3><div class="grid">
+   <div class="card stat"><b id="rHealth">0</b><span>Sağlık kaydı</span></div>
+   <div class="card stat"><b id="rWeights">0</b><span>Tartım kaydı</span></div>
+   <div class="card stat"><b id="rSales">0</b><span>Satış kaydı</span></div>
+   <div class="card stat"><b id="rStockMoves">0</b><span>Stok alımı</span></div>
+  </div>
+ </div>
  <h3>Doğum performansı</h3>
  <div class="grid">
   <div class="card stat"><b id="rLambedEwes">0</b><span>Doğuran anaç</span></div>
@@ -714,10 +736,23 @@ function birthMetrics(mode){
  return {ewes,births,lambs,lambedIds,prolificacy,lambingRate,nonLambing}
 }
 function pct(n){return new Intl.NumberFormat('tr-TR',{maximumFractionDigits:1}).format(n||0)+'%'}
-function setReport(m,el){db.report=m;document.querySelectorAll('#reports .tab').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');renderReports()}
+function showReportPlusRequired(){
+ showModal('Sürü Takip Plus',`
+  <div class="card"><b>Gelişmiş raporlar Plus'a özel</b>
+  <div class="muted" style="margin-top:6px">Yıllık, doğum dönemi, genel raporlar ve detaylı sürü analizleri Plus üyelikte açılır.</div></div>`);
+}
+function setReport(m,el){
+ if(!isPlus() && m!=='monthly')return showReportPlusRequired();
+ db.report=m;
+ document.querySelectorAll('#reports .tab').forEach(x=>x.classList.remove('active'));
+ if(el)el.classList.add('active');
+ renderReports()
+}
 function toggleNonLambing(){let p=document.getElementById('nonLambingPanel');if(p)p.style.display=p.style.display==='none'?'block':'none'}
 function renderReports(){
- let m=db.report||'monthly', f=calcFinance(m), metrics=birthMetrics(m), births=f.arr.filter(x=>x.kind==='birth').reduce((s,x)=>s+(+x.count||0),0);
+ let m=db.report||'monthly';
+ if(!isPlus() && m!=='monthly'){m='monthly';db.report='monthly'}
+ let f=calcFinance(m), metrics=birthMetrics(m), births=f.arr.filter(x=>x.kind==='birth').reduce((s,x)=>s+(+x.count||0),0);
  let range=m==='birthperiod'?latestBirthPeriodRange():null;
  reportLabel.textContent=m==='monthly'?'Bu ay':m==='yearly'?'Bu yıl':m==='all'?'Tüm zamanlar':range?`Doğum dönemi · ${range.start.toLocaleDateString('tr-TR')} - ${range.end.toLocaleDateString('tr-TR')}`:'Doğum dönemi · kayıt yok';
  document.querySelectorAll('#reports .tab').forEach(x=>x.classList.toggle('active',x.dataset.report===m));
@@ -736,7 +771,31 @@ function renderReports(){
   return `<div class="listitem"><b>${a?animalName(a):r.label}</b><div class="muted">${r.date||''}${r.note?' · '+r.note:''}</div></div>`
  }).join(''):'<div class="muted">Bu dönemde ölüm kaydı yok.</div>';
 
- financeBreakdown.innerHTML=Object.keys(cats).length?Object.entries(cats).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${money(v)}</b></div>`).join(''):'<div class="muted">Bu dönemde finans kaydı yok.</div>'
+ financeBreakdown.innerHTML=Object.keys(cats).length?Object.entries(cats).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${money(v)}</b></div>`).join(''):'<div class="muted">Bu dönemde finans kaydı yok.</div>';
+
+ let periodRows=f.arr;
+ let active=db.animals.filter(isActiveAnimal);
+ let lambsActive=active.filter(a=>a.type==='Kuzu');
+ let weighted=active.filter(a=>+a.weight>0);
+ let avgWeight=weighted.length?weighted.reduce((s,a)=>s+(+a.weight||0),0)/weighted.length:0;
+ if(document.getElementById('rActiveAnimals'))rActiveAnimals.textContent=active.length;
+ if(document.getElementById('rSoldAnimals'))rSoldAnimals.textContent=db.animals.filter(a=>a.status==='Satıldı').length;
+ if(document.getElementById('rTrackedAnimals'))rTrackedAnimals.textContent=active.filter(a=>a.status==='Takipte').length;
+ if(document.getElementById('rAvgWeight'))rAvgWeight.textContent=weighted.length?avgWeight.toLocaleString('tr-TR',{maximumFractionDigits:1})+' kg':'-';
+ if(document.getElementById('rMaleLambs'))rMaleLambs.textContent=lambsActive.filter(a=>a.sex==='Erkek').length;
+ if(document.getElementById('rFemaleLambs'))rFemaleLambs.textContent=lambsActive.filter(a=>a.sex==='Dişi').length;
+ if(document.getElementById('rUnknownLambs'))rUnknownLambs.textContent=lambsActive.filter(a=>!a.sex||a.sex==='Bilinmiyor').length;
+ if(document.getElementById('rSaleCandidates'))rSaleCandidates.textContent=active.filter(a=>a.status==='Satılacak').length;
+ if(document.getElementById('rHealth'))rHealth.textContent=periodRows.filter(x=>x.kind==='health').length;
+ if(document.getElementById('rWeights'))rWeights.textContent=periodRows.filter(x=>x.kind==='weight').length;
+ if(document.getElementById('rSales'))rSales.textContent=periodRows.filter(x=>x.kind==='sale').length;
+ if(document.getElementById('rStockMoves'))rStockMoves.textContent=periodRows.filter(x=>x.kind==='stock').length;
+
+ let pd=document.getElementById('plusReportDetails'), pn=document.getElementById('reportPlanNote');
+ if(pd)pd.style.display=isPlus()?'block':'none';
+ if(pn)pn.innerHTML=isPlus()
+  ?'<div class="muted">Plus aktif · tüm dönemler ve detaylı raporlar açık.</div>'
+  :'<div class="muted">Ücretsiz pakette aylık temel rapor açıktır. Yıllık, doğum dönemi, genel ve detaylı analizler Plus ile açılır.</div>';
 }
 function openSub(k){let title={health:'Sağlık',births:'Doğum-Kuzulama',performance:'Anaç Performansı',calendar:'Koç & Takvim',weights:'Tartım',stock:'Stok',finance:'Gelir-Gider',moves:'Sürü Hareketleri',today:'Bugün Yapılacaklar'}[k];subTitle.textContent=title;let body='';
  if(k==='stock')body=Object.entries(db.stock).map(([a,v])=>`<div class="card row"><b>${a}</b><span>${v}</span></div>`).join('');
