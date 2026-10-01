@@ -532,10 +532,18 @@ const PRO_MONTHLY_PRICE=99;
 const PRO_YEARLY_PRICE=990;
 const PRO_MONTHLY_PRODUCT='suru_pro_monthly';
 const PRO_YEARLY_PRODUCT='suru_pro_yearly';
-let selectedProBilling='yearly';
+let selectedProBilling='yearly',purchaseBusy=false;
 
 function localDateISO(d=new Date()){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
 const today=()=>localDateISO();
+function validDate(value){
+ if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+ const d=new Date(value+'T12:00:00');return !isNaN(d)&&localDateISO(d)===value;
+}
+function validRecordDate(value,birth=''){return validDate(value)&&value<=today()&&(!birth||value>=birth)}
+function safeStockItem(value){return !!value&&!['__proto__','prototype','constructor'].includes(value)}
+function csvCell(value){let s=String(value??'');if(/^[\s]*[=+@-]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}
+
 function seed(){
  return {
   animals:[],
@@ -580,6 +588,7 @@ function ensureRecordIds(){
 }
 ensureRecordIds();
 function save(){
+ for(const id of new Set(db.records.filter(r=>r.kind==='weight').map(r=>r.animalId)))recalcAnimalWeight(id);
  promoteAgedBreederLambs();
  ensureRecordIds();
  if(!db._meta)db._meta={};
@@ -603,11 +612,12 @@ function ageMonths(b){
  return (n.getFullYear()-d.getFullYear())*12+(n.getMonth()-d.getMonth())+(n.getDate()-d.getDate())/30.44;
 }
 function promoteAgedBreederLambs(){
+ if(cloudFarmId&&cloudRole==='viewer')return false;
  let changed=false;
  db.animals.forEach(a=>{
   if(a.type!=='Kuzu'||!isActiveAnimal(a)||!a.birth||ageMonths(a.birth)<12)return;
   if(a.sex==='Dişi'&&a.breedingStatus==='Anaç Adayı'){a.type='Koyun';changed=true}
-  else if(a.sex==='Erkek'){a.type='Koç';a.status='Aktif';changed=true}
+  else if(a.sex==='Erkek'){a.type='Koç';changed=true}
  });
  return changed;
 }
@@ -619,7 +629,7 @@ function trialDaysLeft(){
  return Math.max(0,Math.ceil(ms/864e5));
 }
 function trialActive(){return subscriptionStatus==='trialing'&&!!trialEndsAt&&new Date(trialEndsAt).getTime()>Date.now()}
-function isPro(){return trialActive()||((subscriptionStatus==='active'||subscriptionStatus==='offline')&&['pro','plus'].includes(currentPlan))}
+function isPro(){return trialActive()||((subscriptionStatus==='active'||subscriptionStatus==='offline')&&['pro','plus'].includes(currentPlan)&&(!currentPeriodEnd||new Date(currentPeriodEnd).getTime()>Date.now()))}
 function isPlus(){return isPro()}
 function planBadge(){return trialActive()?'PRO DENEME':isPro()?'PRO':'FREE'}
 function renderPlanStatus(){
@@ -662,26 +672,28 @@ async function verifyPlayPurchase(productId,purchaseToken){
 }
 async function startProPurchase(){
  if(!cloudSession)return showModal('PRO Satın Alma','<div class="card"><b>Önce hesabınla giriş yap</b><div class="muted" style="margin-top:6px">PRO üyelik cihazına değil hesabına bağlanır. Böylece Android, iPhone ve bilgisayarda aynı üyeliği kullanırsın.</div></div><button class="primary" onclick="closeModal();go(\'all\')">Giriş Bölümüne Git</button>');
+ if(purchaseBusy)return;
  const product=selectedProBilling==='yearly'?PRO_YEARLY_PRODUCT:PRO_MONTHLY_PRODUCT,platform=storePlatform();
  if(platform==='android'){
+  let response=null;purchaseBusy=true;
   try{
    const ready=await billingBackendReady();
-   if(!ready)return showModal('Google Play Hazırlığı','<div class="card"><b>Ödeme altyapısı kod olarak bağlı.</b><div class="muted" style="margin-top:6px">Canlı tahsilat için Google Play Console\'da abonelik ürünleri ve sunucu doğrulama hesabı tamamlanmalı. Bu tamamlanmadan senden ücret alınmaz.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
+   if(!ready)return showModal('Google Play Hazırlığı','<div class="card"><b>Satın alma henüz kullanıma açılmadı.</b><div class="muted" style="margin-top:6px">Google Play satın alma şu anda kullanılamıyor. Ücret alınmadı; kayıtların korunuyor.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
    const service=await window.getDigitalGoodsService('https://play.google.com/billing');
    const details=await service.getDetails([product]);
    if(!details?.length)throw new Error('Bu PRO ürünü Google Play mağazasında bulunamadı');
-   const request=new PaymentRequest([{supportedMethods:'https://play.google.com/billing',data:{sku:product}}],{total:{label:'Sürü Takip PRO',amount:{currency:'TRY',value:'0'}}});
-   const response=await request.show();
+   const request=new PaymentRequest([{supportedMethods:'https://play.google.com/billing',data:{sku:product}}],{total:{label:'Sürü Takip PRO',amount:{currency:details[0]?.price?.currency||'TRY',value:details[0]?.price?.value||'0'}}});
+   response=await request.show();
    const token=response?.details?.token||response?.details?.purchaseToken;
-   if(!token){await response.complete('fail');throw new Error('Satın alma kodu alınamadı')}
+   if(!token)throw new Error('Satın alma kodu alınamadı');
    await verifyPlayPurchase(product,token);
    await response.complete('success');
    closeModal();renderPlanStatus();toast('PRO üyeliğin aktif edildi');
    return;
-  }catch(e){return toast('Google Play: '+(e?.message||'satın alma başlatılamadı'))}
+  }catch(e){if(response)try{await response.complete('fail')}catch(ignore){}return toast(e?.name==='AbortError'?'Satın alma iptal edildi':'Google Play: '+(e?.message||'satın alma başlatılamadı'))}finally{purchaseBusy=false}
  }
  if(platform==='ios'){try{window.webkit.messageHandlers.suruBilling.postMessage({action:'purchase',productId:product});return}catch(e){return toast('App Store satın alma başlatılamadı')}}
- showModal('PRO Satın Alma','<div class="card"><b>Web ödeme sıradaki bağlantı</b><div class="muted" style="margin-top:6px">Seçimin: '+(selectedProBilling==='yearly'?'Yıllık '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL')+'. Android için Google Play akışı hazırlandı. Bilgisayar/web ödeme sağlayıcısını ayrıca bağlayacağız.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
+ showModal('PRO Satın Alma','<div class="card"><b>Satın alma henüz kullanılamıyor</b><div class="muted" style="margin-top:6px">Seçimin: '+(selectedProBilling==='yearly'?'Yıllık '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL')+'. Bu platformda henüz satın alma yapılamıyor. Ücret alınmadı.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
 }
 async function restoreProPurchase(){
  const platform=storePlatform();
@@ -728,6 +740,7 @@ function showProRequired(feature='Bu özellik'){
   <button class="primary" onclick="openPlans()">FREE ve PRO'yu Karşılaştır</button>
  `);
 }
+function canEditData(){if(cloudFarmId&&cloudRole==='viewer'){toast('Bu hesap yalnızca görüntüleme yetkisine sahip');return false}return true}
 function canAddAnimals(n=1){return isPro() || (activeAnimalCount()+n)<=FREE_ANIMAL_LIMIT}
 function monthKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function monthlyFinanceCount(){
@@ -750,9 +763,9 @@ function showPlusRequired(extra=1){
   <button class="primary" onclick="openPlans()">PRO'yu Gör</button>
  `);
 }
-function animalOptions(types){return db.animals.filter(a=>isActiveAnimal(a)&&(!types||types.includes(a.type))).map(a=>`<option value="${a.id}">${animalName(a)}</option>`).join('')}
-function motherOptions(){return db.animals.filter(a=>isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı')).map(a=>`<option value="${a.id}">${animalName(a)}${a.breedingStatus==='Anaç Adayı'?' · Anaç Adayı':''}</option>`).join('')}
-function salePickList(){let arr=db.animals.filter(a=>isActiveAnimal(a));return arr.length?`<div class="pickList">${arr.map(a=>`<label class="pickRow"><input type="checkbox" class="saleAnimal" value="${a.id}"><span><b>${animalName(a)}</b><br><span class="muted">${a.sex} · ${age(a.birth)} · ${a.status}</span></span></label>`).join('')}</div>`:'<div class="pickList"><div class="pickEmpty">Satılabilecek aktif hayvan yok.</div></div>'}
+function animalOptions(types){return db.animals.filter(a=>isActiveAnimal(a)&&(!types||types.includes(a.type))).map(a=>`<option value="${a.id}">${escHtml(animalName(a))}</option>`).join('')}
+function motherOptions(){return db.animals.filter(a=>isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı')).map(a=>`<option value="${a.id}">${escHtml(animalName(a))}${a.breedingStatus==='Anaç Adayı'?' · Anaç Adayı':''}</option>`).join('')}
+function salePickList(){let arr=db.animals.filter(a=>isActiveAnimal(a));return arr.length?`<div class="pickList">${arr.map(a=>`<label class="pickRow"><input type="checkbox" class="saleAnimal" value="${a.id}"><span><b>${escHtml(animalName(a))}</b><br><span class="muted">${a.sex} · ${age(a.birth)} · ${a.status}</span></span></label>`).join('')}</div>`:'<div class="pickList"><div class="pickEmpty">Satılabilecek aktif hayvan yok.</div></div>'}
 function toggleIncomeAnimals(){let box=document.getElementById('incomeAnimals');if(box)box.style.display=(document.getElementById('cat')?.value==='Hayvan satışı')?'block':'none'}
 
 function setCloudUI(mode,msg){
@@ -778,9 +791,18 @@ function cloneState(x){return JSON.parse(JSON.stringify(x))}
 function normalizeState(x){
  if(!x||!Array.isArray(x.animals)||!Array.isArray(x.records))throw new Error('Geçerli sürü kaydı bulunamadı');
  let out=cloneState(x);out.stock=out.stock&&typeof out.stock==='object'&&!Array.isArray(out.stock)?out.stock:{};
- out.tasks=Array.isArray(out.tasks)?out.tasks:[];out.ramCalendar=Array.isArray(out.ramCalendar)?out.ramCalendar:[];out._meta=out._meta||{};
+ out.tasks=Array.isArray(out.tasks)?out.tasks:[];out.ramCalendar=Array.isArray(out.ramCalendar)?out.ramCalendar:[];out._meta=out._meta&&typeof out._meta==='object'&&!Array.isArray(out._meta)?out._meta:{};
  for(const key of ['animals','records','ramCalendar']){let ids=new Set();out[key].forEach(v=>{if(!v||typeof v!=='object'||!v.id||!/^[-A-Za-z0-9_]{1,200}$/.test(v.id)||ids.has(v.id))throw new Error('Eksik veya tekrarlanan kayıt kimliği');ids.add(v.id)})}
- out.tasks.forEach((t,i)=>{if(!t.id)t.id='task_legacy_'+i+'_'+Array.from(String(t.text||'')).reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,0)});
+ out.tasks.forEach((t,i)=>{if(!t||typeof t!=='object'||Array.isArray(t)||typeof t.text!=='string')throw new Error('Geçersiz görev');if(!t.id)t.id='task_legacy_'+i+'_'+Array.from(t.text).reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,0)});
+ if(new Set(out.tasks.map(t=>t.id)).size!==out.tasks.length)throw new Error('Tekrarlanan görev kimliği');
+ const types=['Koyun','Koç','Kuzu'],sexes=['Erkek','Dişi','Bilinmiyor'],statuses=['Aktif','Satılacak','Takipte','Satıldı','Öldü','Kesildi'];
+ const text=(v)=>v===undefined||v===null||typeof v==='string';
+ out.animals.forEach(a=>{if(!types.includes(a.type)||!sexes.includes(a.sex)||!statuses.includes(a.status)||!text(a.tag)||!text(a.birth)||!['',undefined,null,'Anaç','Anaç Adayı'].includes(a.breedingStatus)||(a.birth&&!validDate(a.birth))||(a.weight!==''&&a.weight!==undefined&&a.weight!==null&&(!Number.isFinite(+a.weight)||+a.weight<0)))throw new Error('Geçersiz hayvan bilgisi')});
+ out.records.forEach(r=>{if(!text(r.note)||!text(r.label)||!text(r.category)||!text(r.stockItem)||!text(r.productionPeriod)||!text(r.date)||(r.date&&!validDate(r.date))||(r.amount!==undefined&&(!Number.isFinite(+r.amount)||+r.amount<0))||(r.childIds!==undefined&&(!Array.isArray(r.childIds)||r.childIds.some(id=>typeof id!=='string')))||(r.animalIds!==undefined&&(!Array.isArray(r.animalIds)||r.animalIds.some(id=>typeof id!=='string')))||(r.animalNames!==undefined&&(!Array.isArray(r.animalNames)||r.animalNames.some(n=>typeof n!=='string'))))throw new Error('Geçersiz işlem bilgisi')});
+ Object.entries(out.stock).forEach(([item,qty])=>{if(!safeStockItem(item)||!Number.isFinite(+qty)||+qty<0)throw new Error('Geçersiz stok');out.stock[item]=+qty});
+ out.ramCalendar.forEach(r=>{for(const k of ['matingDate','removalDate','actualMatingDate','actualRemovalDate'])if(r[k]&&!validDate(r[k]))throw new Error('Geçersiz üreme tarihi')});
+ if(!text(out.farmName))throw new Error('Geçersiz işletme adı');
+ if(!['monthly','yearly','all','birthperiod'].includes(out.report))out.report='monthly';
  return out;
 }
 function readStored(key,fallback){try{const raw=localStorage.getItem(key);if(!raw)return cloneState(fallback);const parsed=JSON.parse(raw);return normalizeState(parsed._localEnvelope===1?parsed.data:parsed)}catch(e){try{localStorage.setItem(key+'_damaged_'+Date.now(),localStorage.getItem(key)||'')}catch(ignore){}setCloudUI('local','Cihaz kaydı okunamadı. Eski kayıt korunuyor; yedekten geri yükleyebilirsin.');return cloneState(fallback)}}
@@ -952,13 +974,13 @@ function downloadGuestBackup(){downloadBackup(readStored(KEY+'_guest',seed()),'-
 function exportConflictBackup(){if(syncConflict)downloadBackup(syncConflict.remote,'-bulut')}
 function openBackup(){showModal('Yedekleme / Geri Yükleme',`<p>Sürü, doğumlar, gelir-gider, stok ve takvim kayıtlarını JSON dosyası olarak indir.</p><button class="primary" onclick="exportBackup()">Yedeği İndir</button><h3>Yedekten Geri Yükle</h3><input id="backupFile" type="file" accept=".json,application/json"><button onclick="restoreBackup()">Seçilen Yedeği Geri Yükle</button><h3>Yerel Mod</h3><button onclick="downloadGuestBackup()">Yerel Mod Yedeğini İndir</button><h3>Kurtarma Kopyaları</h3><button onclick="openRecoveryList()">Korunan Kopyaları Göster</button>`)}
 function validateBackup(raw){if(!raw||raw.format!=='suru-takip-backup'||raw.version!==1)throw new Error('Desteklenmeyen yedek dosyası');if(cloudFarmId&&raw.farmId&&raw.farmId!==cloudFarmId)throw new Error('Bu yedek başka bir işletmeye ait');return normalizeState(raw.data)}
-async function restoreBackup(){
+async function restoreBackup(){if(!canEditData())return;
  const file=document.getElementById('backupFile')?.files?.[0];if(!file)return toast('Yedek dosyası seç');if(file.size>20*1024*1024)return toast('Yedek dosyası çok büyük');
  try{const raw=JSON.parse(await file.text()),restored=validateBackup(raw);if(!confirm('Mevcut kayıtlar kurtarma kopyasına alınacak. Seçilen yedek bu cihazın sürüsü olarak kullanılacak. Devam edilsin mi?'))return;archiveRecovery(db,'Geri yükleme öncesi');db=restored;save();closeModal();toast('Yedek geri yüklendi; bulut durumu üstte gösteriliyor')}catch(e){toast('Yedek yüklenemedi: '+e.message)}
 }
 function openRecoveryList(){
  const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith(activeStorageKey+'_recovery_'))keys.push(k)}
- const list=keys.sort().reverse().map(k=>{const r=JSON.parse(localStorage.getItem(k));return `<div class="card"><b>${escHtml(r.reason||'Kurtarma kopyası')}</b><div class="muted">${escHtml(r.createdAt||'')}</div><button onclick="downloadRecovery('${k}')">İndir</button></div>`}).join('');
+ const list=keys.sort().reverse().map(k=>{const r=JSON.parse(localStorage.getItem(k));return `<div class="card"><b>${escHtml(r.reason||'Kurtarma kopyası')}</b><div class="muted">${escHtml(r.createdAt||'')}</div><button onclick="downloadRecovery('${escHtml(k)}')">İndir</button></div>`}).join('');
  const legacy=localStorage.getItem(KEY);showModal('Kurtarma Kopyaları',list+(legacy?'<button onclick="downloadLegacyBackup()">Eski V21 Cihaz Kaydını İndir</button>':'')||'<p>Kurtarma kopyası yok.</p>');
 }
 function downloadRecovery(key){if(!key.startsWith(activeStorageKey+'_recovery_'))return;const r=JSON.parse(localStorage.getItem(key)||'null');if(r)downloadBackup(r.data,'-kurtarma')}
@@ -1006,7 +1028,7 @@ function reminderLabel(x){
  if(x.days===0)return 'Bugün';
  return x.days+' gün kaldı'
 }
-function markReminderDone(type,id){
+function markReminderDone(type,id){if(!canEditData())return;
  if(type==='health'){
   let r=db.records.find(x=>x.id===id);if(r)r.reminderDone=true;
  }else{
@@ -1053,19 +1075,19 @@ function renderHomeUpcoming(){
   return `<div class="upcomingItem"><div class="upcomingIcon">${icon(x)}</div><div class="upcomingText"><b>${escHtml(x.text)}</b><div class="upcomingMeta ${cls}">${escHtml(meta)}</div></div><button class="small" onclick="${action}">${btn}</button></div>`;
  }).join('');
 }
-function saveLambPrice(v){
+function saveLambPrice(v){if(!canEditData())return;
  let n=+v;if(!Number.isFinite(n)||n<=0)return toast('Geçerli kg fiyatı gir');
  db.lambPricePerKg=n;save();toast('Kuzu fiyatı güncellendi');
 }
 let growthFilter='Tümü';
 function latestWeightInfo(a){
- let rows=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id&&r.date).slice().sort((x,y)=>String(y.date).localeCompare(String(x.date)));
- let latest=rows[0]||null,prev=rows[1]||null;
+ let rows=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id&&r.date).slice().reverse().sort((x,y)=>String(y.date).localeCompare(String(x.date)));
+ let latest=rows[0]||null,prev=rows.find(r=>r.date<latest?.date)||null;
  let weight=latest?weightValueFromRecord(latest):(+a.weight||0);
  let prevWeight=prev?weightValueFromRecord(prev):(+latest?.previousWeight||0);
  let days=prev?.date&&latest?.date?Math.max(1,dateDiffDays(prev.date,latest.date)):(+latest?.gainDays||0);
  let gain=prevWeight&&weight?weight-prevWeight:(Number.isFinite(+latest?.gainKg)?+latest.gainKg:0);
- let adg=prevWeight&&days>0?Math.round(gain*1000/days):(Number.isFinite(+latest?.adg)&&+latest.adg>0?+latest.adg:null);
+ let adg=prevWeight&&days>0?Math.round(gain*1000/days):(latest?.adg!==''&&latest?.adg!=null&&Number.isFinite(+latest.adg)?+latest.adg:null);
  return {latest,prev,weight,prevWeight,days,gain,adg};
 }
 function compactLambAge(a){
@@ -1075,10 +1097,10 @@ function compactLambAge(a){
  return whole+'a'+(days?' '+days+'g':'');
 }
 function lastWeightIntervals(a,limit=2){
- let rows=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id&&r.date).slice().sort((x,y)=>String(y.date).localeCompare(String(x.date)));
+ let rows=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id&&r.date).slice().reverse().sort((x,y)=>String(y.date).localeCompare(String(x.date)));
  let out=[];
  for(let i=0;i<Math.min(limit,rows.length-1);i++){
-  let now=rows[i],prev=rows[i+1],w=weightValueFromRecord(now),pw=weightValueFromRecord(prev),days=Math.max(1,dateDiffDays(prev.date,now.date));
+  let now=rows[i],prev=rows[i+1];if(now.date===prev.date)continue;let w=weightValueFromRecord(now),pw=weightValueFromRecord(prev),days=Math.max(1,dateDiffDays(prev.date,now.date));
   if(w>0&&pw>0){
    let adg=Math.round((w-pw)*1000/days),ageDays=lambAgeDaysAt(a,now.date),band=expectedAdgBand(ageDays);
    out.push({adg,band,date:now.date,gain:w-pw,days});
@@ -1106,7 +1128,7 @@ function growthAssessment(a,wi,groupAvg){
 function growthGroupWarnings(infos){
  let groups={};
  infos.forEach(x=>{
-  if(!Number.isFinite(x.wi.adg)||x.wi.adg<=0||!x.a.birth)return;
+  if(!Number.isFinite(x.wi.adg)||!x.a.birth)return;
   let m=Math.floor(x.months);(groups[m]||(groups[m]=[])).push(x);
  });
  return Object.entries(groups).map(([m,arr])=>{
@@ -1126,7 +1148,7 @@ function showGrowthDetail(id){
  let readyReason=weightReady&&ageReady?'Yaş ve 50 kg hedefi':weightReady?'50 kg hedefi':ageReady?'5,5 ay hedefi':a.status==='Satılacak'?'Satılacak işaretli':'Henüz değil';
  let targetRemain=wi.weight?Math.max(0,50-wi.weight):50,price=+db.lambPricePerKg||450;
  let hist=db.records.filter(r=>r.kind==='weight'&&r.animalId===id&&r.date).slice().sort((x,y)=>String(y.date).localeCompare(String(x.date))).slice(0,8);
- let history=hist.length?hist.map(r=>`<div class="listitem row"><div><b>${escHtml(r.date)}</b><div class="muted">${Number.isFinite(+r.adg)?Math.round(+r.adg)+' g/gün':'Tartım kaydı'}</div></div><b>${weightValueFromRecord(r).toFixed(1)} kg</b></div>`).join(''):'<div class="empty">Henüz tartım kaydı yok.</div>';
+ let history=hist.length?hist.map(r=>`<div class="listitem row"><div><b>${escHtml(r.date)}</b><div class="muted">${r.adg!==''&&r.adg!=null&&Number.isFinite(+r.adg)?Math.round(+r.adg)+' g/gün':'Tartım kaydı'}</div></div><b>${weightValueFromRecord(r).toFixed(1)} kg</b></div>`).join(''):'<div class="empty">Henüz tartım kaydı yok.</div>';
  let warning=assessment.level==='control'
   ?`<div class="growthReason" style="background:#fdeaea"><strong>🩺 Kontrol önerisi</strong>${assessment.reasons.map(escHtml).join(' · ')}</div>`
   :assessment.level==='watch'
@@ -1180,7 +1202,7 @@ function renderGrowth(){
   else if(x.saleNear)x.state='near';
   else x.state='normal';
  });
- let adgs=infos.map(x=>x.wi.adg).filter(v=>Number.isFinite(v)&&v>0);
+ let adgs=infos.map(x=>x.wi.adg).filter(v=>Number.isFinite(v));
  let avgAdg=adgs.length?Math.round(adgs.reduce((s,v)=>s+v,0)/adgs.length):0;
  let ready=infos.filter(x=>x.saleReady),price=+db.lambPricePerKg||450;
  let readyValue=ready.reduce((s,x)=>s+(x.wi.weight||0)*price,0);
@@ -1188,7 +1210,7 @@ function renderGrowth(){
  growthLambCount.textContent=infos.length;
  growthSaleReady.textContent=ready.length;
  growthBelowAvg.textContent=infos.filter(x=>x.assessment.level!=='normal'||x.weighDue).length;
- growthAvgAdg.textContent=avgAdg?avgAdg+' g':'—';
+ growthAvgAdg.textContent=adgs.length?avgAdg+' g':'—';
  let priceInput=document.getElementById('growthPriceInput');if(priceInput&&document.activeElement!==priceInput)priceInput.value=price;
  let rv=document.getElementById('growthReadyValue'),tv=document.getElementById('growthTargetValue');if(rv)rv.textContent=money(readyValue);if(tv)tv.textContent=money(targetValue);
 
@@ -1226,11 +1248,11 @@ function renderGrowth(){
 function renderAll(){
  renderPlanStatus();
  let agedChanged=promoteAgedBreederLambs();
- if(agedChanged){try{persistLocal()}catch(e){} if(cloudFarmId){cloudDirty=true;queueCloudSync()}}
+ if(agedChanged){if(cloudFarmId)cloudDirty=true;try{persistLocal()}catch(e){}if(cloudFarmId)queueCloudSync()}
  let A=db.animals.filter(a=>!['Satıldı','Öldü','Kesildi'].includes(a.status)), e=A.filter(a=>a.type==='Koyun').length,r=A.filter(a=>a.type==='Koç').length,l=A.filter(a=>a.type==='Kuzu').length,f=A.filter(a=>a.status==='Takipte').length;
  let setupCard=document.getElementById('firstSetupCard');if(setupCard)setupCard.style.display=(db.animals.length===0&&!db.setupDone)?'block':'none';
  heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
- let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span>${x.text}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
+ let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
  renderHomeUpcoming();
  let fin=calcFinance('all'),net=fin.income-fin.expense;homeNet.textContent=money(net);homeNet.className=net<0?'money minus':'money plus';
  let births=db.records.filter(x=>x.kind==='birth'&&x.motherId&&Number.isFinite(+x.count)&&+x.count>0),mothers=new Set(births.map(x=>x.motherId)),born=births.reduce((n,x)=>n+(+x.count),0);
@@ -1248,7 +1270,7 @@ function renderAll(){
  recent.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz hareket yok.</div>';
  last5.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz kayıt yok.</div>';
  renderHerd();renderGrowth();renderReports();setupReportFolds();setupDetailedReportControls();
- if(currentSub==='performance')subBody.innerHTML=ewePerformanceHtml('history');
+ if(currentSub&&document.getElementById('sub').classList.contains('active'))openSub(currentSub,true);
  if(typeof chatHints!=='undefined'&&chatHints)chatHints.innerHTML='<b>Örnek komutlar</b><div class="listitem">“Bugün yapılacak ne var?”</div><div class="listitem">“Bu ay ne kadar yem masrafı yaptım?”</div><div class="listitem">“245 numaralı koyun ikiz doğurdu; biri erkek biri dişi.”</div>';
 }
 function recordHtml(x){
@@ -1269,7 +1291,7 @@ function isSaleCandidate(a){return !!a&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActi
 function openSaleCandidates(){
  let arr=db.animals.filter(a=>isSaleCandidate(a));
  if(!arr.length)return showModal('Satılacak Kuzular','<div class="empty">Şu anda satış adayı kuzu yok.</div>');
- let rows=arr.map(a=>{let reason=saleCandidateAge(a)&&saleCandidateWeight(a)?'Yaş + 50 kg':saleCandidateWeight(a)?'50 kg hedefi':saleCandidateAge(a)?'5,5+ ay':'Satılacak işaretli';return `<label class="pickRow"><input type="checkbox" class="saleAnimal" value="${a.id}"><span><b>${animalName(a)}</b><br><span class="muted">${a.sex} · ${age(a.birth)}${a.weight?' · '+a.weight+' kg':''} · ${reason}</span></span></label>`}).join('');
+ let rows=arr.map(a=>{let reason=saleCandidateAge(a)&&saleCandidateWeight(a)?'Yaş + 50 kg':saleCandidateWeight(a)?'50 kg hedefi':saleCandidateAge(a)?'5,5+ ay':'Satılacak işaretli';return `<label class="pickRow"><input type="checkbox" class="saleAnimal" value="${a.id}"><span><b>${escHtml(animalName(a))}</b><br><span class="muted">${a.sex} · ${age(a.birth)}${a.weight?' · '+a.weight+' kg':''} · ${reason}</span></span></label>`}).join('');
  showModal('Satılacak Kuzular',`
   <div class="muted" style="margin-bottom:8px">Erkek kuzu 5,5 ayı doldurunca veya 50 kg'a ulaşınca satışa hazır sayılır. Satacaklarını işaretle.</div>
   <div class="pickList">${rows}</div>
@@ -1324,7 +1346,7 @@ function renderHerd(){
   return `<div class="card herdAnimal">
    <div class="herdAnimalTop">
     <div>
-     <div class="herdAnimalName">${animalName(a)}</div>
+     <div class="herdAnimalName">${escHtml(animalName(a))}</div>
      <div class="herdAnimalMeta">${a.sex} · ${age(a.birth)}${a.type==='Kuzu'&&a.weight?' · '+a.weight+' kg':''} · ${a.status}${extra}</div>
      ${saleSoon?'<span class="saleSoonTag">Satışa yaklaşıyor</span>':''}
     </div>
@@ -1365,7 +1387,7 @@ function openAccount(){
   <button class="primary" onclick="saveAccountFarmName()">İşletme Bilgisini Kaydet</button>
  `);
 }
-async function saveAccountFarmName(){
+async function saveAccountFarmName(){if(!canEditData())return;
  const input=document.getElementById('accountFarmName');
  const name=(input?.value||'').trim();
  if(!name)return toast('İşletme adını gir');
@@ -1379,7 +1401,7 @@ async function saveAccountFarmName(){
 }
 function openInitialSetup(){
  showModal('İlk Sürünü Oluştur',`
-  <label>Çiftlik / İşletme adı</label><input id="setupFarmName" value="${db.farmName||''}" placeholder="Örn. Karpaz Küçükbaş">
+  <label>Çiftlik / İşletme adı</label><input id="setupFarmName" value="${escHtml(db.farmName||'')}" placeholder="Örn. Karpaz Küçükbaş">
   <label>Anaç koyun sayısı</label><input id="setupEwes" type="number" min="0" value="0">
   <label>Koç sayısı</label><input id="setupRams" type="number" min="0" value="0">
   <label>Erkek kuzu sayısı</label><input id="setupMaleLambs" type="number" min="0" value="0">
@@ -1388,8 +1410,9 @@ function openInitialSetup(){
   <div class="muted" style="margin-bottom:10px">Hayvanları ekledikten sonra küpe numaralarını “Toplu Küpe” bölümünden girebilirsin.</div>
   <button class="primary" onclick="saveInitialSetup()">Sürüyü Oluştur</button>`)
 }
-async function saveInitialSetup(){
- const nums=[setupEwes,setupRams,setupMaleLambs,setupFemaleLambs,setupUnknownLambs].map(x=>Math.max(0,parseInt(x.value||'0',10)||0));
+async function saveInitialSetup(){if(!canEditData())return;
+ const nums=[setupEwes,setupRams,setupMaleLambs,setupFemaleLambs,setupUnknownLambs].map(x=>Number(x.value||'0'));
+ if(nums.some(n=>!Number.isSafeInteger(n)||n<0)||nums.reduce((a,b)=>a+b,0)>10000)return toast('0 ile 10000 arasında tam hayvan sayısı gir');
  const total=nums.reduce((a,b)=>a+b,0);
  if(!total)return toast('En az bir hayvan ekle');
  if(!canAddAnimals(total))return showPlusRequired(total);
@@ -1423,11 +1446,14 @@ function syncNewAnimalSex(){
  if(newAnimalType.value==='Koyun')newAnimalSex.value='Dişi';
  if(newAnimalType.value==='Koç')newAnimalSex.value='Erkek';
 }
-function saveNewAnimal(){
+function saveNewAnimal(){if(!canEditData())return;
  if(!canAddAnimals(1))return showPlusRequired(1);
  const tag=(newAnimalTag.value||'').trim();
  if(tag&&db.animals.some(a=>a.tag===tag))return toast('Bu küpe numarası zaten kullanılıyor');
- const type=newAnimalType.value, sex=newAnimalSex.value;
+ const type=newAnimalType.value, sex=type==='Koyun'?'Dişi':type==='Koç'?'Erkek':newAnimalSex.value;
+ const w=newAnimalWeight.value,b=newAnimalBirth.value;
+ if(w!==''&&(!Number.isFinite(+w)||+w<=0))return toast('Sıfırdan büyük kilo gir');
+ if(b&&!validRecordDate(b))return toast('Geçerli, gelecekte olmayan doğum tarihi gir');
  db.animals.push({
   id:uid(type==='Koç'?'r':type==='Kuzu'?'l':'e'),
   type,sex,tag,status:newAnimalStatus.value,
@@ -1443,7 +1469,7 @@ function openBulkSex(){
  showModal('Kuzu Cinsiyetlerini Düzenle',
   (lambs.length?lambs.map(a=>`
    <div class="row" style="margin-bottom:8px">
-    <span><b>${animalName(a)}</b><br><span class="muted">${age(a.birth)}</span></span>
+    <span><b>${escHtml(animalName(a))}</b><br><span class="muted">${age(a.birth)}</span></span>
     <select class="bulkSex" data-id="${a.id}" style="width:140px;margin:0">
      <option value="Bilinmiyor" ${a.sex==='Bilinmiyor'?'selected':''}>Bilinmiyor</option>
      <option value="Erkek" ${a.sex==='Erkek'?'selected':''}>Erkek</option>
@@ -1453,15 +1479,15 @@ function openBulkSex(){
   +(lambs.length?'<button class="primary" onclick="saveBulkSex()">Cinsiyetleri Kaydet</button>':'')
  )
 }
-function saveBulkSex(){
+function saveBulkSex(){if(!canEditData())return;
  document.querySelectorAll('.bulkSex').forEach(x=>{let a=db.animals.find(z=>z.id===x.dataset.id);if(a)a.sex=x.value});
  save();closeModal();toast('Kuzu cinsiyetleri güncellendi')
 }
 
-function editTag(id){let a=db.animals.find(x=>x.id===id);showModal('Küpe Numarası',`<label>${animalName(a)}</label><input id="tagInput" value="${escHtml(a.tag||'')}" placeholder="Küpe numarası"><button class="primary" onclick="saveTag('${id}')">Kaydet</button>`)}
-function saveTag(id){const tagInput=document.getElementById('tagInput');let v=tagInput.value.trim(); if(v&&db.animals.some(a=>a.id!==id&&a.tag===v))return toast('Bu küpe numarası zaten kullanılıyor');db.animals.find(a=>a.id===id).tag=v;save();closeModal();toast('Küpe kaydedildi')}
+function editTag(id){let a=db.animals.find(x=>x.id===id);showModal('Küpe Numarası',`<label>${escHtml(animalName(a))}</label><input id="tagInput" value="${escHtml(a.tag||'')}" placeholder="Küpe numarası"><button class="primary" onclick="saveTag('${id}')">Kaydet</button>`)}
+function saveTag(id){if(!canEditData())return;const tagInput=document.getElementById('tagInput');let v=tagInput.value.trim(); if(v&&db.animals.some(a=>a.id!==id&&a.tag===v))return toast('Bu küpe numarası zaten kullanılıyor');db.animals.find(a=>a.id===id).tag=v;save();closeModal();toast('Küpe kaydedildi')}
 function openBulkTags(){showModal('Küpe Numaralarını Toplu Düzenle',db.animals.map(a=>`<label>${a.type} · ${a.sex}</label><input data-id="${a.id}" class="bulkTag" value="${escHtml(a.tag||'')}" placeholder="Küpe no">`).join('')+`<button class="primary" onclick="saveBulkTags()">Tümünü Kaydet</button>`)}
-function saveBulkTags(){let vals=[...document.querySelectorAll('.bulkTag')].map(x=>x.value.trim()).filter(Boolean);if(new Set(vals).size!==vals.length)return toast('Aynı küpe numarası iki kez girilmiş');document.querySelectorAll('.bulkTag').forEach(x=>db.animals.find(a=>a.id===x.dataset.id).tag=x.value.trim());save();closeModal();toast('Küpeler kaydedildi')}
+function saveBulkTags(){if(!canEditData())return;let vals=[...document.querySelectorAll('.bulkTag')].map(x=>x.value.trim()).filter(Boolean);if(new Set(vals).size!==vals.length)return toast('Aynı küpe numarası iki kez girilmiş');document.querySelectorAll('.bulkTag').forEach(x=>db.animals.find(a=>a.id===x.dataset.id).tag=x.value.trim());save();closeModal();toast('Küpeler kaydedildi')}
 function latestAnimalRecord(id,kind){
  return db.records.filter(r=>r.kind===kind&&(r.animalId===id||r.motherId===id||(Array.isArray(r.animalIds)&&r.animalIds.includes(id)))&&r.date)
   .slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0]||null;
@@ -1488,7 +1514,7 @@ function missingAnimalData(){
 function openMissingAnimalData(){
  let rows=missingAnimalData();
  if(!rows.length)return showModal('Eksik Hayvan Bilgileri','<div class="muted">Aktif hayvanlarda temel bilgi eksiği yok.</div>');
- showModal('Eksik Hayvan Bilgileri',rows.map(x=>`<div class="listitem row"><div><b>${animalName(x.a)}</b><div class="muted">Eksik: ${x.missing.join(', ')}</div></div><button class="small" onclick="closeModal();setTimeout(()=>animalCard('${x.a.id}'),60)">Kartı Aç</button></div>`).join(''));
+ showModal('Eksik Hayvan Bilgileri',rows.map(x=>`<div class="listitem row"><div><b>${escHtml(animalName(x.a))}</b><div class="muted">Eksik: ${x.missing.join(', ')}</div></div><button class="small" onclick="closeModal();setTimeout(()=>animalCard('${x.a.id}'),60)">Kartı Aç</button></div>`).join(''));
 }
 function animalCard(id){
  let a=db.animals.find(x=>x.id===id);if(!a)return toast('Hayvan bulunamadı');
@@ -1505,8 +1531,8 @@ function animalCard(id){
  showModal(animalName(a),`
   <div class="card">
    <b>${a.type} · ${a.sex}</b>
-   <div class="muted">Küpe: ${a.tag||'Yok'} · ${age(a.birth)} · Durum: ${a.status}${a.breedingStatus?' · '+a.breedingStatus:''}</div>
-   <div class="muted" style="margin-top:5px">Doğum tarihi: ${a.birth||'Bilinmiyor'}${a.type==='Kuzu'?' · Son kilo: '+(a.weight?a.weight+' kg':'Yok'):''}${mother?' · Anne: '+animalName(mother):''}</div>
+   <div class="muted">Küpe: ${escHtml(a.tag||'Yok')} · ${age(a.birth)} · Durum: ${a.status}${a.breedingStatus?' · '+a.breedingStatus:''}</div>
+   <div class="muted" style="margin-top:5px">Doğum tarihi: ${a.birth||'Bilinmiyor'}${a.type==='Kuzu'?' · Son kilo: '+(a.weight?a.weight+' kg':'Yok'):''}${mother?' · Anne: '+escHtml(animalName(mother)):''}</div>
    ${saleSoon?'<span class="saleSoonTag">Satışa yaklaşıyor · 5+ aylık</span>':''}
    ${animalSnapshotHtml(a)}
    ${a.deathDate?`<div class="muted">Ölüm: ${a.deathDate}${a.deathReason?' · '+escHtml(a.deathReason):''}</div>`:''}
@@ -1519,14 +1545,14 @@ function animalCard(id){
   ${rec.length?rec.map(recordHtml).join(''):'<div class="muted">Kayıt yok.</div>'}
  `)
 }
-function markBreeder(id){
+function markBreeder(id){if(!canEditData())return;
  let a=db.animals.find(x=>x.id===id);
  if(!a||a.sex!=='Dişi'||!isActiveAnimal(a))return toast('Bu hayvan damızlığa ayrılamaz');
  a.breedingStatus='Anaç Adayı';a.status='Aktif';
  db.records.push({id:uid('rec'),kind:'breeder',label:'Damızlığa ayrıldı · '+animalName(a),date:today(),animalId:a.id});
  save();closeModal();toast('Dişi kuzu anaç adayı olarak sürüde kaldı')
 }
-function promoteBreeder(id){
+function promoteBreeder(id){if(!canEditData())return;
  let a=db.animals.find(x=>x.id===id);
  if(!a||a.breedingStatus!=='Anaç Adayı'||!isActiveAnimal(a))return toast('Bu hayvan anaç adayı değil');
  a.type='Koyun';a.breedingStatus='Anaç';a.status='Aktif';
@@ -1569,7 +1595,7 @@ function editAnimal(id){
      </div>`}
   <div id="deathFields" style="display:${a.status==='Öldü'?'block':'none'}">
     <label>Ölüm Tarihi</label><input id="editDeathDate" type="date" value="${a.deathDate||today()}">
-    <label>Ölüm Nedeni</label><input id="editDeathReason" value="${a.deathReason||''}" placeholder="Örn. hastalık, kaza...">
+    <label>Ölüm Nedeni</label><input id="editDeathReason" value="${escHtml(a.deathReason||'')}" placeholder="Örn. hastalık, kaza...">
   </div>
   <button class="primary" onclick="saveAnimalEdit('${id}')">Kaydet</button>
  `);
@@ -1581,7 +1607,7 @@ function approximateBirthFromAge(years,months){
  let d=new Date();d.setFullYear(d.getFullYear()-y);d.setMonth(d.getMonth()-m);
  return localDateISO(d);
 }
-function saveAnimalEdit(id){
+function saveAnimalEdit(id){if(!canEditData())return;
  let a=db.animals.find(x=>x.id===id);if(!a)return;
  let newTag=editAnimalTag.value.trim();
  if(newTag&&db.animals.some(x=>x.id!==id&&x.tag===newTag))return toast('Bu küpe numarası başka hayvanda kullanılıyor');
@@ -1590,7 +1616,14 @@ function saveAnimalEdit(id){
  let ageY=document.getElementById('editAnimalAgeYears')?.value||'',ageM=document.getElementById('editAnimalAgeMonths')?.value||'';
  let approxBirth=lockedBirth?'':approximateBirthFromAge(ageY,ageM);
  let birthValue=lockedBirth?a.birth:(approxBirth||(document.getElementById('editAnimalBirth')?.value||''));
- a.tag=newTag;a.sex=editAnimalSex.value;a.status=editAnimalStatus.value;a.birth=birthValue;
+ const newStatus=editAnimalStatus.value;
+ if(birthValue&&!validRecordDate(birthValue))return toast('Geçerli doğum tarihi gir');
+ if(a.type==='Koyun'&&editAnimalSex.value!=='Dişi'||a.type==='Koç'&&editAnimalSex.value!=='Erkek')return toast('Hayvan türü ve cinsiyeti uyuşmuyor');
+ const sale=db.records.find(r=>r.kind==='sale'&&(r.animalIds||[]).includes(id));
+ if(sale&&newStatus!=='Satıldı'||!sale&&newStatus==='Satıldı')return toast('Satış durumunu bağlı satış kaydından değiştir');
+ if(!isActiveAnimal(a)&&isActiveAnimal({status:newStatus})&&!canAddAnimals(1))return showPlusRequired(1);
+ if(newStatus==='Öldü'&&!validRecordDate(editDeathDate.value||today(),birthValue))return toast('Geçerli ölüm tarihi gir');
+ a.tag=newTag;a.sex=editAnimalSex.value;a.status=newStatus;a.birth=birthValue;
  if(a.status==='Öldü'){
   a.deathDate=editDeathDate.value||today();
   a.deathReason=editDeathReason.value.trim();
@@ -1648,7 +1681,7 @@ function quickAnimalLookup(){
   const canBirth=isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı');
   const bs=(a.type==='Koyun'||a.breedingStatus==='Anaç')?eweBirthSummary(a):null;
   return `<div class="quickResult">
-   <div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.status}${a.type==='Kuzu'&&a.weight?' · '+a.weight+' kg':''}${a.breedingStatus?' · '+a.breedingStatus:''}</div>${a.type==='Kuzu'&&a.sex==='Erkek'&&a.birth&&ageMonths(a.birth)>=5&&ageMonths(a.birth)<5.5?'<span class="saleSoonTag">Satışa yaklaşıyor</span>':''}${bs?`<div class="muted" style="margin-top:4px"><b>${bs.count} kuzulama · ${bs.lambs} kuzu · Doğum oranı %${bs.birthRate}</b> · Son doğum: ${bs.last}</div>`:''}</div>
+   <div><b>${escHtml(animalName(a))}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.status}${a.type==='Kuzu'&&a.weight?' · '+a.weight+' kg':''}${a.breedingStatus?' · '+a.breedingStatus:''}</div>${a.type==='Kuzu'&&a.sex==='Erkek'&&a.birth&&ageMonths(a.birth)>=5&&ageMonths(a.birth)<5.5?'<span class="saleSoonTag">Satışa yaklaşıyor</span>':''}${bs?`<div class="muted" style="margin-top:4px"><b>${bs.count} kuzulama · ${bs.lambs} kuzu · Doğum oranı %${bs.birthRate}</b> · Son doğum: ${bs.last}</div>`:''}</div>
    <div class="quickActions">
     <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button>
     <button class="small" onclick="openAddForAnimal('health','${a.id}')">💉 Sağlık</button>
@@ -1661,7 +1694,7 @@ function quickAnimalLookup(){
 function openAddForAnimal(kind,id){
  if(kind==='weight'){
   let a=db.animals.find(x=>x.id===id);if(!a||a.type!=='Kuzu'||!isActiveAnimal(a))return toast('Aktif kuzu bulunamadı');
-  showModal('Kuzu Tartım Kaydı',`<div class="card"><b>${animalName(a)}</b><div class="muted">${age(a.birth)}${a.weight?' · Son '+a.weight+' kg':''}</div></div><input id="animal" type="hidden" value="${a.id}"><label>Kilo (kg)</label><input id="weight" type="number" step=".1"><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitAnimal('weight')">Kaydet</button>`);
+  showModal('Kuzu Tartım Kaydı',`<div class="card"><b>${escHtml(animalName(a))}</b><div class="muted">${age(a.birth)}${a.weight?' · Son '+a.weight+' kg':''}</div></div><input id="animal" type="hidden" value="${a.id}"><label>Kilo (kg)</label><input id="weight" type="number" step=".1"><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitAnimal('weight')">Kaydet</button>`);
   return;
  }
  openAdd(kind);
@@ -1698,6 +1731,7 @@ function setupDetailedReportControls(){
  renderProductionPeriods();
 }
 function applyArchiveReport(){
+ if(!isPro())return showProRequired('Rapor Arşivi');
  
  let y=+document.getElementById('archiveYear').value,m=document.getElementById('archiveMonth').value;
  if(m===''){customReportStart=`${y}-01-01`;customReportEnd=`${y}-12-31`}
@@ -1722,7 +1756,7 @@ function renderProductionPeriods(){
   let exp=pr.filter(r=>r.kind==='expense').reduce((s,r)=>s+(+r.amount||0),0);
   let harvest={};pr.filter(r=>r.kind==='harvest').forEach(r=>{let k=r.stockItem||'Ürün';harvest[k]=(harvest[k]||0)+(+r.qty||0)});
   let htxt=Object.keys(harvest).length?Object.entries(harvest).map(([k,v])=>k+': '+v).join(' · '):'Henüz hasat yok';
-  return `<div class="listitem"><div class="row"><b>${p}</b><b>${money(exp)} gider</b></div><div class="muted" style="margin-top:4px">${htxt}</div></div>`
+  return `<div class="listitem"><div class="row"><b>${escHtml(p)}</b><b>${money(exp)} gider</b></div><div class="muted" style="margin-top:4px">${escHtml(htxt)}</div></div>`
  }).join('')
 }
 function birthSexFields(n){
@@ -1785,7 +1819,7 @@ function openBulkWeight(){
   let prev=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id).slice().sort((x,y)=>String(y.date||'').localeCompare(String(x.date||'')))[0];
   let pw=prev?weightValueFromRecord(prev):(+a.weight||0);
   return `<div class="weightRow">
-   <div class="weightRowTop"><div><div class="weightRowName">${animalName(a)}</div><div class="weightRowMeta">${a.sex} · ${age(a.birth)}${pw?' · Son '+pw+' kg':''}</div></div><span class="tag">Kuzu</span></div>
+   <div class="weightRowTop"><div><div class="weightRowName">${escHtml(animalName(a))}</div><div class="weightRowMeta">${a.sex} · ${age(a.birth)}${pw?' · Son '+pw+' kg':''}</div></div><span class="tag">Kuzu</span></div>
    <div class="weightInputWrap"><div class="muted">Yeni kilo</div><input class="bulkWeightInput" data-id="${a.id}" type="number" step=".1" min="0" inputmode="decimal" placeholder="kg"></div>
   </div>`;
  }).join('');
@@ -1795,10 +1829,13 @@ function openBulkWeight(){
   <div class="weightBatch">${rows}</div>
   <button class="primary" onclick="submitBulkWeight()">Tartımı Kaydet ve Analiz Et</button>`)
 }
-function submitBulkWeight(){
+function submitBulkWeight(){if(!canEditData())return;
  let date=document.getElementById('bulkWeightDate')?.value;
  if(!date)return toast('Tartım tarihini seç');
- let entered=[...document.querySelectorAll('.bulkWeightInput')].map(x=>({id:x.dataset.id,weight:+x.value||0})).filter(x=>x.weight>0);
+ let inputs=[...document.querySelectorAll('.bulkWeightInput')].filter(x=>x.value.trim()!=='');
+ if(inputs.some(x=>!Number.isFinite(+x.value)||+x.value<=0))return toast('Her girilen kilo sıfırdan büyük olmalı');
+ let entered=inputs.map(x=>({id:x.dataset.id,weight:+x.value}));
+ if(entered.some(x=>{let a=db.animals.find(a=>a.id===x.id);return !a||!isActiveAnimal(a)||!validRecordDate(date,a.birth)||db.records.some(r=>r.kind==='weight'&&r.animalId===x.id&&r.date===date)}))return toast('Tartım tarihi geçersiz veya aynı gün için kayıt var; mevcut tartımı düzenle');
  if(!entered.length)return toast('En az bir kuzunun kilosunu gir');
 
  let rows=entered.map(x=>{
@@ -1810,8 +1847,8 @@ function submitBulkWeight(){
   return {a,weight:x.weight,prev,prevWeight,gainDays,gainKg,adg,ageDays,ageMonth,band};
  });
  let groups={};
- rows.filter(r=>Number.isFinite(r.adg)&&r.adg>0).forEach(r=>{(groups[r.ageMonth]||(groups[r.ageMonth]=[])).push(r.adg)});
- let overallAdgs=rows.filter(r=>Number.isFinite(r.adg)&&r.adg>0).map(r=>r.adg);
+ rows.filter(r=>Number.isFinite(r.adg)).forEach(r=>{(groups[r.ageMonth]||(groups[r.ageMonth]=[])).push(r.adg)});
+ let overallAdgs=rows.filter(r=>Number.isFinite(r.adg)).map(r=>r.adg);
  let overallAvg=overallAdgs.length?overallAdgs.reduce((s,v)=>s+v,0)/overallAdgs.length:0;
 
  rows.forEach(r=>{
@@ -1830,15 +1867,15 @@ function submitBulkWeight(){
  setTimeout(()=>showWeightAnalysis(rows,date),80);
 }
 function showWeightAnalysis(rows,date){
- let adgs=rows.filter(r=>Number.isFinite(r.adg)&&r.adg>0).map(r=>r.adg);
+ let adgs=rows.filter(r=>Number.isFinite(r.adg)).map(r=>r.adg);
  let avgAdg=adgs.length?Math.round(adgs.reduce((s,v)=>s+v,0)/adgs.length):0;
  let avgWeight=rows.length?rows.reduce((s,r)=>s+r.weight,0)/rows.length:0;
  let counts={good:0,excellent:0,watch:0,low:0,start:0};rows.forEach(r=>counts[r.status.key]=(counts[r.status.key]||0)+1);
  let cards=rows.map(r=>{
   let herdText=r.herdAvg&&r.adg?Math.round(((r.adg-r.herdAvg)/r.herdAvg)*100):null;
-  let gain=r.prevWeight?`+${r.gainKg.toFixed(1)} kg / ${r.gainDays} gün`:'İlk tartım';
+  let gain=r.prevWeight?`${r.gainKg>=0?'+':''}${r.gainKg.toFixed(1)} kg / ${r.gainDays} gün`:'İlk tartım';
   return `<div class="weightResult">
-   <div class="weightResultTop"><div><b>${animalName(r.a)} · ${lambAgeLabelAt(r.a,date)}</b><div class="muted">${r.a.sex}</div></div><span class="weightBadge ${r.status.cls}">${r.status.label}</span></div>
+   <div class="weightResultTop"><div><b>${escHtml(animalName(r.a))} · ${lambAgeLabelAt(r.a,date)}</b><div class="muted">${r.a.sex}</div></div><span class="weightBadge ${r.status.cls}">${r.status.label}</span></div>
    <div class="weightDetail">Son kilo: <b>${r.weight.toFixed(1)} kg</b> · Kilo alımı: <b>${gain}</b><br>
    Günlük artış: <b>${Number.isFinite(r.adg)?r.adg+' g/gün':'—'}</b> · Normal bant: <b>${r.band.min}–${r.band.max} g/gün</b><br>
    Aynı yaş sürü ort.: <b>${r.herdAvg?r.herdAvg+' g/gün':'Yeterli veri yok'}</b>${herdText!==null?' · Sürüye göre '+(herdText>=0?'+':'')+herdText+'%':''}</div>
@@ -1864,16 +1901,17 @@ function openAdd(kind){
  health:['Sağlık Kaydı',`<label>Hayvan</label><select id="animal">${animalOptions()}</select><label>İşlem / durum</label><input id="note" placeholder="İlaç, aşı, takip..."><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Tekrar / hatırlatma</label><select id="reminderDays" onchange="document.getElementById('reminderDate').style.display=this.value==='custom'?'block':'none'"><option value="0">Hatırlatma yok</option><option value="7">7 gün sonra</option><option value="15">15 gün sonra</option><option value="30">30 gün sonra</option><option value="custom">Tarih seç</option></select><input id="reminderDate" type="date" style="display:none"><div class="muted" style="margin-bottom:8px">İstersen boş bırak; sadece gereken işlemlerde kullan.</div><button class="primary" onclick="submitAnimal('health')">Kaydet</button>`],
  weight:['Kuzu Tartımı',`<div class="weightIntro"><b>Toplu tartım</b><div class="muted" style="margin-top:4px">Birden fazla kuzuyu tek ekranda tart, kaydet ve gelişim analizini gör.</div></div><button class="primary" onclick="closeModal();setTimeout(openBulkWeight,60)">Toplu Tartımı Aç</button>`],
  sale:['Satış Kaydı',`<label>Satılan hayvanları seç</label>${salePickList()}<label>Toplam satış tutarı (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Açıklama</label><input id="note"><button class="primary" onclick="submitSale()">Satışı Kaydet</button>`],
- stock:['Stok Alımı',`<label>Kalem</label><select id="cat">${Object.keys(db.stock).map(x=>`<option>${x}</option>`).join('')}</select><label>Miktar</label><input id="qty" type="number"><label>Toplam maliyet (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitStock()">Stok ve Gider Olarak Kaydet</button>`],
+ stock:['Stok Alımı',`<label>Kalem</label><select id="cat">${Object.keys(db.stock).map(x=>`<option>${escHtml(x)}</option>`).join('')}</select><label>Miktar</label><input id="qty" type="number"><label>Toplam maliyet (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitStock()">Stok ve Gider Olarak Kaydet</button>`],
  harvest:['Hasat / Ürün Girişi',`<label>Üretim dönemi</label><input id="productionPeriod" value="${productionPeriodDefault()}" placeholder="2026-2027"><label>Ürün</label><input id="harvestProduct" placeholder="Örn. Arpa, Balya"><label>Miktar</label><input id="qty" type="number" step=".1"><label>Birim</label><select id="harvestUnit"><option>kg</option><option>adet</option><option>balya</option><option>ton</option></select><label>Hasat tarihi</label><input id="date" type="date" value="${today()}"><label>Not</label><input id="note" placeholder="İsteğe bağlı"><button class="primary" onclick="submitHarvest()">Hasadı Kaydet ve Stoğa Ekle</button>`],
  note:['Not Ekle',`<label>Not</label><textarea id="note"></textarea><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitNote()">Kaydet</button>`]
  };showModal(forms[kind][0],forms[kind][1])
 }
-function submitSimple(kind){const amount=document.getElementById('amount'),cat=document.getElementById('cat'),date=document.getElementById('date'),note=document.getElementById('note');if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir tutar gir');if(!date.value)return toast('Tarih seç');if(!canAddFinance(1))return showFinancePlusRequired();if(kind==='income'&&cat.value==='Hayvan satışı')return submitSelectedSale('income');let rec={id:uid('rec'),kind,label:(kind==='income'?'Gelir · ':'Gider · ')+cat.value,category:cat.value,amount:+amount.value,date:date.value,note:note.value};if(kind==='expense'&&String(cat.value).startsWith('Tarla'))rec.productionPeriod=(document.getElementById('productionPeriod')?.value||productionPeriodDefault(date.value)).trim();db.records.push(rec);save();closeModal();toast(kind==='income'?'Gelir kaydedildi ve rapora işlendi':'Gider kaydedildi ve rapora işlendi')}
-function submitBirth(){const count=document.getElementById('count'),mother=document.getElementById('mother'),date=document.getElementById('date');
+function submitSimple(kind){if(!canEditData())return;const amount=document.getElementById('amount'),cat=document.getElementById('cat'),date=document.getElementById('date'),note=document.getElementById('note');if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir tutar gir');if(!validRecordDate(date.value))return toast('Geçerli işlem tarihi seç');if(!canAddFinance(1))return showFinancePlusRequired();if(kind==='income'&&cat.value==='Hayvan satışı')return submitSelectedSale('income');let rec={id:uid('rec'),kind,label:(kind==='income'?'Gelir · ':'Gider · ')+cat.value,category:cat.value,amount:+amount.value,date:date.value,note:note.value};if(kind==='expense'&&String(cat.value).startsWith('Tarla'))rec.productionPeriod=(document.getElementById('productionPeriod')?.value||productionPeriodDefault(date.value)).trim();db.records.push(rec);save();closeModal();toast(kind==='income'?'Gelir kaydedildi ve rapora işlendi':'Gider kaydedildi ve rapora işlendi')}
+function submitBirth(){if(!canEditData())return;const count=document.getElementById('count'),mother=document.getElementById('mother'),date=document.getElementById('date');
  let n=+count.value, ss=[...document.querySelectorAll('.birthSex')].map(x=>x.value), mom=db.animals.find(x=>x.id===mother.value);
- if(!mom||!isActiveAnimal(mom))return toast('Aktif anaç seç');
- if(!date.value||!Number.isInteger(n)||n<1||n>3)return toast('Geçerli tarih ve kuzu sayısı seç');
+ if(!mom||!isActiveAnimal(mom)||mom.sex!=='Dişi'||!(mom.type==='Koyun'||mom.breedingStatus==='Anaç Adayı'))return toast('Aktif anaç seç');
+ if(!validRecordDate(date.value,mom.birth)||!Number.isInteger(n)||n<1||n>3)return toast('Geçerli tarih ve kuzu sayısı seç');
+ if(db.records.some(r=>r.kind==='birth'&&r.motherId===mom.id&&r.date===date.value))return toast('Bu anaç için aynı gün doğum var; mevcut kaydı düzenle');
  if(!canAddAnimals(n))return showPlusRequired(n);
  if(mom.breedingStatus==='Anaç Adayı'){mom.breedingStatus='Anaç';mom.type='Koyun';mom.status='Aktif'}
  else if(!mom.breedingStatus)mom.breedingStatus='Anaç';
@@ -1886,13 +1924,13 @@ function submitBirth(){const count=document.getElementById('count'),mother=docum
  save();closeModal();toast(n+' kuzu otomatik sürüye eklendi')
 }
 function addDaysISO(base,days){let d=new Date((base||today())+'T00:00:00');d.setDate(d.getDate()+(+days||0));return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
-function submitAnimal(kind){const animal=document.getElementById('animal'),weight=document.getElementById('weight'),date=document.getElementById('date'),note=document.getElementById('note');let a=db.animals.find(x=>x.id===animal.value);if(!a||!isActiveAnimal(a))return toast('Aktif hayvan seç');if(!date.value)return toast('Tarih seç');if(kind==='weight'){if(a.type!=='Kuzu')return toast('Tartım sadece kuzular için kullanılır');if(!Number.isFinite(+weight.value)||+weight.value<=0)return toast('Sıfırdan büyük kilo gir');let prev=previousWeightRecord(a.id,date.value),pw=prev?weightValueFromRecord(prev):0,days=prev?.date?Math.max(1,dateDiffDays(prev.date,date.value)):0,gain=pw?(+weight.value-pw):0,adg=pw&&days?Math.round(gain*1000/days):'',ageDays=lambAgeDaysAt(a,date.value),band=expectedAdgBand(ageDays);a.weight=+weight.value;db.records.push({id:uid('rec'),kind,label:'Tartım · '+animalName(a),date:date.value,animalId:a.id,note:weight.value+' kg',weight:+weight.value,previousWeight:pw||'',gainKg:pw?+gain.toFixed(2):'',gainDays:days||'',adg,ageDays,ageMonth:Math.floor(ageDays/30.44),expectedMin:band.min,expectedMax:band.max})}else{let rd=document.getElementById('reminderDays')?.value||'0',due='';if(rd==='custom')due=document.getElementById('reminderDate')?.value||'';else if(+rd>0)due=addDaysISO(date.value,+rd);db.records.push({id:uid('rec'),kind,label:'Sağlık · '+animalName(a),date:date.value,animalId:a.id,note:note.value,reminderDate:due,reminderDone:false});}save();closeModal();toast('Kayıt işlendi')}
+function submitAnimal(kind){if(!canEditData())return;const animal=document.getElementById('animal'),weight=document.getElementById('weight'),date=document.getElementById('date'),note=document.getElementById('note');let a=db.animals.find(x=>x.id===animal.value);if(!a||!isActiveAnimal(a))return toast('Aktif hayvan seç');if(!validRecordDate(date.value,a.birth))return toast('Geçerli işlem tarihi seç');if(kind==='weight'){if(db.records.some(r=>r.kind==='weight'&&r.animalId===a.id&&r.date===date.value))return toast('Aynı gün tartım var; mevcut kaydı düzenle');if(a.type!=='Kuzu')return toast('Tartım sadece kuzular için kullanılır');if(!Number.isFinite(+weight.value)||+weight.value<=0)return toast('Sıfırdan büyük kilo gir');let prev=previousWeightRecord(a.id,date.value),pw=prev?weightValueFromRecord(prev):0,days=prev?.date?Math.max(1,dateDiffDays(prev.date,date.value)):0,gain=pw?(+weight.value-pw):0,adg=pw&&days?Math.round(gain*1000/days):'',ageDays=lambAgeDaysAt(a,date.value),band=expectedAdgBand(ageDays);a.weight=+weight.value;db.records.push({id:uid('rec'),kind,label:'Tartım · '+animalName(a),date:date.value,animalId:a.id,note:weight.value+' kg',weight:+weight.value,previousWeight:pw||'',gainKg:pw?+gain.toFixed(2):'',gainDays:days||'',adg,ageDays,ageMonth:Math.floor(ageDays/30.44),expectedMin:band.min,expectedMax:band.max})}else{let rd=document.getElementById('reminderDays')?.value||'0',due='';if(rd==='custom')due=document.getElementById('reminderDate')?.value||'';else if(+rd>0)due=addDaysISO(date.value,+rd);db.records.push({id:uid('rec'),kind,label:'Sağlık · '+animalName(a),date:date.value,animalId:a.id,note:note.value,reminderDate:due,reminderDone:false});}save();closeModal();toast('Kayıt işlendi')}
 function selectedSaleAnimals(){return [...document.querySelectorAll('.saleAnimal:checked')].map(x=>db.animals.find(a=>a.id===x.value)).filter(Boolean).filter(isActiveAnimal)}
-function submitSelectedSale(source){const amount=document.getElementById('amount'),date=document.getElementById('date'),note=document.getElementById('note');if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir satış tutarı gir');if(!date.value)return toast('Tarih seç');if(!canAddFinance(1))return showFinancePlusRequired();let arr=selectedSaleAnimals();if(!arr.length)return toast('En az bir hayvan seç');let names=arr.map(animalName),ids=arr.map(a=>a.id),previousStatuses={};arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});db.records.push({id:uid('rec'),kind:'sale',label:`Satış · ${arr.length} hayvan`,category:'Kuzu/Hayvan satışı',amount:+amount.value,date:date.value,note:(typeof note!=='undefined'&&note?.value)||'',animalIds:ids,animalNames:names,previousStatuses,source:source||'sale'});save();closeModal();toast(arr.length+' hayvan satıldı; gelir kaydına bağlandı')}
+function submitSelectedSale(source){if(!canEditData())return;const amount=document.getElementById('amount'),date=document.getElementById('date'),note=document.getElementById('note');if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir satış tutarı gir');if(!validRecordDate(date.value))return toast('Geçerli işlem tarihi seç');if(!canAddFinance(1))return showFinancePlusRequired();let arr=selectedSaleAnimals();if(!arr.length)return toast('En az bir hayvan seç');let names=arr.map(animalName),ids=arr.map(a=>a.id),previousStatuses={};arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});db.records.push({id:uid('rec'),kind:'sale',label:`Satış · ${arr.length} hayvan`,category:'Kuzu/Hayvan satışı',amount:+amount.value,date:date.value,note:(typeof note!=='undefined'&&note?.value)||'',animalIds:ids,animalNames:names,previousStatuses,source:source||'sale'});save();closeModal();toast(arr.length+' hayvan satıldı; gelir kaydına bağlandı')}
 function submitSale(){return submitSelectedSale('sale')}
-function submitStock(){const qty=document.getElementById('qty'),cat=document.getElementById('cat'),amount=document.getElementById('amount'),date=document.getElementById('date');if(!Number.isFinite(+qty.value)||+qty.value<=0)return toast('Sıfırdan büyük miktar gir');if(!date.value)return toast('Tarih seç');if(!Number.isFinite(+amount.value)||+amount.value<0)return toast('Geçerli maliyet gir');if(!canAddFinance(1))return showFinancePlusRequired();db.stock[cat.value]=(db.stock[cat.value]||0)+(+qty.value);db.records.push({id:uid('rec'),kind:'stock',label:'Stok alımı · '+cat.value,category:'Stok/Yem',stockItem:cat.value,qty:+qty.value,amount:+amount.value||0,date:date.value,note:qty.value+' birim'});save();closeModal();toast('Stok arttı ve maliyet gidere işlendi')}
-function submitHarvest(){const date=document.getElementById('date');let product=(document.getElementById('harvestProduct')?.value||'').trim(),q=+document.getElementById('qty')?.value||0,unit=document.getElementById('harvestUnit')?.value||'kg',period=(document.getElementById('productionPeriod')?.value||productionPeriodDefault(date.value)).trim();if(!product)return toast('Ürün adını gir');if(!Number.isFinite(q)||q<=0)return toast('Sıfırdan büyük miktar gir');if(!date.value)return toast('Tarih seç');db.stock[product]=(db.stock[product]||0)+q;db.records.push({id:uid('rec'),kind:'harvest',label:'Hasat · '+product,category:'Tarla/Hasat',stockItem:product,qty:q,unit,productionPeriod:period,date:date.value,note:(document.getElementById('note')?.value||'')});save();closeModal();toast(product+' stoğa eklendi')}
-function submitNote(){const date=document.getElementById('date'),note=document.getElementById('note');db.records.push({id:uid('rec'),kind:'note',label:'Not',date:date.value,note:note.value});save();closeModal();toast('Not kaydedildi')}
+function submitStock(){if(!canEditData())return;const qty=document.getElementById('qty'),cat=document.getElementById('cat'),amount=document.getElementById('amount'),date=document.getElementById('date');if(!Number.isFinite(+qty.value)||+qty.value<=0)return toast('Sıfırdan büyük miktar gir');if(!validRecordDate(date.value))return toast('Geçerli işlem tarihi seç');if(!Number.isFinite(+amount.value)||+amount.value<0)return toast('Geçerli maliyet gir');if(!canAddFinance(1))return showFinancePlusRequired();db.stock[cat.value]=(db.stock[cat.value]||0)+(+qty.value);db.records.push({id:uid('rec'),kind:'stock',label:'Stok alımı · '+cat.value,category:'Stok/Yem',stockItem:cat.value,qty:+qty.value,amount:+amount.value||0,date:date.value,note:qty.value+' birim'});save();closeModal();toast('Stok arttı ve maliyet gidere işlendi')}
+function submitHarvest(){if(!canEditData())return;const date=document.getElementById('date');let product=(document.getElementById('harvestProduct')?.value||'').trim(),q=+document.getElementById('qty')?.value||0,unit=document.getElementById('harvestUnit')?.value||'kg',period=(document.getElementById('productionPeriod')?.value||productionPeriodDefault(date.value)).trim();if(!safeStockItem(product))return toast('Geçerli ürün adı gir');if(!Number.isFinite(q)||q<=0)return toast('Sıfırdan büyük miktar gir');if(!validRecordDate(date.value))return toast('Geçerli işlem tarihi seç');db.stock[product]=(db.stock[product]||0)+q;db.records.push({id:uid('rec'),kind:'harvest',label:'Hasat · '+product,category:'Tarla/Hasat',stockItem:product,qty:q,unit,productionPeriod:period,date:date.value,note:(document.getElementById('note')?.value||'')});save();closeModal();toast(product+' stoğa eklendi')}
+function submitNote(){if(!canEditData())return;const date=document.getElementById('date'),note=document.getElementById('note');if(!validRecordDate(date.value)||!note.value.trim())return toast('Tarih ve not gir');db.records.push({id:uid('rec'),kind:'note',label:'Not',date:date.value,note:note.value});save();closeModal();toast('Not kaydedildi')}
 function latestBirthPeriodRange(){
  let ds=db.records.filter(x=>x.kind==='birth'&&x.date).map(x=>new Date(x.date+'T00:00:00')).filter(x=>!isNaN(x)).sort((a,b)=>b-a);
  if(!ds.length)return null; let newest=ds[0], oldest=newest;
@@ -1918,9 +1956,10 @@ function reportRecords(mode){
 }
 function applyCustomReport(){
  
- customReportStart=document.getElementById('reportStart')?.value||'';
- customReportEnd=document.getElementById('reportEnd')?.value||'';
- if(customReportStart&&customReportEnd&&customReportStart>customReportEnd)return toast('Başlangıç tarihi bitişten sonra olamaz');
+ if(!isPro())return showProRequired('Özel tarih raporları');
+ const start=document.getElementById('reportStart')?.value||'',end=document.getElementById('reportEnd')?.value||'';
+ if(start&&end&&start>end)return toast('Başlangıç tarihi bitişten sonra olamaz');
+ customReportStart=start;customReportEnd=end;
  renderReports()
 }
 function clearCustomReport(){customReportStart='';customReportEnd='';if(reportStart)reportStart.value='';if(reportEnd)reportEnd.value='';renderReports()}
@@ -1940,7 +1979,7 @@ function exportReportCSV(){
  if(!isPro())return showProRequired('Excel / CSV dışa aktarma');
  let rows=reportRecords(db.report||'monthly');
  let csv=['Tarih,Tür,Başlık,Kategori,Üretim Dönemi,Tutar,Not'];
- rows.forEach(r=>csv.push([r.date||'',r.kind||'',r.label||'',r.category||'',r.productionPeriod||'',r.amount||'',r.note||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')));
+ rows.forEach(r=>csv.push([r.date||'',r.kind||'',r.label||'',r.category||'',r.productionPeriod||'',r.amount||'',r.note||''].map(csvCell).join(',')));
  let blob=new Blob(['\ufeff'+csv.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
  a.href=URL.createObjectURL(blob);a.download='suru-takip-rapor.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 }
@@ -1951,20 +1990,26 @@ function recordQty(r){
  return m?+m[1]:0
 }
 function recalcAnimalWeight(animalId){
- let rows=db.records.filter(r=>r.kind==='weight'&&r.animalId===animalId);
- rows.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
- let a=db.animals.find(x=>x.id===animalId);
- if(a)a.weight=rows.length?(+String(rows[rows.length-1].note||'').replace(/[^\d.,]/g,'').replace(',','.')||''):''
+ const a=db.animals.find(x=>x.id===animalId);if(!a)return;
+ const rows=db.records.filter(r=>r.kind==='weight'&&r.animalId===animalId).slice().sort((x,y)=>String(x.date||'').localeCompare(String(y.date||'')));
+ let prev=null;
+ rows.forEach(r=>{
+  const w=weightValueFromRecord(r),pw=prev?weightValueFromRecord(prev):0,days=prev?dateDiffDays(prev.date,r.date):0;
+  r.weight=w;r.note=w+' kg';r.previousWeight=pw||'';r.gainDays=days>0?days:'';r.gainKg=pw?+(w-pw).toFixed(2):'';r.adg=pw&&days>0?Math.round((w-pw)*1000/days):'';
+  r.ageDays=lambAgeDaysAt(a,r.date);r.ageMonth=Math.floor(r.ageDays/30.44);const band=expectedAdgBand(r.ageDays);r.expectedMin=band.min;r.expectedMax=band.max;
+  if(!prev||prev.date!==r.date)prev=r;
+ });
+ a.weight=rows.length?weightValueFromRecord(rows.at(-1)):'';
 }
 function editRecord(id){
  let r=db.records.find(x=>x.id===id);if(!r)return toast('Kayıt bulunamadı');
  let commonDate=`<label>Tarih</label><input id="editDate" type="date" value="${r.date||today()}">`;
  let del=`<button class="danger" style="margin-top:12px" onclick="deleteRecord('${id}')">Kaydı Sil</button>`;
  if(['income','expense'].includes(r.kind)){
-  showModal('Kaydı Düzenle',`${commonDate}<label>Tutar (TL)</label><input id="editAmount" type="number" value="${r.amount||0}"><label>Açıklama</label><input id="editNote" value="${r.note||''}"><button class="primary" onclick="saveRecordEdit('${id}','finance')">Değişiklikleri Kaydet</button>${del}`);return
+  showModal('Kaydı Düzenle',`${commonDate}<label>Tutar (TL)</label><input id="editAmount" type="number" value="${r.amount||0}"><label>Açıklama</label><input id="editNote" value="${escHtml(r.note||'')}"><button class="primary" onclick="saveRecordEdit('${id}','finance')">Değişiklikleri Kaydet</button>${del}`);return
  }
  if(r.kind==='sale'){
-  showModal('Satış Kaydını Düzenle',`${commonDate}<label>Toplam satış tutarı (TL)</label><input id="editAmount" type="number" value="${r.amount||0}"><label>Açıklama</label><input id="editNote" value="${r.note||''}"><div class="muted">Satılan hayvanlar: ${(r.animalNames||[]).join(', ')||'Kayıtlı liste yok'}</div><button class="primary" onclick="saveRecordEdit('${id}','sale')">Değişiklikleri Kaydet</button>${del}`);return
+  showModal('Satış Kaydını Düzenle',`${commonDate}<label>Toplam satış tutarı (TL)</label><input id="editAmount" type="number" value="${r.amount||0}"><label>Açıklama</label><input id="editNote" value="${escHtml(r.note||'')}"><div class="muted">Satılan hayvanlar: ${escHtml((r.animalNames||[]).join(', ')||'Kayıtlı liste yok')}</div><button class="primary" onclick="saveRecordEdit('${id}','sale')">Değişiklikleri Kaydet</button>${del}`);return
  }
  if(r.kind==='birth'){
   let kids=(r.childIds||[]).map(cid=>db.animals.find(a=>a.id===cid)).filter(Boolean);
@@ -1973,33 +2018,37 @@ function editRecord(id){
  }
  if(r.kind==='death'){
   let a=db.animals.find(x=>x.id===r.animalId);
-  showModal('Ölüm Kaydını Düzenle',`${commonDate}<label>Ölüm nedeni</label><input id="editNote" value="${r.note||a?.deathReason||''}"><button class="primary" onclick="saveRecordEdit('${id}','death')">Değişiklikleri Kaydet</button>${del}`);return
+  showModal('Ölüm Kaydını Düzenle',`${commonDate}<label>Ölüm nedeni</label><input id="editNote" value="${escHtml(r.note||a?.deathReason||'')}"><button class="primary" onclick="saveRecordEdit('${id}','death')">Değişiklikleri Kaydet</button>${del}`);return
  }
  if(r.kind==='weight'){
-  let w=String(r.note||'').replace(/[^\d.,]/g,'').replace(',','.');
+  let w=weightValueFromRecord(r);
   showModal('Tartımı Düzenle',`${commonDate}<label>Kilo (kg)</label><input id="editWeight" type="number" step=".1" value="${w}"><button class="primary" onclick="saveRecordEdit('${id}','weight')">Değişiklikleri Kaydet</button>${del}`);return
  }
  if(r.kind==='stock'){
   let item=r.stockItem||String(r.label||'').replace('Stok alımı · ','');
-  showModal('Stok Kaydını Düzenle',`${commonDate}<label>Kalem</label><select id="editStockItem">${Object.keys(db.stock).map(x=>`<option ${x===item?'selected':''}>${x}</option>`).join('')}</select><label>Miktar</label><input id="editQty" type="number" value="${recordQty(r)}"><label>Maliyet (TL)</label><input id="editAmount" type="number" value="${r.amount||0}"><button class="primary" onclick="saveRecordEdit('${id}','stock')">Değişiklikleri Kaydet</button>${del}`);return
+  showModal('Stok Kaydını Düzenle',`${commonDate}<label>Kalem</label><select id="editStockItem">${Object.keys(db.stock).map(x=>`<option ${x===item?'selected':''}>${escHtml(x)}</option>`).join('')}</select><label>Miktar</label><input id="editQty" type="number" value="${recordQty(r)}"><label>Maliyet (TL)</label><input id="editAmount" type="number" value="${r.amount||0}"><button class="primary" onclick="saveRecordEdit('${id}','stock')">Değişiklikleri Kaydet</button>${del}`);return
  }
  if(r.kind==='harvest'){
-  showModal('Hasat Kaydını Düzenle',`${commonDate}<label>Ürün</label><input id="editHarvestItem" value="${r.stockItem||''}"><label>Miktar</label><input id="editQty" type="number" step=".1" value="${recordQty(r)}"><label>Birim</label><select id="editHarvestUnit"><option ${r.unit==='kg'?'selected':''}>kg</option><option ${r.unit==='adet'?'selected':''}>adet</option><option ${r.unit==='balya'?'selected':''}>balya</option><option ${r.unit==='ton'?'selected':''}>ton</option></select><label>Üretim dönemi</label><input id="editProductionPeriod" value="${r.productionPeriod||''}"><label>Not</label><input id="editNote" value="${r.note||''}"><button class="primary" onclick="saveRecordEdit('${id}','harvest')">Değişiklikleri Kaydet</button>${del}`);return
+  showModal('Hasat Kaydını Düzenle',`${commonDate}<label>Ürün</label><input id="editHarvestItem" value="${escHtml(r.stockItem||'')}"><label>Miktar</label><input id="editQty" type="number" step=".1" value="${recordQty(r)}"><label>Birim</label><select id="editHarvestUnit"><option ${r.unit==='kg'?'selected':''}>kg</option><option ${r.unit==='adet'?'selected':''}>adet</option><option ${r.unit==='balya'?'selected':''}>balya</option><option ${r.unit==='ton'?'selected':''}>ton</option></select><label>Üretim dönemi</label><input id="editProductionPeriod" value="${escHtml(r.productionPeriod||'')}"><label>Not</label><input id="editNote" value="${escHtml(r.note||'')}"><button class="primary" onclick="saveRecordEdit('${id}','harvest')">Değişiklikleri Kaydet</button>${del}`);return
  }
- showModal('Kaydı Düzenle',`${commonDate}<label>Açıklama</label><input id="editNote" value="${r.note||''}"><button class="primary" onclick="saveRecordEdit('${id}','basic')">Değişiklikleri Kaydet</button>${del}`)
+ showModal('Kaydı Düzenle',`${commonDate}<label>Açıklama</label><input id="editNote" value="${escHtml(r.note||'')}"><button class="primary" onclick="saveRecordEdit('${id}','basic')">Değişiklikleri Kaydet</button>${del}`)
 }
-function saveRecordEdit(id,mode){
+function saveRecordEdit(id,mode){if(!canEditData())return;
  let r=db.records.find(x=>x.id===id);if(!r)return;
- let newDate=document.getElementById('editDate')?.value||r.date;
+ let newDate=document.getElementById('editDate')?.value;
+ const animal=db.animals.find(a=>a.id===r.animalId);
+ if(!validRecordDate(newDate,animal?.birth))return toast('Geçerli işlem tarihi seç');
+ if(mode==='weight'&&db.records.some(z=>z.id!==id&&z.kind==='weight'&&z.animalId===r.animalId&&z.date===newDate))return toast('Bu güne ait başka tartım var');
  if(mode==='finance'||mode==='sale'){if(!Number.isFinite(+document.getElementById('editAmount').value)||+document.getElementById('editAmount').value<=0)return toast('Sıfırdan büyük tutar gir');r.date=newDate;r.amount=+document.getElementById('editAmount').value||0;r.note=document.getElementById('editNote').value||''}
  else if(mode==='basic'){r.date=newDate;r.note=document.getElementById('editNote').value||''}
  else if(mode==='death'){r.date=newDate;r.note=document.getElementById('editNote').value||'Neden belirtilmedi';let a=db.animals.find(x=>x.id===r.animalId);if(a){a.status='Öldü';a.deathDate=newDate;a.deathReason=r.note}}
  else if(mode==='weight'){
-  let w=+document.getElementById('editWeight').value;if(!Number.isFinite(w)||w<=0)return toast('Sıfırdan büyük kilo gir');r.date=newDate;r.note=w+' kg';recalcAnimalWeight(r.animalId)
+  let w=+document.getElementById('editWeight').value;if(!Number.isFinite(w)||w<=0)return toast('Sıfırdan büyük kilo gir');r.date=newDate;r.weight=w;r.note=w+' kg';recalcAnimalWeight(r.animalId)
  }
  else if(mode==='stock'){
   let oldItem=r.stockItem||String(r.label||'').replace('Stok alımı · ','');
   let oldQty=recordQty(r),newItem=document.getElementById('editStockItem').value,newQty=+document.getElementById('editQty').value||0;
+  const cost=+document.getElementById('editAmount').value;if(!Number.isFinite(cost)||cost<0)return toast('Geçerli maliyet gir');
   if(!Number.isFinite(newQty)||newQty<=0)return toast('Sıfırdan büyük miktar gir');
   db.stock[oldItem]=Math.max(0,(db.stock[oldItem]||0)-oldQty);
   db.stock[newItem]=(db.stock[newItem]||0)+newQty;
@@ -2007,24 +2056,26 @@ function saveRecordEdit(id,mode){
  }
  else if(mode==='harvest'){
   let oldItem=r.stockItem||'',oldQty=recordQty(r),newItem=(document.getElementById('editHarvestItem').value||'').trim(),newQty=+document.getElementById('editQty').value||0;
-  if(!newItem||!Number.isFinite(newQty)||newQty<=0)return toast('Ürün ve sıfırdan büyük miktar gir');
+  if(!safeStockItem(newItem)||!Number.isFinite(newQty)||newQty<=0)return toast('Ürün ve sıfırdan büyük miktar gir');
   db.stock[oldItem]=Math.max(0,(db.stock[oldItem]||0)-oldQty);
   db.stock[newItem]=(db.stock[newItem]||0)+newQty;
   r.stockItem=newItem;r.qty=newQty;r.unit=document.getElementById('editHarvestUnit').value;r.productionPeriod=(document.getElementById('editProductionPeriod').value||'').trim();r.date=newDate;r.note=document.getElementById('editNote').value||'';r.label='Hasat · '+newItem;r.category='Tarla/Hasat'
  }
  else if(mode==='birth'){
-  let oldCount=+r.count||0,newCount=+document.getElementById('editCount').value||1;
+  let oldCount=+r.count||0,newCount=+document.getElementById('editCount').value;
+  if(!Number.isInteger(newCount)||newCount<1||newCount>3)return toast('1 ile 3 arasında kuzu sayısı seç');
   let sexes=[...document.querySelectorAll('.editBirthSex')].map(x=>x.value);
   if(!Array.isArray(r.childIds))r.childIds=[];
   let kids=r.childIds.map(cid=>db.animals.find(a=>a.id===cid)).filter(Boolean);
   if(newCount>kids.length){
+   if(!canAddAnimals(newCount-kids.length))return showPlusRequired(newCount-kids.length);
    for(let i=kids.length;i<newCount;i++){
     let child={id:uid('l'),type:'Kuzu',sex:sexes[i]||'Bilinmiyor',tag:'',status:'Aktif',birth:newDate,weight:'',motherId:r.motherId,breedingStatus:''};
     db.animals.push(child);r.childIds.push(child.id);kids.push(child)
    }
   }else if(newCount<kids.length){
    let removable=kids.slice(newCount);
-   let blocked=removable.find(k=>!isActiveAnimal(k)||db.records.some(z=>z.id!==r.id&&(z.animalId===k.id||(Array.isArray(z.animalIds)&&z.animalIds.includes(k.id)))));
+   let blocked=removable.find(k=>!isActiveAnimal(k)||db.records.some(z=>z.id!==r.id&&(z.animalId===k.id||z.motherId===k.id||(Array.isArray(z.animalIds)&&z.animalIds.includes(k.id)))));
    if(blocked)return toast('Azaltılacak kuzulardan birinde sonraki kayıt var; önce o kaydı düzelt');
    let removeIds=new Set(removable.map(k=>k.id));db.animals=db.animals.filter(a=>!removeIds.has(a.id));r.childIds=r.childIds.filter(cid=>!removeIds.has(cid));kids=kids.slice(0,newCount)
   }
@@ -2033,7 +2084,7 @@ function saveRecordEdit(id,mode){
  }
  save();closeModal();toast('Kayıt düzeltildi')
 }
-function deleteRecord(id){
+function deleteRecord(id){if(!canEditData())return;
  let r=db.records.find(x=>x.id===id);if(!r)return;
  if(!confirm('Bu kaydı silmek istediğine emin misin? Bağlı sürü/stok bilgileri de geri alınacak.'))return;
  if(r.kind==='sale'){
@@ -2047,7 +2098,7 @@ function deleteRecord(id){
  }
  if(r.kind==='birth'){
   let ids=new Set(r.childIds||[]);
-  let blocked=[...ids].some(cid=>{let a=db.animals.find(x=>x.id===cid);return a&&(!isActiveAnimal(a)||db.records.some(z=>z.id!==r.id&&(z.animalId===cid||(Array.isArray(z.animalIds)&&z.animalIds.includes(cid)))))});
+  let blocked=[...ids].some(cid=>{let a=db.animals.find(x=>x.id===cid);return a&&(!isActiveAnimal(a)||db.records.some(z=>z.id!==r.id&&(z.animalId===cid||z.motherId===cid||(Array.isArray(z.animalIds)&&z.animalIds.includes(cid)))))});
   if(blocked)return toast('Bu doğuma bağlı bir kuzuda sonraki kayıt var; doğum kaydı silinmedi');
   db.animals=db.animals.filter(a=>!ids.has(a.id))
  }
@@ -2204,7 +2255,7 @@ function currentGrowthPulse(){
  infos.forEach(x=>{
   let vals=groups[Math.floor(x.months)]||[],avg=vals.length?vals.reduce((s,v)=>s+v,0)/vals.length:0,as=growthAssessment(x.a,x.wi,avg);
   if(as.level==='control')control++;else if(as.level==='watch')watch++;else normal++;
-  if(Number.isFinite(x.wi.adg)){withTrend++;if(x.wi.adg>0)adgs.push(x.wi.adg)}
+  if(Number.isFinite(x.wi.adg)){withTrend++;adgs.push(x.wi.adg)}
   let lastDays=x.wi.latest?.date?Math.max(0,dateDiffDays(x.wi.latest.date,today())):null;
   if(lastDays===null||lastDays>=21)due++;
  });
@@ -2391,7 +2442,7 @@ function renderReports(){
  if(document.getElementById('rProlificacyHerd'))rProlificacyHerd.textContent=pct(metrics.prolificacy);
  if(document.getElementById('rLambingRateHerd'))rLambingRateHerd.textContent=pct(metrics.lambingRate);
  nonLambingHint.textContent=`${metrics.ewes.length} aktif anaçtan ${metrics.lambedIds.length} tanesi bu seçili dönemde doğurdu; ${metrics.nonLambing.length} tanesinin doğum kaydı yok.`;
- nonLambingList.innerHTML=metrics.nonLambing.length?metrics.nonLambing.map(a=>{let last=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id&&r.date).map(r=>r.date).sort().pop()||'Hiç doğum kaydı yok';return `<div class="listitem row"><div><b>${animalName(a)}</b><div class="muted">Bu dönemde doğurmadı · son doğum: ${last}</div></div><button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div>`}).join(''):'<div class="muted">Bu dönemde doğurmayan aktif anaç yok.</div>';
+ nonLambingList.innerHTML=metrics.nonLambing.length?metrics.nonLambing.map(a=>{let last=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id&&r.date).map(r=>r.date).sort().pop()||'Hiç doğum kaydı yok';return `<div class="listitem row"><div><b>${escHtml(animalName(a))}</b><div class="muted">Bu dönemde doğurmadı · son doğum: ${last}</div></div><button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div>`}).join(''):'<div class="muted">Bu dönemde doğurmayan aktif anaç yok.</div>';
  let cats={};f.arr.filter(x=>x.amount).forEach(x=>cats[x.category||x.label]=(cats[x.category||x.label]||0)+(+x.amount||0));
  let deathRows=f.arr.filter(x=>x.kind==='death');
  let deathAnimals=deathRows.map(r=>db.animals.find(a=>a.id===r.animalId)).filter(Boolean);
@@ -2400,10 +2451,10 @@ function renderReports(){
  rDeathLambs.textContent=deathAnimals.filter(a=>a.type==='Kuzu').length;
  deathReportList.innerHTML=deathRows.length?deathRows.slice().reverse().map(r=>{
   let a=db.animals.find(x=>x.id===r.animalId);
-  return `<div class="listitem"><b>${a?animalName(a):r.label}</b><div class="muted">${r.date||''}${r.note?' · '+r.note:''}</div></div>`
+  return `<div class="listitem"><b>${escHtml(a?animalName(a):r.label)}</b><div class="muted">${r.date||''}${r.note?' · '+escHtml(r.note):''}</div></div>`
  }).join(''):'<div class="muted">Bu dönemde ölüm kaydı yok.</div>';
 
- financeBreakdown.innerHTML=Object.keys(cats).length?Object.entries(cats).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${money(v)}</b></div>`).join(''):'<div class="muted">Bu dönemde finans kaydı yok.</div>';
+ financeBreakdown.innerHTML=Object.keys(cats).length?Object.entries(cats).map(([k,v])=>`<div class="listitem row"><span>${escHtml(k)}</span><b>${money(v)}</b></div>`).join(''):'<div class="muted">Bu dönemde finans kaydı yok.</div>';
 
  let periodRows=f.arr;
  let active=db.animals.filter(isActiveAnimal);
@@ -2449,7 +2500,7 @@ function renderReports(){
   else incomeGroups['Diğer gelir']+=amt;
  });
  let incomePanel=document.getElementById('incomeBreakdownPanel');
- if(incomePanel)incomePanel.innerHTML=Object.entries(incomeGroups).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${money(v)}</b></div>`).join('');
+ if(incomePanel)incomePanel.innerHTML=Object.entries(incomeGroups).map(([k,v])=>`<div class="listitem row"><span>${escHtml(k)}</span><b>${money(v)}</b></div>`).join('');
 
  let expenseRows=finRows.filter(x=>['expense','stock'].includes(x.kind));
  let expenseGroups={Yem:0,'İlaç / Veteriner':0,'Tarla':0,'Diğer':0};
@@ -2486,8 +2537,8 @@ function renderReports(){
  }
  let expensePanel=document.getElementById('expenseBreakdownPanel');
  if(expensePanel){
-  let mainHtml=Object.entries(expenseGroups).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${money(v)}</b></div>`).join('');
-  let fieldHtml=expenseGroups['Tarla']>0?'<div class="muted" style="margin:10px 0 4px"><b>Tarla gideri ayrıntısı</b></div>'+Object.entries(fieldGroups).filter(([,v])=>v>0).map(([k,v])=>`<div class="listitem row"><span>↳ ${k}</span><b>${money(v)}</b></div>`).join(''):'';
+  let mainHtml=Object.entries(expenseGroups).map(([k,v])=>`<div class="listitem row"><span>${escHtml(k)}</span><b>${money(v)}</b></div>`).join('');
+  let fieldHtml=expenseGroups['Tarla']>0?'<div class="muted" style="margin:10px 0 4px"><b>Tarla gideri ayrıntısı</b></div>'+Object.entries(fieldGroups).filter(([,v])=>v>0).map(([k,v])=>`<div class="listitem row"><span>↳ ${escHtml(k)}</span><b>${money(v)}</b></div>`).join(''):'';
   expensePanel.innerHTML=mainHtml+fieldHtml;
  }
 
@@ -2502,15 +2553,15 @@ function renderReports(){
   let gain=null;if(wr.length>1){let d=Math.max(1,(new Date(wr.at(-1).date)-new Date(wr[0].date))/864e5);gain=(wval(wr.at(-1))-wval(wr[0]))/d}
   return {a,gain,last:a.weight||0}
  }).sort((x,y)=>(y.gain??-999)-(x.gain??-999));
- if(document.getElementById('lambPerformanceList'))lambPerformanceList.innerHTML=lambRows.length?lambRows.map(x=>`<div class="listitem row clickcard" onclick="animalCard('${x.a.id}')" title="Hayvan kartını aç"><div><b>${animalName(x.a)}</b><div class="muted">${age(x.a.birth)} · ${x.a.status}</div></div><div style="text-align:right"><b>${x.last?x.last+' kg':'-'}</b><div class="muted">${x.gain==null?'Kilo artışı için 2 tartım gerekir':(x.gain*1000).toLocaleString('tr-TR',{maximumFractionDigits:0})+' g/gün'} · Kartı aç ›</div></div></div>`).join(''):'<div class="muted">Aktif kuzu yok.</div>';
+ if(document.getElementById('lambPerformanceList'))lambPerformanceList.innerHTML=lambRows.length?lambRows.map(x=>`<div class="listitem row clickcard" onclick="animalCard('${x.a.id}')" title="Hayvan kartını aç"><div><b>${escHtml(animalName(x.a))}</b><div class="muted">${age(x.a.birth)} · ${x.a.status}</div></div><div style="text-align:right"><b>${x.last?x.last+' kg':'-'}</b><div class="muted">${x.gain==null?'Kilo artışı için 2 tartım gerekir':(x.gain*1000).toLocaleString('tr-TR',{maximumFractionDigits:0})+' g/gün'} · Kartı aç ›</div></div></div>`).join(''):'<div class="muted">Aktif kuzu yok.</div>';
 
  let healthRows=periodRows.filter(r=>r.kind==='health');
- if(document.getElementById('healthReportList'))healthReportList.innerHTML=healthRows.length?healthRows.slice().reverse().map(r=>{let a=db.animals.find(x=>x.id===r.animalId);return `<div class="listitem"><b>${a?animalName(a):r.label}</b><div class="muted">${r.date||''} · ${r.note||r.label||''}</div></div>`}).join(''):'<div class="muted">Bu dönemde sağlık kaydı yok.</div>';
+ if(document.getElementById('healthReportList'))healthReportList.innerHTML=healthRows.length?healthRows.slice().reverse().map(r=>{let a=db.animals.find(x=>x.id===r.animalId);return `<div class="listitem"><b>${escHtml(a?animalName(a):r.label)}</b><div class="muted">${r.date||''} · ${escHtml(r.note||r.label||'')}</div></div>`}).join(''):'<div class="muted">Bu dönemde sağlık kaydı yok.</div>';
 
  let sales=periodRows.filter(r=>r.kind==='sale'),soldCount=sales.reduce((s,r)=>s+((r.animalIds||[]).length||1),0),salesAmount=sales.reduce((s,r)=>s+(+r.amount||0),0);
  if(document.getElementById('salesReportList'))salesReportList.innerHTML=sales.length?`<div class="listitem row"><span>Satılan hayvan</span><b>${soldCount}</b></div><div class="listitem row"><span>Toplam satış</span><b>${money(salesAmount)}</b></div><div class="listitem row"><span>Hayvan başı ortalama</span><b>${money(soldCount?salesAmount/soldCount:0)}</b></div>`:'<div class="muted">Bu dönemde satış yok.</div>';
 
- if(document.getElementById('stockReportList'))stockReportList.innerHTML=Object.entries(db.stock).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${v}</b></div>`).join('')||'<div class="muted">Stok kaydı yok.</div>';
+ if(document.getElementById('stockReportList'))stockReportList.innerHTML=Object.entries(db.stock).map(([k,v])=>`<div class="listitem row"><span>${escHtml(k)}</span><b>${v}</b></div>`).join('')||'<div class="muted">Stok kaydı yok.</div>';
 
  let pd=document.getElementById('plusReportDetails'), pn=document.getElementById('reportPlanNote');
  if(pd)pd.style.display=isPro()?'block':'none';
@@ -2519,13 +2570,13 @@ function renderReports(){
  if(pc)pc.style.display=isPro()?'block':'none';if(pl)pl.style.display=isPro()?'none':'block';
 }
 let currentSub='';
-function openSub(k){if(!isPro()&&k==='performance')return showProRequired('Anaç Performans Geçmişi');currentSub=k;let title={health:'Sağlık',births:'Doğum-Kuzulama',performance:'Anaç Performansı',calendar:'Koç & Takvim',weights:'Tartım',stock:'Stok',finance:'Gelir-Gider',moves:'Sürü Hareketleri',today:'Bugün Yapılacaklar'}[k];subTitle.textContent=title;let body='';
- if(k==='stock')body=Object.entries(db.stock).map(([a,v])=>`<div class="card row"><b>${a}</b><span>${v}</span></div>`).join('');
+function openSub(k,refresh=false){if(!isPro()&&k==='performance')return showProRequired('Anaç Performans Geçmişi');currentSub=k;let title={health:'Sağlık',births:'Doğum-Kuzulama',performance:'Anaç Performansı',calendar:'Koç & Takvim',weights:'Tartım',stock:'Stok',finance:'Gelir-Gider',moves:'Sürü Hareketleri',today:'Bugün Yapılacaklar'}[k];subTitle.textContent=title;let body='';
+ if(k==='stock')body=Object.entries(db.stock).map(([a,v])=>`<div class="card row"><b>${escHtml(a)}</b><span>${v}</span></div>`).join('');
  else if(k==='finance')body=`<div class="row" style="margin-bottom:10px"><button class="primary" onclick="openAdd('income')">Gelir Ekle</button><button onclick="openAdd('expense')">Gider Ekle</button></div>`+db.records.filter(x=>['income','expense','sale','stock'].includes(x.kind)).slice().reverse().map(recordHtml).join('');
  else if(k==='births')body=`<button class="primary" onclick="openAdd('birth')">Yeni Doğum</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='birth').slice().reverse().map(recordHtml).join('');
  else if(k==='health')body=`<button class="primary" onclick="openAdd('health')">Sağlık Kaydı Ekle</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='health').slice().reverse().map(recordHtml).join('');
  else if(k==='weights')body=`<button class="primary" onclick="openAdd('weight')">Tartım Ekle</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='weight').slice().reverse().map(recordHtml).join('');
- else if(k==='today'){let rem=reminderItems();body=`<button class="primary" onclick="addTask()">İş Ekle</button><div style="height:8px"></div>`+(rem.map(x=>`<div class="card row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}');openSub('today')">Yapıldı</button></div>`).join('')+db.tasks.map((x,i)=>`<div class="card row"><span>${x.text}</span><button class="small" onclick="doneTask(${i});openSub('today')">Yapıldı</button></div>`).join('')||'<div class="card muted">Yaklaşan iş yok.</div>')}
+ else if(k==='today'){let rem=reminderItems();body=`<button class="primary" onclick="addTask()">İş Ekle</button><div style="height:8px"></div>`+(rem.map(x=>`<div class="card row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}');openSub('today')">Yapıldı</button></div>`).join('')+db.tasks.map((x,i)=>`<div class="card row"><span>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i});openSub('today')">Yapıldı</button></div>`).join('')||'<div class="card muted">Yaklaşan iş yok.</div>')}
  else if(k==='calendar'){if(!db.ramCalendar)db.ramCalendar=[];body='<div class="card"><b>Koç & üreme takvimi</b><p class="muted">Koç katım ve çıkarma tarihini planla. Gerçek tarih, sen onay verdiğin gün kaydedilir; doğum başlangıç ve bitiş tarihleri buna göre otomatik hesaplanır.</p><button class="primary" onclick="openRamMating()">Üreme Dönemi Ekle</button></div>'+((db.ramCalendar||[]).length?(db.ramCalendar||[]).slice().reverse().map(x=>{
  let actualIn=x.actualMatingDate||'',actualOut=x.actualRemovalDate||'';
  let birthStart=actualIn?addDaysISO(actualIn,147):'Koç katımı onaylanınca hesaplanır';
@@ -2535,7 +2586,7 @@ function openSub(k){if(!isPro()&&k==='performance')return showProRequired('Anaç
  }).join(''):'<div class="card muted">Henüz üreme dönemi yok.</div>')}
  else if(k==='performance')body=ewePerformanceHtml('history');
  else body=db.records.slice().reverse().map(recordHtml).join('')||'<div class="card muted">Henüz kayıt yok.</div>';
- subBody.innerHTML=body;go('sub')
+ subBody.innerHTML=body;if(!refresh)go('sub')
 }
 function openRamMating(){
  showModal('Üreme Dönemi',`
@@ -2544,7 +2595,7 @@ function openRamMating(){
   <div class="muted" style="margin-bottom:10px">Katım günü geldiğinde “Koçu kattım” demediğin sürece her gün hatırlatılır. Çıkarma için de aynı şekilde onay istenir. Tahmini doğum dönemi gerçek onay tarihlerinden otomatik hesaplanır. Doğum başlangıcından 7 gün önce hazırlık uyarısı gelir; başlangıç günü tekrar bildirilir. Bitiş tarihi geldiğinde uygulama kendisi “Tahmini doğum dönemi sona erdi” diye bildirir.</div>
   <button class="primary" onclick="saveRamMating()">Kaydet</button>`)
 }
-function saveRamMating(){
+function saveRamMating(){if(!canEditData())return;
  let d=document.getElementById('ramMatingDate')?.value,rd=document.getElementById('ramRemovalDate')?.value;
  if(!d)return toast('Koç katım tarihini seç');
  if(!rd)return toast('Koç çıkarma tarihini seç');
@@ -2561,15 +2612,15 @@ function editRamCalendar(id){
   <div class="muted" style="margin-bottom:10px">Gerçek katım: ${x.actualMatingDate||'Henüz onaylanmadı'} · Gerçek çıkarma: ${x.actualRemovalDate||'Henüz onaylanmadı'}</div>
   <button class="primary" onclick="saveRamCalendarEdit('${id}')">Kaydet</button>`)
 }
-function saveRamCalendarEdit(id){
+function saveRamCalendarEdit(id){if(!canEditData())return;
  let x=(db.ramCalendar||[]).find(r=>r.id===id),d=document.getElementById('editRamMatingDate')?.value,rd=document.getElementById('editRamRemovalDate')?.value;
  if(!x||!d)return toast('Koç katım tarihini seç');
  if(rd&&rd<d)return toast('Koç çıkarma tarihi katım tarihinden önce olamaz');
  x.matingDate=d;x.removalDate=rd||'';
  save();closeModal();toast('Üreme takvimi güncellendi')
 }
-function addTask(){let t=prompt('Yapılacak işi yaz');if(t){db.tasks.push({text:t});save();openSub('today')}}
-function doneTask(i){db.tasks.splice(i,1);save();toast('İş tamamlandı')}
+function addTask(){if(!canEditData())return;let t=prompt('Yapılacak işi yaz');if(t){db.tasks.push({text:t});save();openSub('today')}}
+function doneTask(i){if(!canEditData())return;db.tasks.splice(i,1);save();toast('İş tamamlandı')}
 let speechRec=null, voiceListening=false;
 function addChat(text,who){let log=document.getElementById('chatLog');if(!log)return;let d=document.createElement('div');d.className='chatMsg '+(who==='user'?'userMsg':'botMsg');d.textContent=text;log.appendChild(d);log.scrollTop=log.scrollHeight}
 function speakReply(text){try{if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(text);u.lang='tr-TR';u.rate=1;window.speechSynthesis.speak(u)}catch(e){}}
@@ -2586,6 +2637,7 @@ function normalizeCommand(s){
   .trim()
 }
 function handleLocalCommand(raw){
+ if(!canEditData())return 'Bu hesap yalnızca görüntüleme yetkisine sahip.';
  let t=(raw||'').trim(), low=normalizeCommand(t);
  if(!t)return 'Bir komut söyle gardaş.';
  if(low.includes('bugün')&&(low.includes('ne var')||low.includes('yapılacak'))){
@@ -2615,9 +2667,13 @@ function handleLocalCommand(raw){
    if(countMatch)n=parseNumberWord(countMatch[1]);
   }
   if(!n)n=1;
+  if(!Number.isInteger(n)||n<1||n>3)return 'Doğum kaydı için 1 ile 3 arasında kuzu sayısı söyle.';
 
   let mom=db.animals.find(a=>isActiveAnimal(a)&&a.sex==='Dişi'&&String(a.tag||'')===String(tag));
   if(!mom)return tag+' küpe numaralı aktif dişi bulunamadı. Önce bu koyuna küpe numarasını ekle.';
+  if(!(mom.type==='Koyun'||mom.breedingStatus==='Anaç Adayı'))return 'Doğum için anaç veya anaç adayı seç.';
+  if(!canAddAnimals(n))return 'FREE paketindeki 20 aktif hayvan sınırı bu doğumla aşılır. PRO üyeliği gerekir.';
+  if(db.records.some(r=>r.kind==='birth'&&r.motherId===mom.id&&r.date===today()))return 'Bu koyuna bugün doğum zaten kaydedilmiş; mevcut doğumu düzenle.';
   if(mom.breedingStatus==='Anaç Adayı'){mom.breedingStatus='Anaç';mom.type='Koyun';mom.status='Aktif'}
   else if(!mom.breedingStatus)mom.breedingStatus='Anaç';
 
@@ -2627,12 +2683,13 @@ function handleLocalCommand(raw){
   else if(/\berkek\b/.test(low)&&!/\bdişi\b/.test(low))sexes=Array(n).fill('Erkek');
   else if(/\bdişi\b/.test(low)&&!/\berkek\b/.test(low))sexes=Array(n).fill('Dişi');
 
-  for(let i=0;i<n;i++)db.animals.push({
-   id:'l'+Date.now()+i,type:'Kuzu',sex:sexes[i]||'Bilinmiyor',tag:'',status:'Aktif',
+  let childIds=[];
+  for(let i=0;i<n;i++){const id=uid('l');childIds.push(id);db.animals.push({
+   id,type:'Kuzu',sex:sexes[i]||'Bilinmiyor',tag:'',status:'Aktif',
    birth:today(),weight:'',motherId:mom.id,breedingStatus:''
-  });
+  })};
   db.records.push({
-   kind:'birth',label:'Doğum · '+n+' kuzu',date:today(),motherId:mom.id,count:n,
+   id:uid('rec'),kind:'birth',label:'Doğum · '+n+' kuzu',date:today(),motherId:mom.id,count:n,childIds,
    note:(sexes.length?sexes.join(', ')+' · ':'')+'Sesli/yazılı komutla eklendi'
   });
   save();

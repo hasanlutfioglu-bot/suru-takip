@@ -10,7 +10,7 @@ const assert=require('node:assert/strict');
  function loc(selector,index=0){const el=()=>document.querySelectorAll(selector)[index];return {nth:i=>loc(selector,i),fill:async v=>{el().value=v},selectOption:async v=>{Object.defineProperty(el(),'value',{value:v,writable:true,configurable:true})},inputValue:async()=>{defaults();return el().value},textContent:async()=>el().textContent,isVisible:async()=>selector==='#modal'?el().classList.contains('show'):el().classList.contains('active'),check:async()=>el().setAttribute('checked','')}}
  const page={evaluate:async s=>vm.runInContext(typeof s==='function'?'('+s.toString()+')()':(defaults(),s),c),locator:loc,reload:async()=>init()};
  const browser={close:async()=>{}},context={setOffline:async()=>{}};
- await page.evaluate(()=>{currentPlan='plus';db=seed();db.animals=[{id:'e1',type:'Koyun',sex:'Dişi',status:'Aktif',tag:'245',breedingStatus:'Anaç'},{id:'e2',type:'Koyun',sex:'Dişi',status:'Aktif',tag:'246',breedingStatus:'Anaç'}];save()});
+ await page.evaluate(()=>{currentPlan='pro';subscriptionStatus='active';db=seed();db.animals=[{id:'e1',type:'Koyun',sex:'Dişi',status:'Aktif',tag:'245',breedingStatus:'Anaç'},{id:'e2',type:'Koyun',sex:'Dişi',status:'Aktif',tag:'246',breedingStatus:'Anaç'}];save()});
  const run=s=>page.evaluate(s),fill=(id,v)=>page.locator('#'+id).fill(v),select=(id,v)=>page.locator('#'+id).selectOption(v);
  assert.equal(await page.locator('#heroTotal').textContent(),'2 hayvan');assert.equal(await page.locator('#homeBirthRate').textContent(),'—');
  for(const screen of ['home','herd','add','reports','chat','all']){await run(`go('${screen}')`);assert(await page.locator('#'+screen).isVisible())}
@@ -28,7 +28,7 @@ const assert=require('node:assert/strict');
  await run("openAdd('expense')");await fill('amount','200');await run("submitSimple('expense')");assert.equal(await run("calcFinance('all').income-calcFinance('all').expense"),800);
  await run('openSaleCandidates()');await page.locator('.saleAnimal').check();await fill('amount','5000');await run("submitSelectedSale('sale_candidates')");assert.equal(await run(`db.animals.find(a=>a.id==='${lamb}').status`),'Satıldı');assert.equal(await page.locator('#homeSaleReady').textContent(),'0');
  await run("deleteRecord(db.records.find(r=>r.kind==='sale').id)");assert.equal(await run(`db.animals.find(a=>a.id==='${lamb}').status`),'Satılacak');
- await run("openAdd('weight')");await select('animal',lamb);await fill('weight','45');await run("submitAnimal('weight')");assert.equal(await run(`db.animals.find(a=>a.id==='${lamb}').weight`),45);
+ await run(`openAddForAnimal('weight','${lamb}')`);await select('animal',lamb);await fill('weight','45');await run("submitAnimal('weight')");assert.equal(await run(`db.animals.find(a=>a.id==='${lamb}').weight`),45);
  await run("editRecord(db.records.find(r=>r.kind==='weight').id)");await fill('editWeight','47');await run("saveRecordEdit(db.records.find(r=>r.kind==='weight').id,'weight')");assert.equal(await run(`db.animals.find(a=>a.id==='${lamb}').weight`),47);
  await run("deleteRecord(db.records.find(r=>r.kind==='birth'&&r.motherId==='e1').id)");assert.equal(await run("db.records.filter(r=>r.kind==='birth').length"),2); // linked weight blocks unsafe deletion
  await run("openAdd('health')");await select('animal','e1');await fill('note','Aşı');await run("submitAnimal('health')");assert.equal(await run("db.records.filter(r=>r.kind==='health').length"),1);
@@ -37,7 +37,7 @@ const assert=require('node:assert/strict');
  await run("openAdd('harvest')");await fill('harvestProduct','Arpa');await fill('qty','50');await run('submitHarvest()');assert.equal(await run('db.stock.Arpa'),50);
  await run("deleteRecord(db.records.find(r=>r.kind==='harvest').id)");assert.equal(await run('db.stock.Arpa'),0);
  await run("openAdd('note')");await fill('note','Kontrol');await run('submitNote()');assert(await run("db.records.some(r=>r.kind==='note'&&r.note==='Kontrol')"));
- await run('openRamMating()');await run('saveRamMating()');assert.equal(await run('db.ramCalendar.length'),1);await run("addTask()");assert.equal(await run('db.tasks.length'),1);await run('doneTask(0)');assert.equal(await run('db.tasks.length'),0);
+ await run('openRamMating()');await fill('ramRemovalDate',await run('addDaysISO(today(),30)'));await run('saveRamMating()');assert.equal(await run('db.ramCalendar.length'),1);await run("addTask()");assert.equal(await run('db.tasks.length'),1);await run('doneTask(0)');assert.equal(await run('db.tasks.length'),0);
  const backup=await run('JSON.stringify({format:"suru-takip-backup",version:1,data:db})');assert.equal(await run(`validateBackup(JSON.parse(${JSON.stringify(backup)})).animals.length`),6);
  await run("quickAnimalSearch.value='245';quickAnimalLookup()");assert((await page.locator('#quickAnimalResults').textContent()).includes('245'));
  for(const m of ['monthly','yearly','all','birthperiod'])await run(`setReport('${m}')`);
