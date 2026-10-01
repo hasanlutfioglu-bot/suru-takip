@@ -114,7 +114,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 
 .homeMenu{width:100%;margin:18px 0;padding:16px;font-size:16px;background:var(--green);color:white}
 .screen>h3,.screen>.row>h3{font-size:22px;margin:18px 0}.card{padding:18px;border-radius:20px}.stat span,.muted,.rateHelp,label{font-size:14px;line-height:1.5}.menuGrid{gap:12px;margin-bottom:18px}.menuBtn{font-size:22px;border-radius:18px;padding:20px 16px;box-shadow:var(--shadow)}.menuBtn b{font-size:16px;line-height:1.5}.tabs{gap:8px;padding-bottom:12px}.tab{font-size:14px}.listitem{padding:16px 0}.row{flex-wrap:wrap}.row>div{min-width:0}.recordActions{margin-left:auto}input,select,textarea{font-size:16px;min-height:46px}.small{font-size:14px}.nav{font-size:12px;min-height:54px}.sheet{padding:20px}.sheet h3{font-size:20px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #bc871c;outline-offset:3px}
-@media(max-width:360px){.homeSummary{grid-template-columns:1fr}.hero h2{font-size:32px}.summaryCard b{font-size:28px}}
+.pricingHero{background:linear-gradient(145deg,#123e30,#1f694c);color:#fff;border-radius:22px;padding:16px;margin-bottom:10px}.pricingHero b{font-size:22px}.pricingHero .muted{color:#d6e6dc}.priceGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}.priceCard{border:1px solid var(--line);background:#fff;border-radius:18px;padding:14px;text-align:left}.priceCard.selected{border:2px solid var(--green);background:#f4fbf6}.priceCard small{display:block;color:var(--muted);margin-top:3px}.priceCard strong{display:block;font-size:24px;margin-top:6px}.priceSave{display:inline-block;font-size:10px;font-weight:800;color:#815a00;background:#fff0c7;border-radius:99px;padding:4px 7px;margin-top:6px}.planCheck{display:flex;gap:8px;align-items:flex-start;padding:7px 0;font-size:13px}.planCheck i{font-style:normal;color:var(--green);font-weight:900}.purchaseFine{font-size:10px;color:var(--muted);line-height:1.45;text-align:center;margin-top:8px}@media(max-width:360px){.homeSummary{grid-template-columns:1fr}.hero h2{font-size:32px}.summaryCard b{font-size:28px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
@@ -528,6 +528,11 @@ const LIVE_APP_URL='https://hasanlutfioglu-bot.github.io/suru-takip/v21.html';
 let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTimer=null, cloudApplying=false, lastCloudStamp='', currentPlan='free', subscriptionStatus='free', trialEndsAt=null, currentPeriodEnd=null;
 const FREE_ANIMAL_LIMIT=20;
 const FREE_MONTHLY_FINANCE_LIMIT=10;
+const PRO_MONTHLY_PRICE=99;
+const PRO_YEARLY_PRICE=990;
+const PRO_MONTHLY_PRODUCT='suru_pro_monthly';
+const PRO_YEARLY_PRODUCT='suru_pro_yearly';
+let selectedProBilling='yearly';
 
 function localDateISO(d=new Date()){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
 const today=()=>localDateISO();
@@ -630,17 +635,48 @@ function renderPlanStatus(){
   else {title.textContent='FREE';txt.textContent='20 hayvan · 10 finans kaydı · PRO özellikleri kilitli';strip.style.borderColor='#dfe7df';strip.style.background='#fff'}
  }
 }
+function setProBilling(choice){
+ selectedProBilling=choice==='monthly'?'monthly':'yearly';
+ document.querySelectorAll('[data-price-plan]').forEach(x=>x.classList.toggle('selected',x.dataset.pricePlan===selectedProBilling));
+ let btn=document.getElementById('proPurchaseBtn');
+ if(btn)btn.textContent=selectedProBilling==='yearly'?'Yıllık PRO · '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık PRO · '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL';
+}
+function storePlatform(){
+ if(window.SuruBilling?.purchase)return 'android';
+ if(window.webkit?.messageHandlers?.suruBilling)return 'ios';
+ return 'web';
+}
+function startProPurchase(){
+ const product=selectedProBilling==='yearly'?PRO_YEARLY_PRODUCT:PRO_MONTHLY_PRODUCT,platform=storePlatform();
+ if(platform==='android'){try{return window.SuruBilling.purchase(product)}catch(e){return toast('Google Play satın alma başlatılamadı')}}
+ if(platform==='ios'){try{window.webkit.messageHandlers.suruBilling.postMessage({action:'purchase',productId:product});return}catch(e){return toast('App Store satın alma başlatılamadı')}}
+ showModal('PRO Satın Alma','<div class="card"><b>Mağaza bağlantısı hazır bekliyor</b><div class="muted" style="margin-top:6px">Seçimin: '+(selectedProBilling==='yearly'?'Yıllık '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL')+'. Web ödeme sistemi bağlanana kadar burada ücret tahsil edilmeyecek.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
+}
+function restoreProPurchase(){
+ const platform=storePlatform();
+ if(platform==='android'&&window.SuruBilling?.restore){try{return window.SuruBilling.restore()}catch(e){}}
+ if(platform==='ios'&&window.webkit?.messageHandlers?.suruBilling){try{window.webkit.messageHandlers.suruBilling.postMessage({action:'restore'});return}catch(e){}}
+ toast('Satın alma geri yükleme mağaza sürümünde aktif olacak');
+}
 function openPlans(){
+ const annualMonthly=Math.round(PRO_YEARLY_PRICE/12),save=PRO_MONTHLY_PRICE*12-PRO_YEARLY_PRICE;
  showModal('Sürü Takip PRO',`
-  <div class="card" style="background:linear-gradient(145deg,#123e30,#1f694c);color:#fff">
-   <div class="row"><div><b style="font-size:20px">PRO</b><div style="opacity:.82;font-size:11px;margin-top:3px">İşletmeni sadece kaydetme; analiz et.</div></div><span class="tag" style="background:#ffffff22;color:#fff">30 GÜN DENEME</span></div>
+  <div class="pricingHero"><div class="row"><div><b>PRO</b><div class="muted" style="margin-top:4px">Sürünü kaydetmekten fazlası: analiz, finans ve karar desteği.</div></div><span class="tag" style="background:#ffffff22;color:#fff">${trialActive()?trialDaysLeft()+' GÜN KALDI':'30 GÜN DENEME'}</span></div></div>
+  <div class="priceGrid">
+   <button class="priceCard ${selectedProBilling==='monthly'?'selected':''}" data-price-plan="monthly" onclick="setProBilling('monthly')"><b>Aylık</b><strong>${PRO_MONTHLY_PRICE} TL</strong><small>Her ay yenilenir</small></button>
+   <button class="priceCard ${selectedProBilling==='yearly'?'selected':''}" data-price-plan="yearly" onclick="setProBilling('yearly')"><b>Yıllık</b><strong>${PRO_YEARLY_PRICE} TL</strong><small>Aylık yaklaşık ${annualMonthly} TL</small><span class="priceSave">${save} TL avantaj</span></button>
   </div>
-  <div class="card"><b>FREE</b><div class="muted" style="margin-top:6px">20 aktif hayvan · ayda 10 finans kaydı · temel sürü, doğum, sağlık ve tartım kayıtları · bu ay temel özet.</div></div>
-  <div class="card"><b>PRO ile açılanlar</b>
-   <div class="muted" style="margin-top:6px;line-height:1.65">✓ Sınırsız / yüksek sürü kapasitesi<br>✓ Kuzu gelişim analizi<br>✓ İşletme Nabzı ve gelişmiş raporlar<br>✓ Finans grafikleri ve satış potansiyeli<br>✓ Yıllık / özel dönem / arşiv raporları<br>✓ Anaç performans geçmişi<br>✓ CSV / PDF dışa aktarma<br>✓ ChatGPT ile yönetim</div>
+  <div class="card">
+   <div class="planCheck"><i>✓</i><span>20 hayvan sınırı kalkar</span></div>
+   <div class="planCheck"><i>✓</i><span>Kuzu gelişim analizi ve satışa hazır takibi</span></div>
+   <div class="planCheck"><i>✓</i><span>İşletme Nabzı, gelişmiş sürü ve finans raporları</span></div>
+   <div class="planCheck"><i>✓</i><span>Yıllık / özel dönem / arşiv raporları</span></div>
+   <div class="planCheck"><i>✓</i><span>CSV / PDF dışa aktarma ve ChatGPT ile yönetim</span></div>
+   <div class="planCheck"><i>✓</i><span>Android, iPhone ve bilgisayarda aynı hesap</span></div>
   </div>
-  <button class="primary" onclick="toast('Mağaza abonelik bağlantısı ödeme entegrasyonunda aktif olacak')">PRO'ya Geç</button>
-  <div class="muted" style="margin-top:8px;text-align:center">${trialActive()?'PRO denemesinde '+trialDaysLeft()+' gün kaldı.':'Yeni hesaplarda ilk 30 gün PRO, sonra ödeme yapılmazsa FREE.'}</div>
+  <button id="proPurchaseBtn" class="primary" style="width:100%;font-size:16px;padding:14px" onclick="startProPurchase()">${selectedProBilling==='yearly'?'Yıllık PRO · '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık PRO · '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL'}</button>
+  <button class="small" style="width:100%;margin-top:7px" onclick="restoreProPurchase()">Satın Almayı Geri Yükle</button>
+  <div class="purchaseFine">${trialActive()?'Deneme süren boyunca ücret alınmaz. '+trialDaysLeft()+' gün sonra ödeme yapılmazsa hesabın FREE pakete düşer.':'Yeni hesaplar ilk 30 gün PRO kullanır. Abonelik başlamazsa kayıtlar silinmez; hesap FREE olarak devam eder.'}</div>
  `);
 }
 function showProRequired(feature='Bu özellik'){
