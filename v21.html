@@ -588,7 +588,12 @@ function markReminderDone(type,id){
 function renderHomeUpcoming(){
  let box=document.getElementById('homeUpcomingList'),countEl=document.getElementById('homeUpcomingCount');
  if(!box||!countEl)return;
- let auto=reminderItems().filter(x=>x.days<=14).map(x=>({...x,manual:false}));
+ let reminders=reminderItems();
+ let auto=reminders.filter(x=>x.days<=14).map(x=>({...x,manual:false}));
+ if(!auto.length){
+  let nearest=reminders.find(x=>x.days>14);
+  if(nearest)auto=[{...nearest,manual:false,nearestOnly:true}];
+ }
  let manual=(db.tasks||[]).map((x,i)=>({type:'manual',text:x.text||'Yapılacak iş',date:'',days:999,manual:true,taskIndex:i}));
  let all=[...auto,...manual];
  countEl.textContent=all.length;
@@ -598,7 +603,7 @@ function renderHomeUpcoming(){
  }
  let icon=x=>x.type==='health'?'💉':x.type==='flushing'?'🌾':x.type==='mating'?'🐏':'✓';
  box.innerHTML=all.slice(0,4).map(x=>{
-  let meta=x.manual?'Manuel yapılacak':(x.date+' · '+reminderLabel(x));
+  let meta=x.manual?'Manuel yapılacak':(x.nearestOnly?'En yakın planlı iş · '+x.date+' · '+reminderLabel(x):(x.date+' · '+reminderLabel(x)));
   let cls=x.manual?'':(x.days<0?'upcomingLate':x.days===0?'upcomingToday':'');
   let action=x.manual?`doneTask(${x.taskIndex})`:`markReminderDone('${x.type}','${x.recordId||x.calendarId}')`;
   return `<div class="upcomingItem"><div class="upcomingIcon">${icon(x)}</div><div class="upcomingText"><b>${escHtml(x.text)}</b><div class="upcomingMeta ${cls}">${escHtml(meta)}</div></div><button class="small" onclick="${action}">Yapıldı</button></div>`;
