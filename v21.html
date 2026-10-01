@@ -129,6 +129,12 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
   </div>
  </div>
  <div id="plusReportDetails">
+  <h3>Hızlı Finans Detayı</h3><div class="grid">
+   <div class="card stat clickcard" onclick="openFinanceDetail('feed')"><b id="rQuickFeed">0</b><span>Yem gideri · dokun</span></div>
+   <div class="card stat clickcard" onclick="openFinanceDetail('medicine')"><b id="rQuickMedicine">0</b><span>İlaç / Veteriner · dokun</span></div>
+   <div class="card stat clickcard" onclick="openFinanceDetail('field')"><b id="rQuickField">0</b><span>Tarla gideri · dokun</span></div>
+   <div class="card stat clickcard" onclick="openFinanceDetail('sale')"><b id="rQuickSale">0</b><span>Hayvan satış geliri · dokun</span></div>
+  </div>
   <h3>Kuzu Detayı</h3><div class="grid">
    <div class="card stat clickcard" onclick="openHerdFilter('Erkek Kuzular')"><b id="rMaleLambs">0</b><span>Erkek kuzu · dokun</span></div>
    <div class="card stat clickcard" onclick="openHerdFilter('Dişi Kuzular')"><b id="rFemaleLambs">0</b><span>Dişi kuzu · dokun</span></div>
@@ -1236,6 +1242,27 @@ function setReport(m,el){customReportStart='';customReportEnd='';
  renderReports()
 }
 function toggleNonLambing(){let p=document.getElementById('nonLambingPanel');if(p)p.style.display=p.style.display==='none'?'block':'none'}
+function financeDetailRows(group){
+ let rows=reportRecords(db.report||'monthly').filter(x=>['income','expense','sale','stock'].includes(x.kind));
+ let lower=x=>String(x||'').toLocaleLowerCase('tr-TR');
+ return rows.filter(x=>{
+  let txt=lower([x.category,x.label,x.stockItem,x.note].filter(Boolean).join(' '));
+  if(group==='sale')return x.kind==='sale'||(x.kind==='income'&&(txt.includes('hayvan satış')||txt.includes('kuzu satış')));
+  if(!['expense','stock'].includes(x.kind))return false;
+  if(group==='field')return txt.includes('tarla')||txt.includes('tohum')||txt.includes('libazma')||txt.includes('sürüm')||txt.includes('surum')||txt.includes('mazot')||txt.includes('gübre')||txt.includes('gubre')||txt.includes('ilaçlama')||txt.includes('ilaclama')||txt.includes('biçim')||txt.includes('bicim')||txt.includes('işçilik')||txt.includes('iscilik');
+  if(group==='medicine')return txt.includes('veteriner')||txt.includes('ilaç')||txt.includes('ilac')||txt.includes('sağlık')||txt.includes('saglik');
+  if(group==='feed')return txt.includes('yem')||txt.includes('arpa')||txt.includes('saman')||txt.includes('balya')||txt.includes('kuzu besi');
+  return false;
+ });
+}
+function openFinanceDetail(group){
+ let map={feed:'Yem Gideri',medicine:'İlaç / Veteriner Gideri',field:'Tarla Gideri',sale:'Hayvan Satış Geliri'};
+ let rows=financeDetailRows(group).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+ let total=rows.reduce((s,x)=>s+(+x.amount||0),0);
+ let body=`<div class="card"><div class="muted">${reportDateLabel(db.report||'monthly')}</div><b style="font-size:22px">${money(total)}</b><div class="muted">${rows.length} kayıt</div></div>`;
+ body+=rows.length?rows.map(recordHtml).join(''):'<div class="card muted">Bu dönemde kayıt yok.</div>';
+ showModal(map[group]||'Finans Detayı',body);
+}
 function toggleIncomeBreakdown(){
  let p=document.getElementById('incomeBreakdownPanel'),t=document.getElementById('incomeBreakdownToggle');
  if(!p)return;
@@ -1339,6 +1366,11 @@ function renderReports(){
    expenseGroups['Yem']+=amt;
   }else expenseGroups['Diğer']+=amt;
  });
+ if(document.getElementById('rQuickFeed'))rQuickFeed.textContent=money(expenseGroups['Yem']);
+ if(document.getElementById('rQuickMedicine'))rQuickMedicine.textContent=money(expenseGroups['İlaç / Veteriner']);
+ if(document.getElementById('rQuickField'))rQuickField.textContent=money(expenseGroups['Tarla']);
+ if(document.getElementById('rQuickSale'))rQuickSale.textContent=money(saleIncome);
+
  let expensePanel=document.getElementById('expenseBreakdownPanel');
  if(expensePanel){
   let mainHtml=Object.entries(expenseGroups).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${money(v)}</b></div>`).join('');
