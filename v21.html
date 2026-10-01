@@ -246,6 +246,14 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
     <button class="reportActionCard" onclick="openSaleCandidates()"><b id="rSaleCandidatesHerd">0</b><span>Satışa hazır</span></button>
    </div>
 
+   <div class="reportSectionTitle"><b>Mevcut Sürü</b></div>
+   <div class="reportMiniGrid">
+    <div class="reportActionCard"><b id="rActiveAnimals">0</b><span>Aktif hayvan</span></div>
+    <div class="reportActionCard"><b id="rBusinessEwes">0</b><span>Koyun</span></div>
+    <div class="reportActionCard"><b id="rBusinessRams">0</b><span>Koç</span></div>
+    <div class="reportActionCard"><b id="rBusinessLambs">0</b><span>Kuzu</span></div>
+   </div>
+
    <div class="reportSectionTitle"><b>Doğum performansı</b></div>
    <div class="reportMiniGrid">
     <div class="reportActionCard"><b id="rLambedEwesHerd">0</b><span>Doğuran anaç</span></div>
@@ -263,15 +271,25 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
    </div>
    <div class="card"><div id="deathReportList"></div></div>
 
+   <details class="card">
+    <summary><b>Kayıt ve operasyon özeti</b></summary>
+    <div class="reportMiniGrid" style="margin-top:10px">
+     <div class="reportActionCard"><b id="rHealth">0</b><span>Sağlık kaydı</span></div>
+     <div class="reportActionCard"><b id="rWeights">0</b><span>Tartım kaydı</span></div>
+     <div class="reportActionCard"><b id="rSales">0</b><span>Satış kaydı</span></div>
+     <div class="reportActionCard"><b id="rStockMoves">0</b><span>Stok alımı</span></div>
+     <div class="reportActionCard"><b id="rHarvests">0</b><span>Hasat / ürün</span></div>
+     <div class="reportActionCard"><b id="rNotes">0</b><span>Not kaydı</span></div>
+     <div class="reportActionCard"><b id="rAnimalAdds">0</b><span>Hayvan ekleme</span></div>
+     <div class="reportActionCard"><b id="rPromotions">0</b><span>Sürü statü değişimi</span></div>
+    </div>
+   </details>
    <details class="card"><summary><b>Anaç performans listesi</b></summary><div id="ewePerformanceList" style="margin-top:10px"></div></details>
    <details class="card"><summary><b>Sağlık özeti</b></summary><div id="healthReportList" style="margin-top:10px"></div></details>
    <details class="card"><summary><b>Satış özeti</b></summary><div id="salesReportList" style="margin-top:10px"></div></details>
    <details class="card"><summary><b>Stok durumu</b></summary><div id="stockReportList" style="margin-top:10px"></div></details>
 
-   <div style="display:none">
-    <b id="rHealth">0</b><b id="rWeights">0</b><b id="rSales">0</b><b id="rStockMoves">0</b>
-    <div id="lambPerformanceList"></div>
-   </div>
+   <div style="display:none"><div id="lambPerformanceList"></div></div>
   </div>
 
   <div class="reportPanel" data-report-panel="archive" id="detailedReportsPanel">
@@ -308,6 +326,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
     </div>
    </div>
 
+   <div class="reportInsight"><b>Rapor kapsamı</b><div class="muted">Finans, doğum, satış, sağlık, tartım, ölüm/kayıp, stok, hasat, hayvan ekleme ve statü değişimleri seçili döneme göre raporlanır. Kuzu gelişiminin ayrıntısı kendi ekranında tutulur.</div></div>
    <div class="reportSectionTitle"><b>🌾 Üretim Dönemleri</b><button class="small" onclick="openAdd('harvest')">Hasat Ekle</button></div>
    <div class="card"><div id="productionPeriodList"></div></div>
   </div>
@@ -1980,6 +1999,10 @@ function renderReports(){
  if(document.getElementById('rWeights'))rWeights.textContent=periodRows.filter(x=>x.kind==='weight').length;
  if(document.getElementById('rSales'))rSales.textContent=periodRows.filter(x=>x.kind==='sale').length;
  if(document.getElementById('rStockMoves'))rStockMoves.textContent=periodRows.filter(x=>x.kind==='stock').length;
+ if(document.getElementById('rHarvests'))rHarvests.textContent=periodRows.filter(x=>x.kind==='harvest').length;
+ if(document.getElementById('rNotes'))rNotes.textContent=periodRows.filter(x=>x.kind==='note').length;
+ if(document.getElementById('rAnimalAdds'))rAnimalAdds.textContent=periodRows.filter(x=>x.kind==='animal_add'||x.kind==='setup').length;
+ if(document.getElementById('rPromotions'))rPromotions.textContent=periodRows.filter(x=>x.kind==='promotion'||x.kind==='breeder').length;
 
 
  // Profesyonel rapor ayrıntıları
@@ -1990,6 +2013,7 @@ function renderReports(){
  if(document.getElementById('rBusinessExpense'))rBusinessExpense.textContent=money(f.expense);
  if(document.getElementById('rBusinessNet'))rBusinessNet.textContent=money(f.income-f.expense);
  if(document.getElementById('rBusinessEwes'))rBusinessEwes.textContent=active.filter(a=>a.type==='Koyun').length;
+ if(document.getElementById('rBusinessRams'))rBusinessRams.textContent=active.filter(a=>a.type==='Koç').length;
  if(document.getElementById('rBusinessLambs'))rBusinessLambs.textContent=lambsActive.length;
 
  let incomeRows=finRows.filter(x=>['income','sale'].includes(x.kind));
