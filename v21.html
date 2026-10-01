@@ -575,16 +575,45 @@ function reminderItems(){
   if(!x.matingDate)return;
   let flush=addDaysISO(x.matingDate,-30),df=dateDiffDays(today(),flush),dm=dateDiffDays(today(),x.matingDate);
   if(!x.flushDone)out.push({type:'flushing',date:flush,text:'Flushing başlat · Koç katımına 30 gün',days:df,calendarId:x.id});
-  if(!x.matingDone)out.push({type:'mating',date:x.matingDate,text:'Koç katımı',days:dm,calendarId:x.id});
+  if(!x.matingDone)out.push({type:'mating',date:x.matingDate,text:'Koçu sürüye kattın mı?',days:dm,calendarId:x.id});
+
+  if(x.removalDate){
+   let dr=dateDiffDays(today(),x.removalDate);
+   if(!x.removalDone)out.push({type:'ram_removal',date:x.removalDate,text:'Koçu sürüden çıkardın mı?',days:dr,calendarId:x.id});
+  }
+
+  if(x.matingDone&&x.actualMatingDate){
+   let birthStart=addDaysISO(x.actualMatingDate,147),dbs=dateDiffDays(today(),birthStart);
+   if(!x.birthStartAcknowledged)out.push({type:'birth_start',date:birthStart,text:'Tahmini doğum dönemi başlıyor',days:dbs,calendarId:x.id});
+  }
+  if(x.removalDone&&x.actualRemovalDate){
+   let birthEnd=addDaysISO(x.actualRemovalDate,147),dbe=dateDiffDays(today(),birthEnd);
+   if(!x.birthPeriodDone)out.push({type:'birth_end',date:birthEnd,text:'Doğumlar tamamlandı mı?',days:dbe,calendarId:x.id});
+  }
  });
  return out.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
 }
 function reminderLabel(x){if(x.days<0)return Math.abs(x.days)+' gün gecikti';if(x.days===0)return 'Bugün';return x.days+' gün kaldı'}
 function markReminderDone(type,id){
- if(type==='health'){let r=db.records.find(x=>x.id===id);if(r)r.reminderDone=true}
- else {let c=(db.ramCalendar||[]).find(x=>x.id===id);if(c){if(type==='flushing')c.flushDone=true;else c.matingDone=true}}
- save();toast('Hatırlatma tamamlandı')
+ if(type==='health'){
+  let r=db.records.find(x=>x.id===id);if(r)r.reminderDone=true;
+ }else{
+  let c=(db.ramCalendar||[]).find(x=>x.id===id);
+  if(c){
+   if(type==='flushing')c.flushDone=true;
+   else if(type==='mating'){c.matingDone=true;c.actualMatingDate=today()}
+   else if(type==='ram_removal'){c.removalDone=true;c.actualRemovalDate=today()}
+   else if(type==='birth_start')c.birthStartAcknowledged=true;
+   else if(type==='birth_end'){c.birthPeriodDone=true;c.birthPeriodDoneDate=today()}
+  }
+ }
+ save();
+ let msg=type==='mating'?'Koç katımı onaylandı; tahmini doğum başlangıcı hesaplandı':
+         type==='ram_removal'?'Koç çıkarma onaylandı; tahmini doğum bitişi hesaplandı':
+         type==='birth_end'?'Doğum dönemi tamamlandı olarak işaretlendi':'Hatırlatma tamamlandı';
+ toast(msg)
 }
+
 function renderHomeUpcoming(){
  let box=document.getElementById('homeUpcomingList'),countEl=document.getElementById('homeUpcomingCount');
  if(!box||!countEl)return;
@@ -601,19 +630,20 @@ function renderHomeUpcoming(){
   box.innerHTML='<div class="muted" style="padding:12px 0">Yaklaşan iş yok. Her şey güncel.</div>';
   return;
  }
- let icon=x=>x.type==='health'?'💉':x.type==='flushing'?'🌾':x.type==='mating'?'🐏':'✓';
+ let icon=x=>x.type==='health'?'💉':x.type==='flushing'?'🌾':x.type==='mating'?'🐏':x.type==='ram_removal'?'🚪':x.type==='birth_start'?'🐑':x.type==='birth_end'?'✅':'✓';
  box.innerHTML=all.slice(0,4).map(x=>{
   let meta=x.manual?'Manuel yapılacak':(x.nearestOnly?'En yakın planlı iş · '+x.date+' · '+reminderLabel(x):(x.date+' · '+reminderLabel(x)));
   let cls=x.manual?'':(x.days<0?'upcomingLate':x.days===0?'upcomingToday':'');
   let action=x.manual?`doneTask(${x.taskIndex})`:`markReminderDone('${x.type}','${x.recordId||x.calendarId}')`;
-  return `<div class="upcomingItem"><div class="upcomingIcon">${icon(x)}</div><div class="upcomingText"><b>${escHtml(x.text)}</b><div class="upcomingMeta ${cls}">${escHtml(meta)}</div></div><button class="small" onclick="${action}">Yapıldı</button></div>`;
+  let btn=x.manual?'Yapıldı':x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_start'?'Gördüm':x.type==='birth_end'?'Doğumlar bitti':'Yapıldı';
+  return `<div class="upcomingItem"><div class="upcomingIcon">${icon(x)}</div><div class="upcomingText"><b>${escHtml(x.text)}</b><div class="upcomingMeta ${cls}">${escHtml(meta)}</div></div><button class="small" onclick="${action}">${btn}</button></div>`;
  }).join('');
 }
 function renderAll(){
  let A=db.animals.filter(a=>!['Satıldı','Öldü','Kesildi'].includes(a.status)), e=A.filter(a=>a.type==='Koyun').length,r=A.filter(a=>a.type==='Koç').length,l=A.filter(a=>a.type==='Kuzu').length,f=A.filter(a=>a.status==='Takipte').length;
  let setupCard=document.getElementById('firstSetupCard');if(setupCard)setupCard.style.display=(db.animals.length===0&&!db.setupDone)?'block':'none';
  heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
- let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span>${x.text}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>`<div class="listitem row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">Yapıldı</button></div>`).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
+ let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span>${x.text}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_start'?'Gördüm':x.type==='birth_end'?'Doğumlar bitti':'Yapıldı';return `<div class="listitem row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
  renderHomeUpcoming();
  let fin=calcFinance('all'),net=fin.income-fin.expense;homeNet.textContent=money(net);homeNet.className=net<0?'money minus':'money plus';
  let births=db.records.filter(x=>x.kind==='birth'&&x.motherId&&Number.isFinite(+x.count)&&+x.count>0),mothers=new Set(births.map(x=>x.motherId)),born=births.reduce((n,x)=>n+(+x.count),0);
@@ -1448,13 +1478,47 @@ function openSub(k){currentSub=k;let title={health:'Sağlık',births:'Doğum-Kuz
  else if(k==='health')body=`<button class="primary" onclick="openAdd('health')">Sağlık Kaydı Ekle</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='health').slice().reverse().map(recordHtml).join('');
  else if(k==='weights')body=`<button class="primary" onclick="openAdd('weight')">Tartım Ekle</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='weight').slice().reverse().map(recordHtml).join('');
  else if(k==='today'){let rem=reminderItems();body=`<button class="primary" onclick="addTask()">İş Ekle</button><div style="height:8px"></div>`+(rem.map(x=>`<div class="card row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}');openSub('today')">Yapıldı</button></div>`).join('')+db.tasks.map((x,i)=>`<div class="card row"><span>${x.text}</span><button class="small" onclick="doneTask(${i});openSub('today')">Yapıldı</button></div>`).join('')||'<div class="card muted">Yaklaşan iş yok.</div>')}
- else if(k==='calendar'){if(!db.ramCalendar)db.ramCalendar=[];body='<div class="card"><b>Koç & üreme takvimi</b><p class="muted">Sadece koç katım tarihini gir. Flushing tarihi otomatik 30 gün önce hesaplanır.</p><button class="primary" onclick="openRamMating()">Koç Katım Tarihi Ekle</button></div>'+((db.ramCalendar||[]).length?(db.ramCalendar||[]).slice().reverse().map(x=>`<div class="card"><b>Koç katımı · ${x.matingDate}</b><div class="muted">Flushing başlangıcı: ${addDaysISO(x.matingDate,-30)}</div></div>`).join(''):'<div class="card muted">Henüz koç katım tarihi yok.</div>')}
+ else if(k==='calendar'){if(!db.ramCalendar)db.ramCalendar=[];body='<div class="card"><b>Koç & üreme takvimi</b><p class="muted">Koç katım ve çıkarma tarihini planla. Gerçek tarih, sen onay verdiğin gün kaydedilir; doğum başlangıç ve bitiş tarihleri buna göre otomatik hesaplanır.</p><button class="primary" onclick="openRamMating()">Üreme Dönemi Ekle</button></div>'+((db.ramCalendar||[]).length?(db.ramCalendar||[]).slice().reverse().map(x=>{
+ let actualIn=x.actualMatingDate||'',actualOut=x.actualRemovalDate||'';
+ let birthStart=actualIn?addDaysISO(actualIn,147):'Koç katımı onaylanınca hesaplanır';
+ let birthEnd=actualOut?addDaysISO(actualOut,147):'Koç çıkarma onaylanınca hesaplanır';
+ return `<div class="card"><div class="row"><b>🐏 Üreme dönemi</b><button class="small" onclick="editRamCalendar('${x.id}')">Düzenle</button></div><div class="muted" style="margin-top:6px">Planlanan koç katımı: ${x.matingDate||'—'}${x.matingDone?' · Onay: '+actualIn:' · Onay bekliyor'}</div><div class="muted">Planlanan koç çıkarma: ${x.removalDate||'Belirtilmedi'}${x.removalDone?' · Onay: '+actualOut:(x.removalDate?' · Onay bekliyor':'')}</div><div class="muted">Flushing başlangıcı: ${x.matingDate?addDaysISO(x.matingDate,-30):'—'}</div><div style="margin-top:10px"><b>Tahmini doğum dönemi</b><div class="muted">${birthStart} → ${birthEnd}</div>${x.birthPeriodDone?'<div class="muted">Doğum dönemi tamamlandı · '+(x.birthPeriodDoneDate||'')+'</div>':''}</div></div>`;
+ }).join(''):'<div class="card muted">Henüz üreme dönemi yok.</div>')}
  else if(k==='performance')body=ewePerformanceHtml('history');
  else body=db.records.slice().reverse().map(recordHtml).join('')||'<div class="card muted">Henüz kayıt yok.</div>';
  subBody.innerHTML=body;go('sub')
 }
-function openRamMating(){showModal('Koç Katımı',`<label>Koç katım tarihi</label><input id="ramMatingDate" type="date" value="${today()}"><div class="muted" style="margin-bottom:10px">Flushing başlangıcı otomatik olarak 30 gün önce oluşturulur.</div><button class="primary" onclick="saveRamMating()">Kaydet</button>`)}
-function saveRamMating(){let d=document.getElementById('ramMatingDate')?.value;if(!d)return toast('Tarih seç');if(!db.ramCalendar)db.ramCalendar=[];db.ramCalendar.push({id:uid('ramcal'),matingDate:d,flushDone:false,matingDone:false});save();closeModal();toast('Koç katımı ve flushing hatırlatması eklendi')}
+function openRamMating(){
+ showModal('Üreme Dönemi',`
+  <label>Planlanan koç katım tarihi</label><input id="ramMatingDate" type="date" value="${today()}">
+  <label>Planlanan koç çıkarma tarihi</label><input id="ramRemovalDate" type="date">
+  <div class="muted" style="margin-bottom:10px">Katım günü geldiğinde “Koçu kattım” demediğin sürece her gün hatırlatılır. Çıkarma için de aynı şekilde onay istenir. Tahmini doğum dönemi gerçek onay tarihlerinden otomatik hesaplanır.</div>
+  <button class="primary" onclick="saveRamMating()">Kaydet</button>`)
+}
+function saveRamMating(){
+ let d=document.getElementById('ramMatingDate')?.value,rd=document.getElementById('ramRemovalDate')?.value;
+ if(!d)return toast('Koç katım tarihini seç');
+ if(!rd)return toast('Koç çıkarma tarihini seç');
+ if(rd<d)return toast('Koç çıkarma tarihi katım tarihinden önce olamaz');
+ if(!db.ramCalendar)db.ramCalendar=[];
+ db.ramCalendar.push({id:uid('ramcal'),matingDate:d,removalDate:rd,flushDone:false,matingDone:false,removalDone:false,birthStartAcknowledged:false,birthPeriodDone:false});
+ save();closeModal();toast('Üreme dönemi ve hatırlatmalar eklendi')
+}
+function editRamCalendar(id){
+ let x=(db.ramCalendar||[]).find(r=>r.id===id);if(!x)return toast('Takvim kaydı bulunamadı');
+ showModal('Üreme Dönemini Düzenle',`
+  <label>Planlanan koç katım tarihi</label><input id="editRamMatingDate" type="date" value="${x.matingDate||''}">
+  <label>Planlanan koç çıkarma tarihi</label><input id="editRamRemovalDate" type="date" value="${x.removalDate||''}">
+  <div class="muted" style="margin-bottom:10px">Gerçek katım: ${x.actualMatingDate||'Henüz onaylanmadı'} · Gerçek çıkarma: ${x.actualRemovalDate||'Henüz onaylanmadı'}</div>
+  <button class="primary" onclick="saveRamCalendarEdit('${id}')">Kaydet</button>`)
+}
+function saveRamCalendarEdit(id){
+ let x=(db.ramCalendar||[]).find(r=>r.id===id),d=document.getElementById('editRamMatingDate')?.value,rd=document.getElementById('editRamRemovalDate')?.value;
+ if(!x||!d)return toast('Koç katım tarihini seç');
+ if(rd&&rd<d)return toast('Koç çıkarma tarihi katım tarihinden önce olamaz');
+ x.matingDate=d;x.removalDate=rd||'';
+ save();closeModal();toast('Üreme takvimi güncellendi')
+}
 function addTask(){let t=prompt('Yapılacak işi yaz');if(t){db.tasks.push({text:t});save();openSub('today')}}
 function doneTask(i){db.tasks.splice(i,1);save();toast('İş tamamlandı')}
 let speechRec=null, voiceListening=false;
