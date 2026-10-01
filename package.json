@@ -1,1 +1,1 @@
-{"name":"suru-takip","version":"21.1.0","private":true,"scripts":{"test":"node tests/sync-audit.cjs v21.html && node tests/offline-shell.cjs && node tests/offline-herd.cjs"},"devDependencies":{"linkedom":"0.18.13"}}
+{"name":"suru-takip","version":"21.1.0","private":true,"scripts":{"test":"node tests/sync-audit.cjs v21.html && node tests/offline-shell.cjs && node tests/offline-herd.cjs && node tests/menu-flows.cjs"},"devDependencies":{"linkedom":"0.18.13"}}

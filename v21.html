@@ -32,6 +32,14 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 @media(min-width:620px){.grid{grid-template-columns:repeat(4,1fr)}.menuGrid{grid-template-columns:repeat(3,1fr)}}
 
 .chatBox{min-height:180px;max-height:320px;overflow:auto}.chatMsg{padding:10px 12px;border-radius:14px;margin:8px 0;line-height:1.35}.botMsg{background:#eef4ef;margin-right:12%}.userMsg{background:#dfeee3;margin-left:12%;text-align:right}.talkBtn{width:100%;border:0;border-radius:18px;padding:16px;margin:10px 0 6px;background:var(--green);color:white;font-size:17px;font-weight:800;box-shadow:var(--shadow)}.talkBtn.listening{background:var(--bad);animation:pulse 1s infinite}.voiceStatus{text-align:center;color:var(--muted);font-size:12px;margin-bottom:10px}.chatComposer{display:flex;gap:8px;margin-bottom:10px}.chatComposer input{flex:1;min-width:0;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}@keyframes pulse{50%{opacity:.72}}
+
+/* Shared mobile workspace theme. */
+:root{--bg:#edf3f0;--green:#175c42;--green2:#287d5d;--line:#d8e5de;--shadow:0 6px 22px #17442d0c}
+header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
+.hero{background:linear-gradient(120deg,#123c2e,#227653);padding:26px;border-radius:24px;margin-bottom:16px}.hero h2{font-size:38px;letter-spacing:-1px}.hero small{font-size:14px;font-weight:700;letter-spacing:1px}.hero #heroSub{margin-top:10px;font-size:15px;opacity:.9}
+.homeSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.summaryCard{background:white;text-align:left;border:1px solid var(--line);border-radius:20px;padding:20px 16px;color:var(--ink);box-shadow:var(--shadow);min-width:0}.summaryCard span{display:block;font-size:15px;line-height:1.4}.summaryCard b{display:block;font-size:32px;line-height:1.25;margin:12px 0;overflow-wrap:anywhere}.summaryCard small{display:block;font-size:14px;line-height:1.5;color:var(--muted);font-weight:400}.saleSummary{grid-column:1/-1}.homeMenu{width:100%;margin:18px 0;padding:16px;font-size:16px;background:var(--green);color:white}
+.screen>h3,.screen>.row>h3{font-size:22px;margin:18px 0}.card{padding:18px;border-radius:20px}.stat span,.muted,.rateHelp,label{font-size:14px;line-height:1.5}.menuGrid{gap:12px;margin-bottom:18px}.menuBtn{font-size:22px;border-radius:18px;padding:20px 16px;box-shadow:var(--shadow)}.menuBtn b{font-size:16px;line-height:1.5}.tabs{gap:8px;padding-bottom:12px}.tab{font-size:14px}.listitem{padding:16px 0}.row{flex-wrap:wrap}.row>div{min-width:0}.recordActions{margin-left:auto}input,select,textarea{font-size:16px;min-height:46px}.small{font-size:14px}.nav{font-size:12px;min-height:54px}.sheet{padding:20px}.sheet h3{font-size:20px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #bc871c;outline-offset:3px}
+@media(max-width:360px){.homeSummary{grid-template-columns:1fr}.hero h2{font-size:32px}.summaryCard b{font-size:28px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
@@ -39,43 +47,22 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 <header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></h1><span class="pill" id="cloudStatus">Yerel mod</span></div></header>
 <main>
 <section id="home" class="screen active">
- <div class="hero"><small>GENEL DURUM</small><h2 id="heroTotal">36 hayvan</h2><div id="heroSub">24 koyun · 1 koç · 11 kuzu</div></div>
- <div class="card" id="installCard" hidden><b>📲 Sürü Takip’i Telefona Kur</b><p class="muted">Ana ekranından uygulama olarak aç.</p><button class="primary" id="installAppBtn" type="button" onclick="installApp()">Uygulamayı Kur</button></div>
- <div class="card" id="cloudCard">
-  <div class="row"><div><b>☁️ Bulut Senkronizasyonu</b><div class="muted" id="cloudText">Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.</div></div><span class="tag" id="netBadge">Hazır</span></div>
-  <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-   <button class="primary" id="googleLoginBtn" type="button" onclick="signInGoogle()">Google ile Giriş Yap</button>
-   <button class="small" id="syncNowBtn" onclick="syncNow()" style="display:none">Şimdi Eşitle</button>
-   <button class="small danger" id="logoutBtn" onclick="signOutCloud()" style="display:none">Çıkış</button>
-  </div>
+ <div class="hero"><small>SÜRÜ SAYISI</small><h2 id="heroTotal">0 hayvan</h2><div id="heroSub"></div></div>
+ <div class="homeSummary">
+  <button class="summaryCard" onclick="openSub('performance')"><span>Sürünün doğum oranı</span><b id="homeBirthRate">—</b><small id="homeBirthHint">Henüz doğum kaydı yok</small></button>
+  <button class="summaryCard" onclick="go('reports')"><span>Kâr / Zarar</span><b id="homeNet">0 TL</b><small>Tüm kayıtlar · gelir − gider</small></button>
+  <button class="summaryCard saleSummary" onclick="openSaleCandidates()"><span>Satışa hazır kuzular</span><b id="homeSaleReady">0</b><small>Satılacak işaretli veya 5,5+ aylık erkek kuzular</small></button>
  </div>
- <div class="card" id="firstSetupCard" style="display:none">
-  <b>🐑 İlk Sürünü Oluştur</b>
-  <p class="muted">Bu hesap boş başladı. Kendi koyun, koç ve kuzularını ekleyerek sürünü kur.</p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-   <button class="primary" onclick="openInitialSetup()">Sürümü Kur</button>
-   <button onclick="openAddAnimal()">Tek Hayvan Ekle</button>
-  </div>
- </div>
- <div class="grid">
-  <div class="card stat"><b id="sEwe">24</b><span>Koyun</span></div>
-  <div class="card stat"><b id="sRam">1</b><span>Koç</span></div>
-  <div class="card stat"><b id="sLamb">11</b><span>Kuzu</span></div>
-  <div class="card stat"><b id="sFollow">0</b><span>Takipte</span></div>
- </div>
+ <button class="homeMenu" onclick="go('all')">☰ Tüm Menüler</button>
+</section>
+
+<section id="herd" class="screen"><div class="row"><h3>Sürü</h3><div><button class="small primary" onclick="openAddAnimal()">+ Hayvan Ekle</button> <button class="small" onclick="openBulkSex()">Kuzu Cinsiyetleri</button> <button class="small" onclick="openBulkTags()">Toplu Küpe</button></div></div>
  <div class="card">
   <b>🔎 Hayvan Bul / Hızlı İşlem</b>
   <div class="muted" style="margin-top:4px">Küpe numarasını yaz; hayvan kartı ve işlemler hemen açılsın.</div>
   <input id="quickAnimalSearch" inputmode="numeric" placeholder="Örn. 245" oninput="quickAnimalLookup()">
   <div id="quickAnimalResults" class="quickResults"></div>
  </div>
- <h3>Bugün</h3><div class="card" id="todayBox"></div>
- <h3>Bu dönem finans</h3><div class="card row"><div><div class="muted">Net kâr / zarar</div><b id="homeNet">0 TL</b></div><button class="small" onclick="go('reports')">Raporlar</button></div>
- <h3>Hızlı erişim</h3><div class="menuGrid"><button class="menuBtn" onclick="go('all')">☰<br><b>Tüm Menüler</b></button><button class="menuBtn" onclick="openAdd('birth')">＋<br><b>Doğum Kaydı</b></button><button class="menuBtn" onclick="openAdd('income')">₺<br><b>Gelir Ekle</b></button><button class="menuBtn" onclick="openAdd('expense')">−₺<br><b>Gider Ekle</b></button></div>
- <h3>Son hareketler</h3><div class="card" id="recent"></div>
-</section>
-
-<section id="herd" class="screen"><div class="row"><h3>Sürü</h3><div><button class="small primary" onclick="openAddAnimal()">+ Hayvan Ekle</button> <button class="small" onclick="openBulkSex()">Kuzu Cinsiyetleri</button> <button class="small" onclick="openBulkTags()">Toplu Küpe</button></div></div>
  <input id="herdSearch" placeholder="Küpe veya hayvan ara..." oninput="renderHerd()">
  <div class="tabs" id="herdTabs"></div><div id="herdList"></div>
 </section>
@@ -206,7 +193,25 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
  <button class="menuBtn" onclick="openSub('today')">✓<br><b>Bugün Yapılacaklar</b></button>
  <button class="menuBtn" onclick="openBackup()">💾<br><b>Yedekleme / Geri Yükleme</b></button>
  <button class="menuBtn" onclick="openAccount()">👤<br><b>Hesabım / İşletmem</b></button>
- </div></section>
+ </div>
+ <div class="card" id="installCard" hidden><b>📲 Sürü Takip’i Telefona Kur</b><p class="muted">Ana ekranından uygulama olarak aç.</p><button class="primary" id="installAppBtn" type="button" onclick="installApp()">Uygulamayı Kur</button></div>
+ <div class="card" id="cloudCard">
+  <div class="row"><div><b>☁️ Bulut Senkronizasyonu</b><div class="muted" id="cloudText">Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.</div></div><span class="tag" id="netBadge">Hazır</span></div>
+  <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+   <button class="primary" id="googleLoginBtn" type="button" onclick="signInGoogle()">Google ile Giriş Yap</button>
+   <button class="small" id="syncNowBtn" onclick="syncNow()" style="display:none">Şimdi Eşitle</button>
+   <button class="small danger" id="logoutBtn" onclick="signOutCloud()" style="display:none">Çıkış</button>
+  </div>
+ </div>
+ <div class="card" id="firstSetupCard" style="display:none">
+  <b>🐑 İlk Sürünü Oluştur</b>
+  <p class="muted">Bu hesap boş başladı. Kendi koyun, koç ve kuzularını ekleyerek sürünü kur.</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+   <button class="primary" onclick="openInitialSetup()">Sürümü Kur</button>
+   <button onclick="openAddAnimal()">Tek Hayvan Ekle</button>
+  </div>
+ </div>
+ <div hidden><b id="sEwe"></b><b id="sRam"></b><b id="sLamb"></b><b id="sFollow"></b><div id="todayBox"></div><div id="recent"></div></div></section>
 <section id="sub" class="screen"><div class="row"><h3 id="subTitle">Bölüm</h3><button class="small" onclick="go('all')">Geri</button></div><div id="subBody"></div></section>
 </main>
 
@@ -567,7 +572,11 @@ function renderAll(){
  let setupCard=document.getElementById('firstSetupCard');if(setupCard)setupCard.style.display=(db.animals.length===0&&!db.setupDone)?'block':'none';
  heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
  let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span>${x.text}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>`<div class="listitem row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">Yapıldı</button></div>`).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
- let fin=calcFinance('all');homeNet.textContent=money(fin.income-fin.expense);
+ let fin=calcFinance('all'),net=fin.income-fin.expense;homeNet.textContent=money(net);homeNet.className=net<0?'money minus':'money plus';
+ let births=db.records.filter(x=>x.kind==='birth'&&x.motherId&&Number.isFinite(+x.count)&&+x.count>0),mothers=new Set(births.map(x=>x.motherId)),born=births.reduce((n,x)=>n+(+x.count),0);
+ homeBirthRate.textContent=mothers.size?new Intl.NumberFormat('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1}).format(born/mothers.size):'—';
+ homeBirthHint.textContent=mothers.size?`${born} kuzu / ${mothers.size} doğuran koyun · tüm kayıtlar`:'Henüz doğum kaydı yok';
+ homeSaleReady.textContent=A.filter(isSaleCandidate).length;
  recent.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz hareket yok.</div>';
  last5.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz kayıt yok.</div>';
  renderHerd();renderReports();setupReportFolds();setupDetailedReportControls();
@@ -932,7 +941,8 @@ function openAdd(kind){
 function submitSimple(kind){const amount=document.getElementById('amount'),cat=document.getElementById('cat'),date=document.getElementById('date'),note=document.getElementById('note');if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir tutar gir');if(!date.value)return toast('Tarih seç');if(!canAddFinance(1))return showFinancePlusRequired();if(kind==='income'&&cat.value==='Hayvan satışı')return submitSelectedSale('income');let rec={id:uid('rec'),kind,label:(kind==='income'?'Gelir · ':'Gider · ')+cat.value,category:cat.value,amount:+amount.value,date:date.value,note:note.value};if(kind==='expense'&&String(cat.value).startsWith('Tarla'))rec.productionPeriod=(document.getElementById('productionPeriod')?.value||productionPeriodDefault(date.value)).trim();db.records.push(rec);save();closeModal();toast(kind==='income'?'Gelir kaydedildi ve rapora işlendi':'Gider kaydedildi ve rapora işlendi')}
 function submitBirth(){const count=document.getElementById('count'),mother=document.getElementById('mother'),date=document.getElementById('date');
  let n=+count.value, ss=[...document.querySelectorAll('.birthSex')].map(x=>x.value), mom=db.animals.find(x=>x.id===mother.value);
- if(!mom)return toast('Anaç seç');
+ if(!mom||!isActiveAnimal(mom))return toast('Aktif anaç seç');
+ if(!date.value||!Number.isInteger(n)||n<1||n>3)return toast('Geçerli tarih ve kuzu sayısı seç');
  if(!canAddAnimals(n))return showPlusRequired(n);
  if(mom.breedingStatus==='Anaç Adayı'){mom.breedingStatus='Anaç';mom.type='Koyun';mom.status='Aktif'}
  else if(!mom.breedingStatus)mom.breedingStatus='Anaç';
@@ -945,12 +955,12 @@ function submitBirth(){const count=document.getElementById('count'),mother=docum
  save();closeModal();toast(n+' kuzu otomatik sürüye eklendi')
 }
 function addDaysISO(base,days){let d=new Date((base||today())+'T00:00:00');d.setDate(d.getDate()+(+days||0));return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
-function submitAnimal(kind){const animal=document.getElementById('animal'),weight=document.getElementById('weight'),date=document.getElementById('date'),note=document.getElementById('note');let a=db.animals.find(x=>x.id===animal.value);if(kind==='weight'){if(!+weight.value)return toast('Kilo gir');a.weight=+weight.value;db.records.push({id:uid('rec'),kind,label:'Tartım · '+animalName(a),date:date.value,animalId:a.id,note:weight.value+' kg'})}else{let rd=document.getElementById('reminderDays')?.value||'0',due='';if(rd==='custom')due=document.getElementById('reminderDate')?.value||'';else if(+rd>0)due=addDaysISO(date.value,+rd);db.records.push({id:uid('rec'),kind,label:'Sağlık · '+animalName(a),date:date.value,animalId:a.id,note:note.value,reminderDate:due,reminderDone:false});}save();closeModal();toast('Kayıt işlendi')}
+function submitAnimal(kind){const animal=document.getElementById('animal'),weight=document.getElementById('weight'),date=document.getElementById('date'),note=document.getElementById('note');let a=db.animals.find(x=>x.id===animal.value);if(!a||!isActiveAnimal(a))return toast('Aktif hayvan seç');if(!date.value)return toast('Tarih seç');if(kind==='weight'){if(!Number.isFinite(+weight.value)||+weight.value<=0)return toast('Sıfırdan büyük kilo gir');a.weight=+weight.value;db.records.push({id:uid('rec'),kind,label:'Tartım · '+animalName(a),date:date.value,animalId:a.id,note:weight.value+' kg'})}else{let rd=document.getElementById('reminderDays')?.value||'0',due='';if(rd==='custom')due=document.getElementById('reminderDate')?.value||'';else if(+rd>0)due=addDaysISO(date.value,+rd);db.records.push({id:uid('rec'),kind,label:'Sağlık · '+animalName(a),date:date.value,animalId:a.id,note:note.value,reminderDate:due,reminderDone:false});}save();closeModal();toast('Kayıt işlendi')}
 function selectedSaleAnimals(){return [...document.querySelectorAll('.saleAnimal:checked')].map(x=>db.animals.find(a=>a.id===x.value)).filter(Boolean).filter(isActiveAnimal)}
 function submitSelectedSale(source){const amount=document.getElementById('amount'),date=document.getElementById('date'),note=document.getElementById('note');if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir satış tutarı gir');if(!date.value)return toast('Tarih seç');if(!canAddFinance(1))return showFinancePlusRequired();let arr=selectedSaleAnimals();if(!arr.length)return toast('En az bir hayvan seç');let names=arr.map(animalName),ids=arr.map(a=>a.id),previousStatuses={};arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});db.records.push({id:uid('rec'),kind:'sale',label:`Satış · ${arr.length} hayvan`,category:'Kuzu/Hayvan satışı',amount:+amount.value,date:date.value,note:(typeof note!=='undefined'&&note?.value)||'',animalIds:ids,animalNames:names,previousStatuses,source:source||'sale'});save();closeModal();toast(arr.length+' hayvan satıldı; gelir kaydına bağlandı')}
 function submitSale(){return submitSelectedSale('sale')}
-function submitStock(){const qty=document.getElementById('qty'),cat=document.getElementById('cat'),amount=document.getElementById('amount'),date=document.getElementById('date');if(!+qty.value)return toast('Miktar gir');if(!canAddFinance(1))return showFinancePlusRequired();db.stock[cat.value]=(db.stock[cat.value]||0)+(+qty.value);db.records.push({id:uid('rec'),kind:'stock',label:'Stok alımı · '+cat.value,category:'Stok/Yem',stockItem:cat.value,qty:+qty.value,amount:+amount.value||0,date:date.value,note:qty.value+' birim'});save();closeModal();toast('Stok arttı ve maliyet gidere işlendi')}
-function submitHarvest(){const date=document.getElementById('date');let product=(document.getElementById('harvestProduct')?.value||'').trim(),q=+document.getElementById('qty')?.value||0,unit=document.getElementById('harvestUnit')?.value||'kg',period=(document.getElementById('productionPeriod')?.value||productionPeriodDefault(date.value)).trim();if(!product)return toast('Ürün adını gir');if(!q)return toast('Miktar gir');db.stock[product]=(db.stock[product]||0)+q;db.records.push({id:uid('rec'),kind:'harvest',label:'Hasat · '+product,category:'Tarla/Hasat',stockItem:product,qty:q,unit,productionPeriod:period,date:date.value,note:(document.getElementById('note')?.value||'')});save();closeModal();toast(product+' stoğa eklendi')}
+function submitStock(){const qty=document.getElementById('qty'),cat=document.getElementById('cat'),amount=document.getElementById('amount'),date=document.getElementById('date');if(!Number.isFinite(+qty.value)||+qty.value<=0)return toast('Sıfırdan büyük miktar gir');if(!date.value)return toast('Tarih seç');if(!Number.isFinite(+amount.value)||+amount.value<0)return toast('Geçerli maliyet gir');if(!canAddFinance(1))return showFinancePlusRequired();db.stock[cat.value]=(db.stock[cat.value]||0)+(+qty.value);db.records.push({id:uid('rec'),kind:'stock',label:'Stok alımı · '+cat.value,category:'Stok/Yem',stockItem:cat.value,qty:+qty.value,amount:+amount.value||0,date:date.value,note:qty.value+' birim'});save();closeModal();toast('Stok arttı ve maliyet gidere işlendi')}
+function submitHarvest(){const date=document.getElementById('date');let product=(document.getElementById('harvestProduct')?.value||'').trim(),q=+document.getElementById('qty')?.value||0,unit=document.getElementById('harvestUnit')?.value||'kg',period=(document.getElementById('productionPeriod')?.value||productionPeriodDefault(date.value)).trim();if(!product)return toast('Ürün adını gir');if(!Number.isFinite(q)||q<=0)return toast('Sıfırdan büyük miktar gir');if(!date.value)return toast('Tarih seç');db.stock[product]=(db.stock[product]||0)+q;db.records.push({id:uid('rec'),kind:'harvest',label:'Hasat · '+product,category:'Tarla/Hasat',stockItem:product,qty:q,unit,productionPeriod:period,date:date.value,note:(document.getElementById('note')?.value||'')});save();closeModal();toast(product+' stoğa eklendi')}
 function submitNote(){const date=document.getElementById('date'),note=document.getElementById('note');db.records.push({id:uid('rec'),kind:'note',label:'Not',date:date.value,note:note.value});save();closeModal();toast('Not kaydedildi')}
 function latestBirthPeriodRange(){
  let ds=db.records.filter(x=>x.kind==='birth'&&x.date).map(x=>new Date(x.date+'T00:00:00')).filter(x=>!isNaN(x)).sort((a,b)=>b-a);
@@ -1050,22 +1060,23 @@ function editRecord(id){
 function saveRecordEdit(id,mode){
  let r=db.records.find(x=>x.id===id);if(!r)return;
  let newDate=document.getElementById('editDate')?.value||r.date;
- if(mode==='finance'||mode==='sale'){r.date=newDate;r.amount=+document.getElementById('editAmount').value||0;r.note=document.getElementById('editNote').value||''}
+ if(mode==='finance'||mode==='sale'){if(!Number.isFinite(+document.getElementById('editAmount').value)||+document.getElementById('editAmount').value<=0)return toast('Sıfırdan büyük tutar gir');r.date=newDate;r.amount=+document.getElementById('editAmount').value||0;r.note=document.getElementById('editNote').value||''}
  else if(mode==='basic'){r.date=newDate;r.note=document.getElementById('editNote').value||''}
  else if(mode==='death'){r.date=newDate;r.note=document.getElementById('editNote').value||'Neden belirtilmedi';let a=db.animals.find(x=>x.id===r.animalId);if(a){a.status='Öldü';a.deathDate=newDate;a.deathReason=r.note}}
  else if(mode==='weight'){
-  r.date=newDate;let w=+document.getElementById('editWeight').value||0;r.note=w+' kg';recalcAnimalWeight(r.animalId)
+  let w=+document.getElementById('editWeight').value;if(!Number.isFinite(w)||w<=0)return toast('Sıfırdan büyük kilo gir');r.date=newDate;r.note=w+' kg';recalcAnimalWeight(r.animalId)
  }
  else if(mode==='stock'){
   let oldItem=r.stockItem||String(r.label||'').replace('Stok alımı · ','');
   let oldQty=recordQty(r),newItem=document.getElementById('editStockItem').value,newQty=+document.getElementById('editQty').value||0;
+  if(!Number.isFinite(newQty)||newQty<=0)return toast('Sıfırdan büyük miktar gir');
   db.stock[oldItem]=Math.max(0,(db.stock[oldItem]||0)-oldQty);
   db.stock[newItem]=(db.stock[newItem]||0)+newQty;
   r.stockItem=newItem;r.qty=newQty;r.label='Stok alımı · '+newItem;r.category='Stok/Yem';r.amount=+document.getElementById('editAmount').value||0;r.date=newDate;r.note=newQty+' birim'
  }
  else if(mode==='harvest'){
   let oldItem=r.stockItem||'',oldQty=recordQty(r),newItem=(document.getElementById('editHarvestItem').value||'').trim(),newQty=+document.getElementById('editQty').value||0;
-  if(!newItem||!newQty)return toast('Ürün ve miktar gir');
+  if(!newItem||!Number.isFinite(newQty)||newQty<=0)return toast('Ürün ve sıfırdan büyük miktar gir');
   db.stock[oldItem]=Math.max(0,(db.stock[oldItem]||0)-oldQty);
   db.stock[newItem]=(db.stock[newItem]||0)+newQty;
   r.stockItem=newItem;r.qty=newQty;r.unit=document.getElementById('editHarvestUnit').value;r.productionPeriod=(document.getElementById('editProductionPeriod').value||'').trim();r.date=newDate;r.note=document.getElementById('editNote').value||'';r.label='Hasat · '+newItem;r.category='Tarla/Hasat'
