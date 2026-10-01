@@ -744,12 +744,27 @@ function saveTag(id){const tagInput=document.getElementById('tagInput');let v=ta
 function openBulkTags(){showModal('Küpe Numaralarını Toplu Düzenle',db.animals.map(a=>`<label>${a.type} · ${a.sex}</label><input data-id="${a.id}" class="bulkTag" value="${escHtml(a.tag||'')}" placeholder="Küpe no">`).join('')+`<button class="primary" onclick="saveBulkTags()">Tümünü Kaydet</button>`)}
 function saveBulkTags(){let vals=[...document.querySelectorAll('.bulkTag')].map(x=>x.value.trim()).filter(Boolean);if(new Set(vals).size!==vals.length)return toast('Aynı küpe numarası iki kez girilmiş');document.querySelectorAll('.bulkTag').forEach(x=>db.animals.find(a=>a.id===x.dataset.id).tag=x.value.trim());save();closeModal();toast('Küpeler kaydedildi')}
 function animalCard(id){
- let a=db.animals.find(x=>x.id===id);
- let rec=db.records.filter(r=>r.animalId===id||r.motherId===id||(Array.isArray(r.animalIds)&&r.animalIds.includes(id)));
+ let a=db.animals.find(x=>x.id===id);if(!a)return toast('Hayvan bulunamadı');
+ let rec=db.records.filter(r=>r.animalId===id||r.motherId===id||(Array.isArray(r.animalIds)&&r.animalIds.includes(id))).slice().sort((x,y)=>String(y.date||'').localeCompare(String(x.date||'')));
  let breederBtn=(a.sex==='Dişi'&&a.type==='Kuzu'&&isActiveAnimal(a)&&a.breedingStatus!=='Anaç Adayı')?` <button class="small primary" onclick="markBreeder('${id}')">Damızlığa Ayır</button>`:'';
  let promoteBtn=(a.breedingStatus==='Anaç Adayı'&&isActiveAnimal(a))?` <button class="small primary" onclick="promoteBreeder('${id}')">Anaç Yap</button>`:'';
  let explain=a.breedingStatus==='Anaç Adayı'?'<div class="muted" style="margin-top:8px">Bu hayvan şu an anaç adayıdır. İlk doğum kaydında otomatik anaç olur; istersen “Anaç Yap” ile şimdi de aktarabilirsin.</div>':'';
- showModal(animalName(a),`<div class="card"><b>${a.type} · ${a.sex}</b><div class="muted">${age(a.birth)} · Durum: ${a.status}${a.breedingStatus?' · '+a.breedingStatus:''}</div>${explain}</div><button onclick="editTag('${id}')">Küpe Ekle/Düzenle</button> <button onclick="editAnimal('${id}')">Hayvanı Düzenle</button>${breederBtn}${promoteBtn}<h3>Geçmiş</h3>${rec.length?rec.map(recordHtml).join(''):'<div class="muted">Kayıt yok.</div>'}`)
+ let mother=a.motherId?db.animals.find(x=>x.id===a.motherId):null;
+ let bs=(a.type==='Koyun'||a.breedingStatus==='Anaç')?eweBirthSummary(a):null;
+ let birthBox=bs?`<div class="card"><b>🐑 Kuzulama Özeti</b><div class="grid" style="margin-top:10px"><div class="stat"><b>${bs.count}</b><span>Kuzulama</span></div><div class="stat"><b>${bs.lambs}</b><span>Toplam kuzu</span></div></div><div class="muted" style="margin-top:8px">Son doğum: ${bs.last}</div><div style="margin-top:8px">${birthHistoryHtml(a)}</div></div>`:'';
+ showModal(animalName(a),`
+  <div class="card">
+   <b>${a.type} · ${a.sex}</b>
+   <div class="muted">Küpe: ${a.tag||'Yok'} · ${age(a.birth)} · Durum: ${a.status}${a.breedingStatus?' · '+a.breedingStatus:''}</div>
+   <div class="muted" style="margin-top:5px">Doğum tarihi: ${a.birth||'Bilinmiyor'} · Son kilo: ${a.weight?a.weight+' kg':'Yok'}${mother?' · Anne: '+animalName(mother):''}</div>
+   ${a.deathDate?`<div class="muted">Ölüm: ${a.deathDate}${a.deathReason?' · '+escHtml(a.deathReason):''}</div>`:''}
+   ${explain}
+  </div>
+  ${birthBox}
+  <div style="margin-bottom:10px"><button onclick="editTag('${id}')">Küpe Ekle/Düzenle</button> <button onclick="editAnimal('${id}')">Hayvanı Düzenle</button>${breederBtn}${promoteBtn}</div>
+  <h3>Tüm Kayıt Geçmişi</h3>
+  ${rec.length?rec.map(recordHtml).join(''):'<div class="muted">Kayıt yok.</div>'}
+ `)
 }
 function markBreeder(id){
  let a=db.animals.find(x=>x.id===id);
@@ -819,6 +834,21 @@ function saveAnimalEdit(id){
  save();closeModal();toast('Hayvan bilgileri güncellendi')
 }
 
+function eweBirthSummary(a){
+ let births=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id).slice().sort((x,y)=>String(y.date||'').localeCompare(String(x.date||'')));
+ let lambs=births.reduce((s,r)=>s+(+r.count||0),0);
+ let last=births.find(r=>r.date)?.date||'Yok';
+ return {births,count:births.length,lambs,last};
+}
+function birthHistoryHtml(a){
+ let s=eweBirthSummary(a);
+ if(!s.births.length)return '<div class="muted">Henüz doğum kaydı yok.</div>';
+ return s.births.map(r=>{
+  let kids=(r.childIds||[]).map(cid=>db.animals.find(x=>x.id===cid)).filter(Boolean);
+  let sexes=kids.length?kids.map(k=>k.sex||'Bilinmiyor').join(', '):String(r.note||'').trim();
+  return `<div class="listitem"><b>${r.date||'Tarih yok'} · ${+r.count||0} kuzu</b><div class="muted">${sexes?'Cinsiyet: '+escHtml(sexes):'Cinsiyet bilgisi yok'}</div></div>`;
+ }).join('');
+}
 function quickAnimalLookup(){
  const input=document.getElementById('quickAnimalSearch'), box=document.getElementById('quickAnimalResults');
  if(!input||!box)return;
@@ -837,8 +867,9 @@ function quickAnimalLookup(){
  arr=arr.slice(0,8);
  box.innerHTML=arr.length?arr.map(a=>{
   const canBirth=isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı');
+  const bs=(a.type==='Koyun'||a.breedingStatus==='Anaç')?eweBirthSummary(a):null;
   return `<div class="quickResult">
-   <div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.status}${a.weight?' · '+a.weight+' kg':''}</div></div>
+   <div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.status}${a.weight?' · '+a.weight+' kg':''}${a.breedingStatus?' · '+a.breedingStatus:''}</div>${bs?`<div class="muted" style="margin-top:4px"><b>${bs.count} kuzulama · ${bs.lambs} kuzu</b> · Son doğum: ${bs.last}</div>`:''}</div>
    <div class="quickActions">
     <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button>
     <button class="small" onclick="openAddForAnimal('health','${a.id}')">💉 Sağlık</button>
