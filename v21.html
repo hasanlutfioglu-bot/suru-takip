@@ -67,7 +67,8 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .growthHero{background:linear-gradient(120deg,#123c2e,#227653);color:#fff;border-radius:22px;padding:18px;margin-bottom:12px}.growthHero .row{align-items:flex-start}.growthHero b{font-size:20px}.growthHero .muted{color:#e5f1ea}
 .growthStats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px}.growthStat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px}.growthStat b{display:block;font-size:24px}.growthStat span{font-size:12px;color:var(--muted)}
 .growthFilters{display:flex;gap:7px;overflow:auto;margin:0 0 10px}.growthFilters button{white-space:nowrap}.growthFilters .active{background:var(--green);color:#fff}
-.growthTableWrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.growthTable{border-collapse:collapse;width:100%;min-width:830px;font-size:12px}.growthTable th{position:sticky;top:0;background:#eef4ef;color:#365543;text-align:left;padding:11px;border-bottom:1px solid var(--line);white-space:nowrap}.growthTable td{padding:11px;border-bottom:1px solid #edf1ee;vertical-align:top;white-space:nowrap}.growthTable tr:last-child td{border-bottom:0}.growthTable tr.saleReadyRow{background:#edf8f0}.growthTable tr.saleLightRow{background:#fff6dc}.growthTable tr.saleLowRow{background:#fdeaea}.growthTable .tagcell{font-weight:800}.growthNote{font-size:11px;color:var(--muted);margin-top:3px}.growthStatus{display:inline-block;border-radius:99px;padding:5px 8px;font-size:11px;font-weight:800}.growthStatus.ok{background:#e3f2e8;color:#17623a}.growthStatus.warn{background:#fff0c7;color:#815a00}.growthStatus.bad{background:#f7dddd;color:#9a2f2f}.growthStatus.neutral{background:#edf0ee;color:#5d6962}
+.growthTableWrap{overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.growthTable{border-collapse:collapse;width:100%;table-layout:fixed;font-size:11px}.growthTable th{position:sticky;top:0;background:#eef4ef;color:#365543;text-align:center;padding:9px 3px;border-bottom:1px solid var(--line);white-space:nowrap}.growthTable td{padding:10px 3px;border-bottom:1px solid #edf1ee;vertical-align:middle;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.growthTable tr:last-child td{border-bottom:0}.growthTable tr.saleReadyRow{background:#edf8f0}.growthTable tr.saleLightRow{background:#fff6dc}.growthTable tr.saleLowRow{background:#fdeaea}.growthTable .tagcell{font-weight:800}.growthNote{font-size:11px;color:var(--muted);margin-top:3px}.growthStatus{display:inline-block;border-radius:99px;padding:5px 8px;font-size:11px;font-weight:800}.growthStatus.ok{background:#e3f2e8;color:#17623a}.growthStatus.warn{background:#fff0c7;color:#815a00}.growthStatus.bad{background:#f7dddd;color:#9a2f2f}.growthStatus.neutral{background:#edf0ee;color:#5d6962}.growthTable th:nth-child(1),.growthTable td:nth-child(1){width:18%;text-align:left;padding-left:8px}.growthTable th:nth-child(2),.growthTable td:nth-child(2){width:14%}.growthTable th:nth-child(3),.growthTable td:nth-child(3){width:15%}.growthTable th:nth-child(4),.growthTable td:nth-child(4){width:16%}.growthTable th:nth-child(5),.growthTable td:nth-child(5){width:15%}.growthTable th:nth-child(6),.growthTable td:nth-child(6){width:22%}.growthTable .tagcell{font-size:12px}.growthStatus{max-width:100%;overflow:hidden;text-overflow:ellipsis}.growthTapHint{text-align:center;font-size:11px;color:var(--muted);margin:8px 0 0}.growthDetailGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}.growthDetailMetric{background:#f6f9f7;border-radius:14px;padding:11px}.growthDetailMetric b{display:block;font-size:18px}.growthDetailMetric span{font-size:11px;color:var(--muted)}
+
 
 @media(max-width:420px){.weightInputWrap{grid-template-columns:1fr 105px}}
 
@@ -266,10 +267,10 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
  </div>
  <div class="growthFilters" id="growthFilters"></div>
  <div class="growthTableWrap"><table class="growthTable">
-  <thead><tr><th>Kuzu</th><th>Yaş</th><th>Son kilo</th><th>Kilo alımı</th><th>g/gün</th><th>Yaş grubu ort.</th><th>Durum</th></tr></thead>
+  <thead><tr><th>Küpe</th><th>Yaş</th><th>Son kg</th><th>Artış</th><th>g/gün</th><th>Durum</th></tr></thead>
   <tbody id="growthTableBody"></tbody>
  </table></div>
- <div class="weightLegend" style="margin:10px 2px">Yeşil: satış yaşı gelmiş ve kilosu yaş grubuna uygun. Sarı/kırmızı: satış yaşı gelmiş ancak aynı yaş grubundaki kuzulara göre kilosu düşük. Değerlendirme 5,5+ aylık erkek kuzular için satış durumunu öne çıkarır.</div>
+ <div class="growthTapHint">Bir kuzunun satırına dokun: yaş grubu ortalaması, önceki kilo, normal bant ve tartım geçmişi açılsın.</div><div class="weightLegend" style="margin:8px 2px">Yeşil: satış yaşı uygun. Sarı/kırmızı: yaşı uygun olsa da kilo veya gelişim geride.</div>
 </section>
 
 <section id="chat" class="screen"><h3>ChatGPT ile Yönetim</h3>
@@ -758,6 +759,36 @@ function latestWeightInfo(a){
  let adg=prevWeight&&days>0?Math.round(gain*1000/days):(Number.isFinite(+latest?.adg)&&+latest.adg>0?+latest.adg:null);
  return {latest,prev,weight,prevWeight,days,gain,adg};
 }
+function compactLambAge(a){
+ let m=ageMonths(a?.birth);
+ if(!a?.birth)return '—';
+ let whole=Math.floor(m),days=Math.max(0,Math.round((m-whole)*30.44));
+ return whole+'a'+(days?' '+days+'g':'');
+}
+function showGrowthDetail(id){
+ let a=db.animals.find(x=>x.id===id);if(!a)return;
+ let wi=latestWeightInfo(a),months=ageMonths(a.birth),same=db.animals.filter(x=>x.type==='Kuzu'&&isActiveAnimal(x)&&x.id!==a.id&&Math.floor(ageMonths(x.birth))===Math.floor(months)).map(x=>latestWeightInfo(x).weight).filter(v=>v>0);
+ let groupAvg=same.length?(same.reduce((s,v)=>s+v,0)/same.length):0;
+ let pct=groupAvg&&wi.weight?((wi.weight-groupAvg)/groupAvg)*100:null;
+ let ageDays=lambAgeDaysAt(a,wi.latest?.date||today()),band=expectedAdgBand(ageDays);
+ let hist=db.records.filter(r=>r.kind==='weight'&&r.animalId===id&&r.date).slice().sort((x,y)=>String(y.date).localeCompare(String(x.date))).slice(0,8);
+ let history=hist.length?hist.map(r=>`<div class="listitem row"><div><b>${escHtml(r.date)}</b><div class="muted">${Number.isFinite(+r.adg)&&+r.adg>0?Math.round(+r.adg)+' g/gün':'Tartım kaydı'}</div></div><b>${weightValueFromRecord(r).toFixed(1)} kg</b></div>`).join(''):'<div class="empty">Henüz tartım kaydı yok.</div>';
+ showModal('Kuzu Gelişim · '+(a.tag?'#'+a.tag:'Küpesiz'),`
+  <div class="growthDetailGrid">
+   <div class="growthDetailMetric"><b>${compactLambAge(a)}</b><span>Yaş</span></div>
+   <div class="growthDetailMetric"><b>${wi.weight?wi.weight.toFixed(1)+' kg':'—'}</b><span>Son kilo</span></div>
+   <div class="growthDetailMetric"><b>${wi.prevWeight?(wi.gain>=0?'+':'')+wi.gain.toFixed(1)+' kg':'—'}</b><span>Son dönem artış</span></div>
+   <div class="growthDetailMetric"><b>${Number.isFinite(wi.adg)?wi.adg+' g':'—'}</b><span>Günlük artış</span></div>
+  </div>
+  <div class="card">
+   <div class="listitem row"><span>Aynı yaş grubu ort.</span><b>${groupAvg?groupAvg.toFixed(1)+' kg':'Yeterli veri yok'}</b></div>
+   <div class="listitem row"><span>Ortalamaya göre</span><b>${pct===null?'—':(pct>=0?'+':'')+Math.round(pct)+'%'}</b></div>
+   <div class="listitem row"><span>Normal günlük artış bandı</span><b>${band.min}–${band.max} g/gün</b></div>
+   <div class="listitem row"><span>Satış yaşı</span><b>${a.sex==='Erkek'&&months>=5.5?'Uygun':'Henüz değil'}</b></div>
+  </div>
+  <h3 style="margin:14px 0 6px">Tartım Geçmişi</h3>${history}
+  <button class="primary" onclick="closeModal();setTimeout(()=>openAddForAnimal('weight','${a.id}'),60)">Yeni Tartım Ekle</button>`)
+}
 function renderGrowth(){
  let body=document.getElementById('growthTableBody'),filters=document.getElementById('growthFilters');
  if(!body||!filters)return;
@@ -795,19 +826,17 @@ function renderGrowth(){
  body.innerHTML=shown.length?shown.map(x=>{
   let rowCls=x.state==='saleReady'?'saleReadyRow':x.state==='saleWarn'?'saleLightRow':x.state==='saleLow'?'saleLowRow':'';
   let statusClass=x.state==='saleReady'?'ok':x.state==='saleWarn'?'warn':(x.state==='saleLow'||x.state==='low')?'bad':'neutral';
-  let status=x.state==='saleReady'?'Satış yaşı uygun':x.state==='saleWarn'?'Yaşı uygun · kilo düşük':x.state==='saleLow'?'Yaşı uygun · kilo çok düşük':x.state==='low'?'Yaş grubuna göre düşük':'Gelişim izleniyor';
-  let gain=x.wi.prevWeight&&x.wi.days?`${x.wi.gain>=0?'+':''}${x.wi.gain.toFixed(1)} kg / ${x.wi.days} gün`:'—';
-  let pct=x.weightPct!==null?` · ${x.weightPct>=0?'+':''}${Math.round(x.weightPct)}%`:'';
-  return `<tr class="${rowCls}" onclick="animalCard('${x.a.id}')" style="cursor:pointer">
-   <td class="tagcell">${escHtml(animalName(x.a))}<div class="growthNote">${x.a.sex}</div></td>
-   <td>${escHtml(age(x.a.birth))}</td>
-   <td>${x.wi.weight?x.wi.weight.toFixed(1)+' kg':'—'}</td>
+  let status=x.state==='saleReady'?'Satış':x.state==='saleWarn'?'Takip':x.state==='saleLow'?'Düşük':x.state==='low'?'Düşük':'Normal';
+  let gain=x.wi.prevWeight&&x.wi.days?`${x.wi.gain>=0?'+':''}${x.wi.gain.toFixed(1)}`:'—';
+  return `<tr class="${rowCls}" onclick="showGrowthDetail('${x.a.id}')" style="cursor:pointer">
+   <td class="tagcell">${escHtml(x.a.tag?'#'+x.a.tag:'—')}</td>
+   <td>${compactLambAge(x.a)}</td>
+   <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}</td>
    <td>${gain}</td>
-   <td>${Number.isFinite(x.wi.adg)?x.wi.adg+' g':'—'}</td>
-   <td>${x.groupAvg?x.groupAvg.toFixed(1)+' kg'+pct:'Yeterli veri yok'}</td>
+   <td>${Number.isFinite(x.wi.adg)?x.wi.adg:'—'}</td>
    <td><span class="growthStatus ${statusClass}">${status}</span></td>
   </tr>`;
- }).join(''):'<tr><td colspan="7" class="empty">Bu filtrede kuzu yok.</td></tr>';
+ }).join(''):'<tr><td colspan="6" class="empty">Bu filtrede kuzu yok.</td></tr>';
 }
 function renderAll(){
  let agedChanged=promoteAgedBreederLambs();
