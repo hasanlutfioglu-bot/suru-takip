@@ -642,21 +642,64 @@ function setProBilling(choice){
  if(btn)btn.textContent=selectedProBilling==='yearly'?'Yıllık PRO · '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık PRO · '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL';
 }
 function storePlatform(){
- if(window.SuruBilling?.purchase)return 'android';
+ if('getDigitalGoodsService' in window)return 'android';
  if(window.webkit?.messageHandlers?.suruBilling)return 'ios';
  return 'web';
 }
-function startProPurchase(){
- const product=selectedProBilling==='yearly'?PRO_YEARLY_PRODUCT:PRO_MONTHLY_PRODUCT,platform=storePlatform();
- if(platform==='android'){try{return window.SuruBilling.purchase(product)}catch(e){return toast('Google Play satın alma başlatılamadı')}}
- if(platform==='ios'){try{window.webkit.messageHandlers.suruBilling.postMessage({action:'purchase',productId:product});return}catch(e){return toast('App Store satın alma başlatılamadı')}}
- showModal('PRO Satın Alma','<div class="card"><b>Mağaza bağlantısı hazır bekliyor</b><div class="muted" style="margin-top:6px">Seçimin: '+(selectedProBilling==='yearly'?'Yıllık '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL')+'. Web ödeme sistemi bağlanana kadar burada ücret tahsil edilmeyecek.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
+async function billingBackendReady(){
+ if(!sb||!cloudSession)return false;
+ try{
+  const {data,error}=await sb.functions.invoke('verify-play-subscription',{body:{action:'health'}});
+  return !error&&data?.configured===true;
+ }catch(e){return false}
 }
-function restoreProPurchase(){
+async function verifyPlayPurchase(productId,purchaseToken){
+ if(!sb||!cloudSession)throw new Error('Önce hesabınla giriş yap');
+ const {data,error}=await sb.functions.invoke('verify-play-subscription',{body:{productId,purchaseToken}});
+ if(error||!data?.ok)throw new Error(data?.message||data?.error||'Satın alma doğrulanamadı');
+ await connectCloud();
+ return data;
+}
+async function startProPurchase(){
+ if(!cloudSession)return showModal('PRO Satın Alma','<div class="card"><b>Önce hesabınla giriş yap</b><div class="muted" style="margin-top:6px">PRO üyelik cihazına değil hesabına bağlanır. Böylece Android, iPhone ve bilgisayarda aynı üyeliği kullanırsın.</div></div><button class="primary" onclick="closeModal();go(\'all\')">Giriş Bölümüne Git</button>');
+ const product=selectedProBilling==='yearly'?PRO_YEARLY_PRODUCT:PRO_MONTHLY_PRODUCT,platform=storePlatform();
+ if(platform==='android'){
+  try{
+   const ready=await billingBackendReady();
+   if(!ready)return showModal('Google Play Hazırlığı','<div class="card"><b>Ödeme altyapısı kod olarak bağlı.</b><div class="muted" style="margin-top:6px">Canlı tahsilat için Google Play Console\'da abonelik ürünleri ve sunucu doğrulama hesabı tamamlanmalı. Bu tamamlanmadan senden ücret alınmaz.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
+   const service=await window.getDigitalGoodsService('https://play.google.com/billing');
+   const details=await service.getDetails([product]);
+   if(!details?.length)throw new Error('Bu PRO ürünü Google Play mağazasında bulunamadı');
+   const request=new PaymentRequest([{supportedMethods:'https://play.google.com/billing',data:{sku:product}}],{total:{label:'Sürü Takip PRO',amount:{currency:'TRY',value:'0'}}});
+   const response=await request.show();
+   const token=response?.details?.token||response?.details?.purchaseToken;
+   if(!token){await response.complete('fail');throw new Error('Satın alma kodu alınamadı')}
+   await verifyPlayPurchase(product,token);
+   await response.complete('success');
+   closeModal();renderPlanStatus();toast('PRO üyeliğin aktif edildi');
+   return;
+  }catch(e){return toast('Google Play: '+(e?.message||'satın alma başlatılamadı'))}
+ }
+ if(platform==='ios'){try{window.webkit.messageHandlers.suruBilling.postMessage({action:'purchase',productId:product});return}catch(e){return toast('App Store satın alma başlatılamadı')}}
+ showModal('PRO Satın Alma','<div class="card"><b>Web ödeme sıradaki bağlantı</b><div class="muted" style="margin-top:6px">Seçimin: '+(selectedProBilling==='yearly'?'Yıllık '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL')+'. Android için Google Play akışı hazırlandı. Bilgisayar/web ödeme sağlayıcısını ayrıca bağlayacağız.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
+}
+async function restoreProPurchase(){
  const platform=storePlatform();
- if(platform==='android'&&window.SuruBilling?.restore){try{return window.SuruBilling.restore()}catch(e){}}
+ if(platform==='android'){
+  try{
+   if(!cloudSession)return toast('Önce hesabınla giriş yap');
+   const ready=await billingBackendReady();if(!ready)return toast('Google Play sunucu doğrulaması henüz yapılandırılmadı');
+   const service=await window.getDigitalGoodsService('https://play.google.com/billing');
+   const purchases=await service.listPurchases();
+   const allowed=new Set([PRO_MONTHLY_PRODUCT,PRO_YEARLY_PRODUCT]);
+   const hit=(purchases||[]).find(p=>allowed.has(p.itemId||p.productId||p.sku));
+   if(!hit)return toast('Bu hesapta geri yüklenecek PRO aboneliği bulunamadı');
+   const product=hit.itemId||hit.productId||hit.sku,token=hit.purchaseToken||hit.token;
+   await verifyPlayPurchase(product,token);renderPlanStatus();toast('PRO satın alma geri yüklendi');return;
+  }catch(e){return toast('Geri yükleme: '+(e?.message||'başarısız'))}
+ }
  if(platform==='ios'&&window.webkit?.messageHandlers?.suruBilling){try{window.webkit.messageHandlers.suruBilling.postMessage({action:'restore'});return}catch(e){}}
- toast('Satın alma geri yükleme mağaza sürümünde aktif olacak');
+ toast('Satın alma geri yükleme bu platformda henüz aktif değil');
 }
 function openPlans(){
  const annualMonthly=Math.round(PRO_YEARLY_PRICE/12),save=PRO_MONTHLY_PRICE*12-PRO_YEARLY_PRICE;
