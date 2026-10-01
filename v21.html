@@ -245,7 +245,23 @@ function seed(){
   _meta:{initialized:false}
  };
 }
-let db=readStored(KEY+'_guest',seed()); if(!db.ramCalendar)db.ramCalendar=[]; let herdFilter='Tümü';
+// Local context is a device convenience, never proof of server authorization.
+const DEVICE_CONTEXT_KEY=KEY+'_device_context';
+function readDeviceContext(userId){
+ try{
+  let c=JSON.parse(localStorage.getItem(DEVICE_CONTEXT_KEY)||'null');
+  if(c&&typeof c.userId==='string'&&typeof c.farmId==='string'&&c.key===KEY+'_user_'+c.userId+'_farm_'+c.farmId&&(!userId||c.userId===userId)&&localStorage.getItem(c.key))return c;
+  // Migrate an existing installation only from its stored Supabase session.
+  const auth=JSON.parse(localStorage.getItem('sb-'+new URL(SUPABASE_URL).hostname.split('.')[0]+'-auth-token')||'null');
+  const id=userId||auth?.user?.id;if(!id)return null;
+  const prefix=KEY+'_user_'+id+'_farm_',keys=[];
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith(prefix)&&/^[-A-Za-z0-9]+$/.test(k.slice(prefix.length)))keys.push(k)}
+  if(keys.length!==1)return null;
+  return {userId:id,farmId:keys[0].slice(prefix.length),key:keys[0],role:'',plan:'free'};
+ }catch(e){return null}
+}
+let startupContext=readDeviceContext();
+let db=readStored(startupContext?.key||KEY+'_guest',seed()); if(!db.ramCalendar)db.ramCalendar=[]; let herdFilter='Tümü';
 db.animals.forEach(a=>{if(a.type==='Koyun'&&a.sex==='Dişi'&&!a.breedingStatus)a.breedingStatus='Anaç'});
 function uid(prefix='r'){return prefix+'_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)}
 function ensureRecordIds(){
@@ -334,7 +350,7 @@ function setCloudUI(mode,msg){
  }
 }
 function cloudDataHasContent(x){return !!(x&&typeof x==='object'&&Array.isArray(x.animals)&&(x.animals.length||x.records?.length||x.tasks?.length||x.ramCalendar?.length||x.farmName||Object.values(x.stock||{}).some(v=>+v>0)||x.setupDone||x._meta?.initialized))}
-let activeStorageKey=KEY+'_guest', cloudBase=null, cloudVersion=null, cloudDirty=false, syncBusy=false, syncAgain=false, connectBusy=false, sessionEpoch=0, syncConflict=null, cloudRole='';
+let activeStorageKey=startupContext?.key||KEY+'_guest', cloudBase=null, cloudVersion=null, cloudDirty=false, syncBusy=false, syncAgain=false, connectBusy=false, sessionEpoch=0, syncConflict=null, cloudRole='';
 function cloneState(x){return JSON.parse(JSON.stringify(x))}
 function normalizeState(x){
  if(!x||!Array.isArray(x.animals)||!Array.isArray(x.records))throw new Error('Geçerli sürü kaydı bulunamadı');
@@ -345,7 +361,22 @@ function normalizeState(x){
  return out;
 }
 function readStored(key,fallback){try{const raw=localStorage.getItem(key);if(!raw)return cloneState(fallback);const parsed=JSON.parse(raw);return normalizeState(parsed._localEnvelope===1?parsed.data:parsed)}catch(e){try{localStorage.setItem(key+'_damaged_'+Date.now(),localStorage.getItem(key)||'')}catch(ignore){}setCloudUI('local','Cihaz kaydı okunamadı. Eski kayıt korunuyor; yedekten geri yükleyebilirsin.');return cloneState(fallback)}}
-function persistLocal(){localStorage.setItem(activeStorageKey,JSON.stringify({_localEnvelope:1,data:db,sync:{base:cloudBase,version:cloudVersion,dirty:cloudDirty}}));}
+function rememberDeviceContext(){
+ if(!cloudSession?.user?.id||!cloudFarmId)return;
+ localStorage.setItem(DEVICE_CONTEXT_KEY,JSON.stringify({userId:cloudSession.user.id,farmId:cloudFarmId,key:activeStorageKey,role:cloudRole,plan:currentPlan}));
+}
+function restoreDeviceContext(userId){
+ const c=readDeviceContext(userId);if(!c)return false;
+ if(activeStorageKey!==c.key){activeStorageKey=c.key;db=readStored(c.key,seed())}
+ cloudFarmId=c.farmId;cloudRole=c.role||'';currentPlan=c.plan||'free';
+ let cache={};try{const stored=JSON.parse(localStorage.getItem(c.key)||'{}');cache=stored.sync||JSON.parse(localStorage.getItem(c.key+'_sync')||'{}')}catch(e){}
+ try{cloudBase=cache.base?normalizeState(cache.base):null}catch(e){cloudBase=null}
+ cloudVersion=cache.version||null;cloudDirty=!!cache.dirty;syncConflict=null;return true;
+}
+function useGuestContext(){
+ resetCloudContext();activeStorageKey=KEY+'_guest';db=readStored(activeStorageKey,seed());renderAll();disconnectCloudUI();
+}
+function persistLocal(){localStorage.setItem(activeStorageKey,JSON.stringify({_localEnvelope:1,data:db,sync:{base:cloudBase,version:cloudVersion,dirty:cloudDirty}}));rememberDeviceContext();}
 function archiveRecovery(data,reason){const key=activeStorageKey+'_recovery_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);localStorage.setItem(key,JSON.stringify({format:'suru-takip-backup',version:1,createdAt:new Date().toISOString(),farmId:cloudFarmId,reason,data}));return key;}
 function mergeStates(base,local,remote){
  const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b), conflicts=[];let out=cloneState(remote);
@@ -367,16 +398,39 @@ function mergeStates(base,local,remote){
  return {data:out,conflicts};
 }
 function resetCloudContext(){sessionEpoch++;clearTimeout(cloudSyncTimer);cloudFarmId=null;cloudRole='';currentPlan='free';cloudBase=null;cloudVersion=null;cloudDirty=false;syncConflict=null;if(cloudChannel&&sb)sb.removeChannel(cloudChannel);cloudChannel=null;}
+let authEventVersion=0, explicitSignOut=false;
+function handleCloudSession(event,session){
+ const version=++authEventVersion;
+ // Defer network calls until Supabase releases its callback lock.
+ setTimeout(()=>{
+  if(version!==authEventVersion)return;
+  if(session){
+   const changed=cloudSession?.user?.id!==session.user.id;
+   if(changed){
+    resetCloudContext();
+    // Never display the previous user's herd to a different signed-in account.
+    if(!restoreDeviceContext(session.user.id)){activeStorageKey=KEY+'_guest';db=readStored(activeStorageKey,seed())}
+   }
+   cloudSession=session;renderAll();connectCloud();
+  }else{
+   cloudSession=null;
+   if(explicitSignOut||(event==='SIGNED_OUT'&&navigator.onLine!==false)){
+    localStorage.removeItem(DEVICE_CONTEXT_KEY);useGuestContext();
+   }else{
+    // A missing/expired session cannot erase the offline device view.
+    resetCloudContext();restoreDeviceContext();renderAll();disconnectCloudUI();
+   }
+  }
+ },0);
+}
 async function initCloud(){
- if(!window.supabase||!SUPABASE_PUBLISHABLE_KEY){setCloudUI('local','Bulut bağlantısı yüklenemedi. Yerel kayıtlar korunuyor.');return}
+ if(!window.supabase||!SUPABASE_PUBLISHABLE_KEY){disconnectCloudUI();return}
  try{
  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
- sb.auth.onAuthStateChange((_event,session)=>{const changed=cloudSession?.user?.id!==session?.user?.id;cloudSession=session;
-  // Run API calls after Supabase releases the auth callback lock.
-  setTimeout(()=>{if(changed)resetCloudContext();if(session)connectCloud();else{activeStorageKey=KEY+'_guest';db=readStored(activeStorageKey,seed());renderAll();disconnectCloudUI()}},0);
- });
- const {data,error}=await sb.auth.getSession();if(error)throw error;cloudSession=data.session;if(cloudSession)await connectCloud();else disconnectCloudUI();
- }catch(e){setCloudUI('local','Giriş bağlantısı kurulamadı. Yerel kayıtlar korunuyor: '+e.message)}
+ sb.auth.onAuthStateChange(handleCloudSession);
+ const version=authEventVersion,{data,error}=await sb.auth.getSession();if(error)throw error;
+ if(version===authEventVersion)handleCloudSession('INITIAL_SESSION',data.session);
+ }catch(e){disconnectCloudUI()}
 }
 async function signInGoogle(){
  if(!sb)return toast('Giriş bağlantısı hazır değil; internet bağlantını kontrol et');
@@ -385,18 +439,23 @@ async function signInGoogle(){
 }
 async function signOutCloud(){
  if(cloudDirty)archiveRecovery(db,'Çıkıştan önce eşitlenmemiş kayıtlar');
- if(sb){const {error}=await sb.auth.signOut({scope:'local'});if(error)return toast('Çıkış yapılamadı; kayıtlar cihazda korundu')}
+ explicitSignOut=true;
+ if(sb){const {error}=await sb.auth.signOut({scope:'local'});if(error){explicitSignOut=false;return toast('Çıkış yapılamadı; kayıtlar cihazda korundu')}}
+ localStorage.removeItem(DEVICE_CONTEXT_KEY);authEventVersion++;explicitSignOut=false;
  resetCloudContext();cloudSession=null;activeStorageKey=KEY+'_guest';db=readStored(activeStorageKey,seed());renderAll();disconnectCloudUI();toast('Çıkış yapıldı. Hesabının kayıtları bu cihazda korundu');
 }
-function disconnectCloudUI(){setCloudUI('local','Yerel mod. Hesabınla giriş yapınca o hesaba ait sürü açılır.')}
+function disconnectCloudUI(){setCloudUI('local',activeStorageKey!==KEY+'_guest'?'Cihazdaki sürün açık. İnternet ve geçerli giriş olduğunda bulutla eşitlenir.':'Yerel mod. Hesabınla giriş yapınca o hesaba ait sürü açılır.')}
 async function connectCloud(){
  if(!sb||!cloudSession||connectBusy)return;connectBusy=true;const epoch=sessionEpoch,userId=cloudSession.user.id;
  try{
+ restoreDeviceContext(userId);renderAll();
+ if(navigator.onLine===false){setCloudUI('online','İnternet yok. Cihazdaki sürün açık; yeni kayıtlar bağlantı gelince eşitlenecek.');return}
  setCloudUI('connecting','Hesabının sürüsü bağlanıyor…');
  const {data:members,error:memErr}=await sb.from('farm_members').select('farm_id,role').eq('user_id',userId).order('created_at',{ascending:true}).limit(1);
  if(epoch!==sessionEpoch||cloudSession?.user.id!==userId)return;
  if(memErr||!members?.length)throw new Error(memErr?.message||'Hesaba ait çiftlik bulunamadı');
  const farmId=members[0].farm_id,key=KEY+'_user_'+userId+'_farm_'+farmId;
+ cloudFarmId=farmId;cloudRole=members[0].role;
  if(activeStorageKey!==key){
   cloudFarmId=farmId;cloudRole=members[0].role;activeStorageKey=key;db=readStored(key,seed());
   cloudBase=null;cloudVersion=null;cloudDirty=false;let cache={};try{const stored=JSON.parse(localStorage.getItem(key)||'{}');cache=stored.sync||JSON.parse(localStorage.getItem(key+'_sync')||'{}')}catch(e){}
@@ -404,6 +463,7 @@ async function connectCloud(){
  }
  const {data:sub}=await sb.from('subscriptions').select('plan,status').eq('farm_id',farmId).maybeSingle();if(epoch!==sessionEpoch)return;
  currentPlan=(sub?.status==='active'||sub?.status==='trialing')?(sub?.plan||'free'):'free';
+ persistLocal();
  await uploadCloudState();if(epoch===sessionEpoch)subscribeCloud();
  }catch(e){if(epoch===sessionEpoch)setCloudUI('local','Bağlantı kurulamadı; cihazdaki kayıtlar korunuyor: '+e.message)}finally{connectBusy=false;if(epoch!==sessionEpoch&&cloudSession)setTimeout(connectCloud,0)}
 }
@@ -456,7 +516,7 @@ function subscribeCloud(){
  if(!sb||!cloudFarmId)return;if(cloudChannel)sb.removeChannel(cloudChannel);
  cloudChannel=sb.channel('farm-state-'+cloudFarmId).on('postgres_changes',{event:'*',schema:'public',table:'farm_state',filter:'farm_id=eq.'+cloudFarmId},()=>queueCloudSync()).subscribe();
 }
-window.addEventListener('online',()=>{if(cloudSession){if(cloudFarmId)queueCloudSync();else connectCloud()}else disconnectCloudUI()});
+window.addEventListener('online',()=>{if(cloudSession)connectCloud();else if(sb)sb.auth.getSession().then(({data,error})=>{if(!error)handleCloudSession('INITIAL_SESSION',data.session);else disconnectCloudUI()}).catch(()=>disconnectCloudUI());else disconnectCloudUI()});
 window.addEventListener('offline',()=>setCloudUI(cloudSession?'online':'local','İnternet yok. Kayıtlar cihazda tutulur; bağlantı gelince eşitlenir.'));
 window.addEventListener('focus',()=>{if(cloudSession)queueCloudSync()});
 function downloadBackup(data,suffix='',farmId=cloudFarmId){
@@ -1386,6 +1446,7 @@ async function toggleVoice(){
  try{speechRec.start()}catch(e){voiceStatus.textContent='Mikrofon başlatılamadı. Dosyayı Chrome ile açmayı dene.'}
 }
 if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
+restoreDeviceContext();
 renderAll();
 initCloud();
 let deferredInstallPrompt=null;
