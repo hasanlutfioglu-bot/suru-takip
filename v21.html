@@ -37,7 +37,11 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 :root{--bg:#edf3f0;--green:#175c42;--green2:#287d5d;--line:#d8e5de;--shadow:0 6px 22px #17442d0c}
 header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .hero{background:linear-gradient(120deg,#123c2e,#227653);padding:26px;border-radius:24px;margin-bottom:16px}.hero h2{font-size:38px;letter-spacing:-1px}.hero small{font-size:14px;font-weight:700;letter-spacing:1px}.hero #heroSub{margin-top:10px;font-size:15px;opacity:.9}
-.homeSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.summaryCard{background:white;text-align:left;border:1px solid var(--line);border-radius:20px;padding:20px 16px;color:var(--ink);box-shadow:var(--shadow);min-width:0}.summaryCard span{display:block;font-size:15px;line-height:1.4}.summaryCard b{display:block;font-size:32px;line-height:1.25;margin:12px 0;overflow-wrap:anywhere}.summaryCard small{display:block;font-size:14px;line-height:1.5;color:var(--muted);font-weight:400}.saleSummary{grid-column:1/-1}.homeMenu{width:100%;margin:18px 0;padding:16px;font-size:16px;background:var(--green);color:white}
+.homeSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.summaryCard{background:white;text-align:left;border:1px solid var(--line);border-radius:20px;padding:20px 16px;color:var(--ink);box-shadow:var(--shadow);min-width:0}.summaryCard span{display:block;font-size:15px;line-height:1.4}.summaryCard b{display:block;font-size:32px;line-height:1.25;margin:12px 0;overflow-wrap:anywhere}.summaryCard small{display:block;font-size:14px;line-height:1.5;color:var(--muted);font-weight:400}.saleSummary{grid-column:1/-1}
+.homeUpcoming{margin-top:16px;background:white;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+.homeUpcomingHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}.homeUpcomingHead b{font-size:16px}.homeUpcomingCount{min-width:28px;height:28px;border-radius:99px;background:#e5efe8;color:var(--green);display:grid;place-items:center;font-size:12px;font-weight:800}
+.upcomingItem{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #edf1ee}.upcomingItem:first-of-type{border-top:0}.upcomingIcon{width:38px;height:38px;border-radius:12px;background:#eef4ef;display:grid;place-items:center;font-size:18px;flex:0 0 auto}.upcomingText{flex:1;min-width:0}.upcomingText b{display:block;font-size:14px;line-height:1.35}.upcomingMeta{font-size:12px;color:var(--muted);margin-top:3px}.upcomingLate{color:var(--bad);font-weight:700}.upcomingToday{color:var(--green);font-weight:700}.upcomingMore{width:100%;margin-top:8px;background:#f2f6f3}
+.homeMenu{width:100%;margin:18px 0;padding:16px;font-size:16px;background:var(--green);color:white}
 .screen>h3,.screen>.row>h3{font-size:22px;margin:18px 0}.card{padding:18px;border-radius:20px}.stat span,.muted,.rateHelp,label{font-size:14px;line-height:1.5}.menuGrid{gap:12px;margin-bottom:18px}.menuBtn{font-size:22px;border-radius:18px;padding:20px 16px;box-shadow:var(--shadow)}.menuBtn b{font-size:16px;line-height:1.5}.tabs{gap:8px;padding-bottom:12px}.tab{font-size:14px}.listitem{padding:16px 0}.row{flex-wrap:wrap}.row>div{min-width:0}.recordActions{margin-left:auto}input,select,textarea{font-size:16px;min-height:46px}.small{font-size:14px}.nav{font-size:12px;min-height:54px}.sheet{padding:20px}.sheet h3{font-size:20px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #bc871c;outline-offset:3px}
 @media(max-width:360px){.homeSummary{grid-template-columns:1fr}.hero h2{font-size:32px}.summaryCard b{font-size:28px}}
 </style>
@@ -52,6 +56,14 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
   <button class="summaryCard" onclick="openSub('performance')"><span>Sürünün doğum oranı</span><b id="homeBirthRate">—</b><small id="homeBirthHint">Henüz doğum kaydı yok</small></button>
   <button class="summaryCard" onclick="go('reports')"><span>Kâr / Zarar</span><b id="homeNet">0 TL</b><small>Tüm kayıtlar · gelir − gider</small></button>
   <button class="summaryCard saleSummary" onclick="openSaleCandidates()"><span>Satışa hazır kuzular</span><b id="homeSaleReady">0</b><small>Satılacak işaretli veya 5,5+ aylık erkek kuzular</small></button>
+ </div>
+ <div class="homeUpcoming">
+  <div class="homeUpcomingHead">
+   <div><b>📅 Yaklaşan İşler</b><div class="muted">Hatırlatmalar ve yapılacaklar</div></div>
+   <span class="homeUpcomingCount" id="homeUpcomingCount">0</span>
+  </div>
+  <div id="homeUpcomingList"></div>
+  <button class="small upcomingMore" onclick="openSub('today')">Tüm İşleri Gör</button>
  </div>
  <button class="homeMenu" onclick="go('all')">☰ Tüm Menüler</button>
 </section>
@@ -573,11 +585,31 @@ function markReminderDone(type,id){
  else {let c=(db.ramCalendar||[]).find(x=>x.id===id);if(c){if(type==='flushing')c.flushDone=true;else c.matingDone=true}}
  save();toast('Hatırlatma tamamlandı')
 }
+function renderHomeUpcoming(){
+ let box=document.getElementById('homeUpcomingList'),countEl=document.getElementById('homeUpcomingCount');
+ if(!box||!countEl)return;
+ let auto=reminderItems().filter(x=>x.days<=14).map(x=>({...x,manual:false}));
+ let manual=(db.tasks||[]).map((x,i)=>({type:'manual',text:x.text||'Yapılacak iş',date:'',days:999,manual:true,taskIndex:i}));
+ let all=[...auto,...manual];
+ countEl.textContent=all.length;
+ if(!all.length){
+  box.innerHTML='<div class="muted" style="padding:12px 0">Yaklaşan iş yok. Her şey güncel.</div>';
+  return;
+ }
+ let icon=x=>x.type==='health'?'💉':x.type==='flushing'?'🌾':x.type==='mating'?'🐏':'✓';
+ box.innerHTML=all.slice(0,4).map(x=>{
+  let meta=x.manual?'Manuel yapılacak':(x.date+' · '+reminderLabel(x));
+  let cls=x.manual?'':(x.days<0?'upcomingLate':x.days===0?'upcomingToday':'');
+  let action=x.manual?`doneTask(${x.taskIndex})`:`markReminderDone('${x.type}','${x.recordId||x.calendarId}')`;
+  return `<div class="upcomingItem"><div class="upcomingIcon">${icon(x)}</div><div class="upcomingText"><b>${escHtml(x.text)}</b><div class="upcomingMeta ${cls}">${escHtml(meta)}</div></div><button class="small" onclick="${action}">Yapıldı</button></div>`;
+ }).join('');
+}
 function renderAll(){
  let A=db.animals.filter(a=>!['Satıldı','Öldü','Kesildi'].includes(a.status)), e=A.filter(a=>a.type==='Koyun').length,r=A.filter(a=>a.type==='Koç').length,l=A.filter(a=>a.type==='Kuzu').length,f=A.filter(a=>a.status==='Takipte').length;
  let setupCard=document.getElementById('firstSetupCard');if(setupCard)setupCard.style.display=(db.animals.length===0&&!db.setupDone)?'block':'none';
  heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
  let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span>${x.text}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>`<div class="listitem row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">Yapıldı</button></div>`).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
+ renderHomeUpcoming();
  let fin=calcFinance('all'),net=fin.income-fin.expense;homeNet.textContent=money(net);homeNet.className=net<0?'money minus':'money plus';
  let births=db.records.filter(x=>x.kind==='birth'&&x.motherId&&Number.isFinite(+x.count)&&+x.count>0),mothers=new Set(births.map(x=>x.motherId)),born=births.reduce((n,x)=>n+(+x.count),0);
  homeBirthRate.textContent=mothers.size?new Intl.NumberFormat('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1}).format(born/mothers.size):'—';
