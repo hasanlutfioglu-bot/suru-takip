@@ -94,6 +94,10 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .moneyMeter{height:10px;border-radius:99px;background:#ffffff1a;overflow:hidden;margin-top:12px}.moneyMeter>span{display:block;height:100%;border-radius:99px;background:#8fd0a9}.moneyMeterText{display:flex;justify-content:space-between;gap:8px;font-size:9px;color:#d5e6dc;margin-top:5px}
 .driverViz{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin:10px 0;box-shadow:var(--shadow)}.driverHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.driverHead b{font-size:15px}.driverHead span{font-size:10px;color:var(--muted);text-align:right}.driverRows{margin-top:10px}.driverRow{display:grid;grid-template-columns:88px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #edf1ee}.driverRow:last-child{border-bottom:0}.driverName{font-size:11px;font-weight:800}.driverTrack{height:8px;border-radius:99px;background:#edf1ee;overflow:hidden}.driverFill{display:block;height:100%;border-radius:99px;background:#5f9477}.driverFill.warn{background:#c8a34a}.driverFill.bad{background:#bb6969}.driverVal{text-align:right;font-size:11px;font-weight:800;white-space:nowrap}.driverNote{grid-column:2/4;font-size:9px;color:var(--muted);margin-top:-4px;line-height:1.25}
 .birthMoneyFlow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:5px;margin-top:12px}.birthMoneyNode{background:#f6f9f7;border-radius:14px;padding:10px 6px;text-align:center;min-width:0}.birthMoneyNode b{display:block;font-size:16px}.birthMoneyNode span{display:block;font-size:9px;color:var(--muted);margin-top:2px}.birthMoneyArrow{font-size:14px;color:#94a39a}.birthMoneyFooter{margin-top:10px;padding-top:9px;border-top:1px solid #edf1ee;display:flex;justify-content:space-between;gap:8px;font-size:10px}.birthMoneyFooter b{white-space:nowrap}
+.financeLine{height:150px;border:0;padding:2px 0 0;display:block}.financeLine svg{width:100%;height:128px;display:block}.financeLineLabels{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;margin-top:2px}.financeLineLabels span{text-align:center;font-size:8px;color:var(--muted)}
+.financeKpis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.financeKpi{background:#f6f9f7;border-radius:13px;padding:9px;min-width:0}.financeKpi span{display:block;font-size:9px;color:var(--muted)}.financeKpi b{display:block;font-size:14px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saleReadiness{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.saleStage{border-radius:15px;padding:11px 8px;text-align:center;background:#f6f9f7}.saleStage b{display:block;font-size:21px}.saleStage span{display:block;font-size:9px;color:var(--muted);margin-top:2px}.saleStage.ready{background:#e5f2e9}.saleStage.near{background:#fff3d6}.saleStage.grow{background:#f1f3f2}
+
 @media(max-width:360px){.moneySegments{gap:5px}.moneySegment{padding:8px 6px}.moneySegment b{font-size:13px}.driverRow{grid-template-columns:74px 1fr auto}.birthMoneyNode b{font-size:14px}}
 
 
@@ -275,6 +279,31 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
     <div class="vizBars" id="financeVizBars"></div>
     <div class="vizLegend"><span><i class="inc"></i>Gelir</span><span><i class="exp"></i>Gider</span></div>
    </div>
+   <div class="moneyViz">
+    <div class="moneyVizHead"><div><b>💰 Sürü Değeri ve Satış Potansiyeli</b><div class="muted">Aktif erkek kuzular · güncel kg fiyatı</div></div><span id="herdMoneyPrice" class="pulseBadge">— TL/kg</span></div>
+    <div class="moneyBig" id="herdMoneyCurrent">—</div>
+    <div class="moneySub">Bugün tüm aktif erkek kuzuları mevcut kilolarıyla satsan tahmini toplam değer</div>
+    <div class="moneySegments">
+     <button class="moneySegment" onclick="openSaleCandidates()"><span>SATIŞA HAZIR</span><b id="herdReadyValue">—</b><small id="herdReadyCount">0 kuzu</small></button>
+     <div class="moneySegment"><span>50 KG HEDEF</span><b id="herdMoneyTargetValue">—</b><small id="herdTargetCount">0 kuzu</small></div>
+     <div class="moneySegment"><span>POTANSİYEL FARK</span><b id="herdMoneyGap">—</b><small>Bugün → hedef</small></div>
+    </div>
+    <div class="moneyMeter"><span id="herdMoneyMeter" style="width:0%"></span></div>
+    <div class="moneyMeterText"><span id="herdMoneyProgress">50 kg hedefinin %0'ı</span><span id="herdMoneyTarget">Hedef —</span></div>
+   </div>
+
+   <div class="driverViz">
+    <div class="driverHead"><div><b>🐏 Satış Senaryosu</b><div class="muted">Tek bakışta üç seçenek</div></div><span id="herdSaleScenarioHint">—</span></div>
+    <div class="reportMiniGrid" style="margin-top:10px">
+     <button class="reportActionCard" onclick="go('growth')"><b id="herdSellToday">—</b><span>Bugün hepsi</span></button>
+     <button class="reportActionCard" onclick="openSaleCandidates()"><b id="herdSellReady">—</b><span>Sadece satışa hazır</span></button>
+     <div class="reportActionCard"><b id="herdSellTarget">—</b><span>50 kg hedefinde</span></div>
+    </div>
+   </div>
+   <div class="driverViz">
+    <div class="driverHead"><div><b>Gider Yapısı</b><div class="muted">Seçili dönemde paranın nereye gittiği</div></div><span id="financeExpenseTotal">—</span></div>
+    <div class="driverRows" id="financeExpenseDrivers"></div>
+   </div>
    <div class="reportMiniGrid">
     <button class="reportActionCard" onclick="openFinanceDetail('feed')"><b id="rQuickFeed">0</b><span>Yem gideri</span></button>
     <button class="reportActionCard" onclick="openFinanceDetail('medicine')"><b id="rQuickMedicine">0</b><span>İlaç / Veteriner</span></button>
@@ -302,37 +331,26 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
     <button class="reportActionCard" onclick="openSaleCandidates()"><b id="rSaleCandidatesHerd">0</b><span>Satışa hazır</span></button>
    </div>
 
-   <div class="moneyViz">
-    <div class="moneyVizHead"><div><b>💰 Sürü Değeri ve Satış Potansiyeli</b><div class="muted">Aktif erkek kuzular · güncel kg fiyatı</div></div><span id="herdMoneyPrice" class="pulseBadge">— TL/kg</span></div>
-    <div class="moneyBig" id="herdMoneyCurrent">—</div>
-    <div class="moneySub">Bugün tüm aktif erkek kuzuları mevcut kilolarıyla satsan tahmini toplam değer</div>
-    <div class="moneySegments">
-     <button class="moneySegment" onclick="openSaleCandidates()"><span>SATIŞA HAZIR</span><b id="herdReadyValue">—</b><small id="herdReadyCount">0 kuzu</small></button>
-     <div class="moneySegment"><span>50 KG HEDEF</span><b id="herdMoneyTargetValue">—</b><small id="herdTargetCount">0 kuzu</small></div>
-     <div class="moneySegment"><span>POTANSİYEL FARK</span><b id="herdMoneyGap">—</b><small>Bugün → hedef</small></div>
-    </div>
-    <div class="moneyMeter"><span id="herdMoneyMeter" style="width:0%"></span></div>
-    <div class="moneyMeterText"><span id="herdMoneyProgress">50 kg hedefinin %0'ı</span><span id="herdMoneyTarget">Hedef —</span></div>
-   </div>
+
 
    <div class="driverViz">
-    <div class="driverHead"><div><b>🐏 Satış Senaryosu</b><div class="muted">Tek bakışta üç seçenek</div></div><span id="herdSaleScenarioHint">—</span></div>
-    <div class="reportMiniGrid" style="margin-top:10px">
-     <button class="reportActionCard" onclick="go('growth')"><b id="herdSellToday">—</b><span>Bugün hepsi</span></button>
-     <button class="reportActionCard" onclick="openSaleCandidates()"><b id="herdSellReady">—</b><span>Sadece satışa hazır</span></button>
-     <div class="reportActionCard"><b id="herdSellTarget">—</b><span>50 kg hedefinde</span></div>
+    <div class="driverHead"><div><b>🐏 Satışa Hazırlık</b><div class="muted">Erkek kuzuların mevcut sürü durumu</div></div><span id="herdReadinessHint">—</span></div>
+    <div class="saleReadiness">
+     <button class="saleStage ready" onclick="openSaleCandidates()"><b id="herdReadyStage">0</b><span>Satışa hazır</span></button>
+     <button class="saleStage near" onclick="go('growth')"><b id="herdNearStage">0</b><span>Yaklaşıyor</span></button>
+     <button class="saleStage grow" onclick="go('growth')"><b id="herdGrowStage">0</b><span>Gelişimde</span></button>
     </div>
    </div>
 
    <div class="driverViz">
-    <div class="driverHead"><div><b>⚖️ Gelişim ve Kazanç</b><div class="muted">Gelişim raporu · satış değerini etkileyen durumlar</div></div><span id="herdGrowthAvg">—</span></div>
+    <div class="driverHead"><div><b>⚖️ Kuzu Gelişim Durumu</b><div class="muted">Yaşa göre gelişim ve takip durumu</div></div><span id="herdGrowthAvg">—</span></div>
     <div class="driverRows" id="herdGrowthDrivers"></div>
    </div>
 
    <div class="driverViz">
-    <div class="driverHead"><div><b>🐑 Doğumdan Satışa</b><div class="muted">Son doğum döneminin üretim zinciri</div></div><span id="herdBirthPeriodLabel">—</span></div>
+    <div class="driverHead"><div><b>🐑 Doğum Performansı</b><div class="muted">Son doğum döneminin sürü sonucu</div></div><span id="herdBirthPeriodLabel">—</span></div>
     <div class="birthMoneyFlow" id="herdBirthMoneyFlow"></div>
-    <div class="birthMoneyFooter"><span id="herdBirthYield">Kuzu verimi —</span><b id="herdBirthTargetValue">Hedef değer —</b></div>
+    <div class="birthMoneyFooter"><span id="herdBirthYield">Kuzu verimi —</span><b id="herdBirthActiveMale">Aktif erkek —</b></div>
    </div>
    <div class="reportSectionTitle"><b>Mevcut Sürü</b></div>
    <div class="reportMiniGrid">
@@ -2156,29 +2174,66 @@ function financeSixMonthData(){
  }
  return out;
 }
-function renderFinanceViz(){
- let box=document.getElementById('financeVizBars');if(!box)return;
- let data=financeSixMonthData(),mx=Math.max(1,...data.flatMap(x=>[x.income,x.expense]));
- box.innerHTML=data.map(x=>`<div class="vizGroup"><div class="vizPair"><i class="vizBar" style="height:${Math.max(x.income?5:2,Math.round(x.income/mx*96))}px" title="${escHtml(money(x.income))} gelir"></i><i class="vizBar exp" style="height:${Math.max(x.expense?5:2,Math.round(x.expense/mx*96))}px" title="${escHtml(money(x.expense))} gider"></i></div><span class="vizMonth">${escHtml(x.label)}</span></div>`).join('');
- let inc=data.reduce((s,x)=>s+x.income,0),exp=data.reduce((s,x)=>s+x.expense,0),sum=document.getElementById('financeVizSummary');
- if(sum)sum.textContent='6 ay net '+money(inc-exp);
-}
-function renderHerdViz(){
+function financeOpportunityData(){
  let price=+db.lambPricePerKg||450,males=db.animals.filter(a=>a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a));
  let rows=males.map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
  rows.forEach(x=>{x.ready=isSaleCandidate(x.a);x.near=!x.ready&&(x.months>=5||x.wi.weight>=45)});
  let ready=rows.filter(x=>x.ready),near=rows.filter(x=>x.near),grow=rows.filter(x=>!x.ready&&!x.near);
- let value=arr=>arr.reduce((s,x)=>s+(x.wi.weight||0)*price,0),current=value(rows),target=males.length*50*price,progress=target?Math.min(100,current/target*100):0;
+ let value=arr=>arr.reduce((s,x)=>s+(x.wi.weight||0)*price,0),current=value(rows),target=males.length*50*price;
+ return {price,males,rows,ready,near,grow,value,current,target,readyVal:value(ready),progress:target?Math.min(100,current/target*100):0};
+}
+function renderFinanceOpportunity(){
+ let d=financeOpportunityData(),set=(id,v)=>{let e=document.getElementById(id);if(e)e.textContent=v};
+ set('herdMoneyPrice',d.price.toLocaleString('tr-TR')+' TL/kg');set('herdMoneyCurrent',money(d.current));
+ set('herdReadyValue',money(d.readyVal));set('herdReadyCount',d.ready.length+' kuzu');
+ set('herdMoneyTargetValue',money(d.target));set('herdTargetCount',d.males.length+' erkek kuzu');
+ set('herdMoneyGap',money(Math.max(0,d.target-d.current)));
+ set('herdMoneyProgress','50 kg hedefinin %'+Math.round(d.progress)+"'ı");set('herdMoneyTarget','Hedef '+money(d.target));
+ set('herdSellToday',money(d.current));set('herdSellReady',money(d.readyVal));set('herdSellTarget',money(d.target));
+ set('herdSaleScenarioHint',d.ready.length+' satışa hazır · '+d.near.length+' yaklaşan');
+ let meter=document.getElementById('herdMoneyMeter');if(meter)meter.style.width=d.progress+'%';
+}
+function financeExpenseGroups(){
+ let rows=reportRecords(db.report||'monthly').filter(x=>['expense','stock'].includes(x.kind)),lower=x=>String(x||'').toLocaleLowerCase('tr-TR');
+ let g={Yem:0,'İlaç / Vet.':0,Tarla:0,Diğer:0};
+ rows.forEach(x=>{let t=lower([x.category,x.label,x.stockItem,x.note].filter(Boolean).join(' ')),a=+x.amount||0;
+  if(t.includes('tarla'))g.Tarla+=a;
+  else if(t.includes('veteriner')||t.includes('ilaç')||t.includes('ilac')||t.includes('sağlık')||t.includes('saglik'))g['İlaç / Vet.']+=a;
+  else if(t.includes('yem')||t.includes('arpa')||t.includes('saman')||t.includes('balya')||t.includes('kuzu besi'))g.Yem+=a;
+  else g.Diğer+=a;
+ });
+ return g;
+}
+function renderFinanceViz(){
+ let box=document.getElementById('financeVizBars');if(!box)return;
+ let data=financeSixMonthData(),mx=Math.max(1,...data.flatMap(x=>[x.income,x.expense]));
+ let W=360,H=112,pad=10,step=(W-pad*2)/5,y=v=>H-12-(v/mx)*(H-28);
+ let pts=k=>data.map((x,i)=>(pad+i*step)+','+y(x[k])).join(' ');
+ let dots=(k,cls)=>data.map((x,i)=>`<circle cx="${pad+i*step}" cy="${y(x[k])}" r="3.5" class="${cls}"></circle>`).join('');
+ box.classList.add('financeLine');
+ box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Son 6 ay gelir gider grafiği">
+   <line x1="0" y1="${H-12}" x2="${W}" y2="${H-12}" stroke="#dfe7e2" stroke-width="1"/>
+   <polyline points="${pts('income')}" fill="none" stroke="#3f805f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+   <polyline points="${pts('expense')}" fill="none" stroke="#c58d62" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+   <g fill="#3f805f">${dots('income','')}</g><g fill="#c58d62">${dots('expense','')}</g>
+  </svg><div class="financeLineLabels">${data.map(x=>'<span>'+escHtml(x.label)+'</span>').join('')}</div>`;
+ let inc=data.reduce((s,x)=>s+x.income,0),exp=data.reduce((s,x)=>s+x.expense,0),sum=document.getElementById('financeVizSummary');
+ if(sum)sum.textContent='6 ay net '+money(inc-exp);
+
+ let groups=financeExpenseGroups(),total=Object.values(groups).reduce((s,v)=>s+v,0),ed=document.getElementById('financeExpenseDrivers');
+ let et=document.getElementById('financeExpenseTotal');if(et)et.textContent=money(total);
+ if(ed){
+  let mxg=Math.max(1,...Object.values(groups));
+  ed.innerHTML=Object.entries(groups).sort((a,b)=>b[1]-a[1]).map(([name,val])=>`<div class="driverRow"><span class="driverName">${name}</span><div class="driverTrack"><i class="driverFill" style="width:${val?Math.max(5,val/mxg*100):0}%"></i></div><span class="driverVal">${money(val)}</span><span class="driverNote">${total?Math.round(val/total*100):0}% · seçili dönem</span></div>`).join('');
+ }
+ renderFinanceOpportunity();
+}
+function renderHerdViz(){
  let set=(id,v)=>{let e=document.getElementById(id);if(e)e.textContent=v};
- set('herdMoneyPrice',price.toLocaleString('tr-TR')+' TL/kg');set('herdMoneyCurrent',money(current));
- let readyVal=value(ready),gap=Math.max(0,target-current);
- set('herdReadyValue',money(readyVal));set('herdReadyCount',ready.length+' kuzu');
- set('herdMoneyTargetValue',money(target));set('herdTargetCount',males.length+' erkek kuzu');
- set('herdMoneyGap',money(gap));
- set('herdMoneyProgress','50 kg hedefinin %'+Math.round(progress)+"'ı");set('herdMoneyTarget','Hedef '+money(target));
- set('herdSellToday',money(current));set('herdSellReady',money(readyVal));set('herdSellTarget',money(target));
- set('herdSaleScenarioHint',ready.length+' satışa hazır · '+near.length+' yaklaşan');
- let meter=document.getElementById('herdMoneyMeter');if(meter)meter.style.width=progress+'%';
+ let males=db.animals.filter(a=>a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a)).map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
+ males.forEach(x=>{x.ready=isSaleCandidate(x.a);x.near=!x.ready&&(x.months>=5||x.wi.weight>=45)});
+ let ready=males.filter(x=>x.ready),near=males.filter(x=>x.near),grow=males.filter(x=>!x.ready&&!x.near);
+ set('herdReadyStage',ready.length);set('herdNearStage',near.length);set('herdGrowStage',grow.length);set('herdReadinessHint',males.length+' aktif erkek kuzu');
 
  let gp=currentGrowthPulse(),gd=document.getElementById('herdGrowthDrivers');
  set('herdGrowthAvg',gp.avg?gp.avg+' g/gün':'İkinci tartım gerekli');
@@ -2193,12 +2248,12 @@ function renderHerdViz(){
 
  let periods=allBirthPeriods(),last=periods.at(-1),flow=document.getElementById('herdBirthMoneyFlow');
  if(!last){
-  set('herdBirthPeriodLabel','Henüz dönem yok');set('herdBirthYield','Kuzu verimi —');set('herdBirthTargetValue','Hedef değer —');
-  if(flow)flow.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center">Doğum kaydı oluşunca burada üretim zinciri görünür.</div>';
+  set('herdBirthPeriodLabel','Henüz dönem yok');set('herdBirthYield','Kuzu verimi —');set('herdBirthActiveMale','Aktif erkek —');
+  if(flow)flow.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center">Doğum kaydı oluşunca dönem performansı burada görünür.</div>';
  }else{
-  let start=new Date(last.start+'T00:00:00'),end=new Date(last.end+'T00:00:00'),periodKids=db.animals.filter(a=>a.type==='Kuzu'&&a.birth&&a.birth>=last.start&&a.birth<=last.end),maleKids=periodKids.filter(a=>a.sex==='Erkek'),activeMale=maleKids.filter(isActiveAnimal),periodTarget=activeMale.length*50*price;
+  let start=new Date(last.start+'T00:00:00'),end=new Date(last.end+'T00:00:00'),periodKids=db.animals.filter(a=>a.type==='Kuzu'&&a.birth&&a.birth>=last.start&&a.birth<=last.end),activeMale=periodKids.filter(a=>a.sex==='Erkek'&&isActiveAnimal(a));
   set('herdBirthPeriodLabel',start.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+'–'+end.toLocaleDateString('tr-TR',{day:'numeric',month:'short'}));
-  set('herdBirthYield','Kuzu verimi %'+Math.round(last.prolificacy));set('herdBirthTargetValue','50 kg hedef '+money(periodTarget));
+  set('herdBirthYield','Kuzu verimi %'+Math.round(last.prolificacy));set('herdBirthActiveMale','Aktif erkek '+activeMale.length);
   if(flow)flow.innerHTML=`<div class="birthMoneyNode"><b>${last.mothers.length}</b><span>Doğuran anaç</span></div><span class="birthMoneyArrow">›</span><div class="birthMoneyNode"><b>${last.born}</b><span>Doğan kuzu</span></div><span class="birthMoneyArrow">›</span><div class="birthMoneyNode"><b>${activeMale.length}</b><span>Aktif erkek kuzu</span></div>`;
  }
 }
