@@ -2562,4 +2562,5 @@ window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();def
 window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;document.getElementById('installCard').hidden=true});
 async function installApp(){const prompt=deferredInstallPrompt;if(!prompt)return;deferredInstallPrompt=null;document.getElementById('installCard').hidden=true;try{await prompt.prompt();await prompt.userChoice;}catch(e){toast('Tarayıcı menüsünden Ana ekrana ekle seçeneğini kullan.')}}
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
-</script></body></html>
+</script><!-- deploy-refresh-20261001 -->
+</body></html>
