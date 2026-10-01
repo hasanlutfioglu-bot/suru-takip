@@ -79,6 +79,8 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .reportNav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px}.reportNav button{padding:9px 4px;border-radius:13px;font-size:11px;line-height:1.2;background:#edf2ef}.reportNav button.active{background:var(--green);color:#fff}.reportNav button b{display:block;font-size:17px;margin-bottom:3px}
 .reportPanel{display:none}.reportPanel.active{display:block}.reportSectionTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:15px 2px 8px}.reportSectionTitle b{font-size:16px}.reportMiniGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.reportActionCard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;text-align:left}.reportActionCard b{display:block;font-size:18px}.reportActionCard span{font-size:11px;color:var(--muted)}.reportInsight{background:#f6f9f7;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.reportInsight b{font-size:14px}.reportInsight .muted{font-size:11px;margin-top:3px}
 .reportTools{display:grid;grid-template-columns:1fr 1fr;gap:8px}.reportTools button{width:100%}
+.pulseWrap{background:#fff;border:1px solid var(--line);border-radius:22px;padding:15px;margin:12px 0;box-shadow:var(--shadow)}.pulseHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.pulseHead b{font-size:18px}.pulseBadge{font-size:10px;font-weight:800;background:#e4f2e8;color:#17623a;border-radius:99px;padding:5px 8px}.pulseGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.pulseCard{border:0;background:#f6f9f7;border-radius:16px;padding:12px;text-align:left;min-width:0}.pulseCard.wide{grid-column:1/-1}.pulseCard span{display:block;font-size:10px;color:var(--muted);margin-bottom:3px}.pulseCard b{display:block;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pulseCard small{display:block;font-size:10px;color:var(--muted);margin-top:3px;line-height:1.3}.pulseChart{height:82px;display:flex;align-items:stretch;gap:5px;margin-top:10px;position:relative;padding-top:6px}.pulseChart:after{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:#d9e2dc}.pulseBarCol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:1}.pulseBarTrack{height:58px;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center}.pulseBar{width:72%;min-width:6px;border-radius:5px;background:#7fa893}.pulseBar.neg{background:#c98585}.pulseBarLabel{font-size:9px;color:var(--muted);margin-top:4px}.pulseFoot{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:10px;color:var(--muted)}.pulseDot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;background:#7fa893}.pulseDot.neg{background:#c98585}
+
 @media(max-width:360px){.reportHeroNet b{font-size:24px}.reportKpi b{font-size:18px}.reportNav button{font-size:10px}}
 
 
@@ -209,6 +211,23 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
    <div class="reportActionCard"><b id="rLambedEwes">0</b><span>Doğuran anaç</span></div>
    <div class="reportActionCard"><b id="rDeaths">0</b><span>Kayıp / ölüm</span></div>
   </div>
+  <div class="pulseWrap">
+   <div class="pulseHead">
+    <div><b>📊 İşletme Nabzı</b><div class="muted" style="margin-top:3px">Finans seçili döneme, doğumlar son doğum dönemine göre.</div></div>
+    <span class="pulseBadge">CANLI</span>
+   </div>
+   <div class="pulseGrid">
+    <button class="pulseCard" onclick="switchReportView('finance')"><span>💰 Net sonuç</span><b id="pulseNet">—</b><small id="pulseNetHint">Seçili dönem</small></button>
+    <button class="pulseCard" onclick="switchReportView('herd')"><span>🐑 Son doğum dönemi</span><b id="pulseBirth">—</b><small id="pulseBirthHint">Henüz dönem yok</small></button>
+    <button class="pulseCard" onclick="go('growth')"><span>⚖️ Kuzu gelişimi</span><b id="pulseGrowth">—</b><small id="pulseGrowthHint">Tartım verisi bekleniyor</small></button>
+    <button class="pulseCard" onclick="openSaleCandidates()"><span>🐏 Satış</span><b id="pulseSale">—</b><small id="pulseSaleHint">Hazır / yaklaşan</small></button>
+    <button class="pulseCard wide" onclick="switchReportView('herd')"><span>🩺 Sağlık / kayıp</span><b id="pulseHealth">—</b><small id="pulseHealthHint">Seçili dönem</small></button>
+   </div>
+   <div class="reportSectionTitle" style="margin-top:14px"><b>Son 6 Ay · Net Hareket</b><span class="muted">Gelir − gider</span></div>
+   <div class="pulseChart" id="pulseNetChart"></div>
+   <div class="pulseFoot"><span><i class="pulseDot"></i>Pozitif</span><span><i class="pulseDot neg"></i>Negatif</span></div>
+  </div>
+
   <div class="reportSectionTitle"><b>Doğum Performansı</b><button class="small" onclick="switchReportView('herd')">Detay ›</button></div>
   <div class="reportMiniGrid">
    <div class="reportActionCard"><b id="rProlificacy">0%</b><span>Kuzu verimi</span></div>
@@ -1950,10 +1969,73 @@ function toggleExpenseBreakdown(){
  p.style.display=opening?'block':'none';
  if(t)t.classList.toggle('closed',!opening);
 }
+function allBirthPeriods(){
+ let rows=db.records.filter(r=>r.kind==='birth'&&r.date).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+ if(!rows.length)return [];
+ let periods=[],cur=[];
+ rows.forEach(r=>{
+  if(!cur.length){cur=[r];return}
+  let prev=new Date(cur[cur.length-1].date+'T00:00:00'),now=new Date(r.date+'T00:00:00');
+  if((now-prev)/864e5>60){periods.push(cur);cur=[r]}else cur.push(r);
+ });
+ if(cur.length)periods.push(cur);
+ return periods.map(rows=>{
+  let dates=rows.map(r=>r.date).sort(),mothers=[...new Set(rows.map(r=>r.motherId).filter(Boolean))],born=rows.reduce((s,r)=>s+(+r.count||0),0);
+  return {rows,start:dates[0],end:dates[dates.length-1],mothers,born,prolificacy:mothers.length?born/mothers.length*100:0};
+ });
+}
+function monthNetSeries(count=6){
+ let now=new Date(),out=[];
+ for(let i=count-1;i>=0;i--){
+  let d=new Date(now.getFullYear(),now.getMonth()-i,1),y=d.getFullYear(),m=d.getMonth();
+  let rows=db.records.filter(r=>{if(!r.date)return false;let x=new Date(r.date+'T00:00:00');return x.getFullYear()===y&&x.getMonth()===m});
+  let inc=rows.filter(r=>['income','sale'].includes(r.kind)).reduce((s,r)=>s+(+r.amount||0),0);
+  let exp=rows.filter(r=>['expense','stock'].includes(r.kind)).reduce((s,r)=>s+(+r.amount||0),0);
+  out.push({label:d.toLocaleDateString('tr-TR',{month:'short'}),net:inc-exp});
+ }
+ return out;
+}
+function currentGrowthPulse(){
+ let lambs=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a)),infos=lambs.map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)})),groups={};
+ infos.filter(x=>x.wi.weight>0).forEach(x=>{let g=Math.floor(x.months);(groups[g]||(groups[g]=[])).push(x.wi.weight)});
+ let normal=0,watch=0,control=0,adgs=[];
+ infos.forEach(x=>{
+  let vals=groups[Math.floor(x.months)]||[],avg=vals.length?vals.reduce((s,v)=>s+v,0)/vals.length:0,as=growthAssessment(x.a,x.wi,avg);
+  if(as.level==='control')control++;else if(as.level==='watch')watch++;else normal++;
+  if(Number.isFinite(x.wi.adg)&&x.wi.adg>0)adgs.push(x.wi.adg);
+ });
+ return {count:infos.length,normal,watch,control,avg:adgs.length?Math.round(adgs.reduce((s,v)=>s+v,0)/adgs.length):0};
+}
+function renderBusinessPulse(f){
+ let pNet=document.getElementById('pulseNet'),pNetHint=document.getElementById('pulseNetHint');
+ if(!pNet)return;
+ let net=f.income-f.expense;pNet.textContent=money(net);pNetHint.textContent=reportDateLabel(db.report||'monthly');
+ let periods=allBirthPeriods(),last=periods.at(-1),prev=periods.at(-2),pb=document.getElementById('pulseBirth'),pbh=document.getElementById('pulseBirthHint');
+ if(last){
+  pb.textContent=last.born+' kuzu / '+last.mothers.length+' anaç';
+  let txt=Math.round(last.prolificacy)+'% verim · '+new Date(last.start+'T00:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+'–'+new Date(last.end+'T00:00:00').toLocaleDateString('tr-TR',{day:'numeric',month:'short'});
+  if(prev)txt+=' · önceki '+Math.round(prev.prolificacy)+'%';
+  pbh.textContent=txt;
+ }else{pb.textContent='—';pbh.textContent='Henüz doğum dönemi kaydı yok'}
+ let gp=currentGrowthPulse(),pg=document.getElementById('pulseGrowth'),pgh=document.getElementById('pulseGrowthHint');
+ pg.textContent=gp.avg?gp.avg+' g/gün':'—';
+ pgh.textContent=gp.count?(gp.normal+' normal · '+gp.watch+' takip · '+gp.control+' kontrol'):'Aktif kuzu yok';
+ let active=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a)&&a.sex==='Erkek'),ready=active.filter(isSaleCandidate),near=active.filter(a=>!isSaleCandidate(a)&&(ageMonths(a.birth)>=5||(+a.weight||0)>=45));
+ let ps=document.getElementById('pulseSale'),psh=document.getElementById('pulseSaleHint'),price=+db.lambPricePerKg||450,readyValue=ready.reduce((s,a)=>s+(+a.weight||0)*price,0);
+ ps.textContent=ready.length+' hazır · '+near.length+' yakın';psh.textContent=ready.length?'Tahmini '+money(readyValue):'Hazır satış adayı yok';
+ let ph=document.getElementById('pulseHealth'),phh=document.getElementById('pulseHealthHint'),rows=f.arr,health=rows.filter(r=>r.kind==='health').length,deaths=rows.filter(r=>r.kind==='death').length;
+ ph.textContent=health+' sağlık · '+deaths+' kayıp';phh.textContent=deaths?'Kayıp kaydı var · detaya bak':'Seçili dönemde kayıtlı kayıp yok';
+ let chart=document.getElementById('pulseNetChart'),series=monthNetSeries(6),mx=Math.max(1,...series.map(x=>Math.abs(x.net)));
+ if(chart)chart.innerHTML=series.map(x=>{
+  let h=Math.max(x.net===0?2:6,Math.round(Math.abs(x.net)/mx*27)),neg=x.net<0;
+  return `<div class="pulseBarCol" title="${escHtml(x.label)} · ${escHtml(money(x.net))}"><div class="pulseBarTrack">${neg?`<div style="height:29px"></div><div class="pulseBar neg" style="height:${h}px"></div>`:`<div class="pulseBar" style="height:${h}px"></div><div style="height:${29-h}px"></div>`}</div><div class="pulseBarLabel">${escHtml(x.label)}</div></div>`;
+ }).join('');
+}
 function renderReports(){
  let m=db.report||'monthly';
  
  let f=calcFinance(m), metrics=birthMetrics(m), births=f.arr.filter(x=>x.kind==='birth').reduce((s,x)=>s+(+x.count||0),0);
+ renderBusinessPulse(f);
  let range=m==='birthperiod'?latestBirthPeriodRange():null;
  reportLabel.textContent=reportDateLabel(m);
  let reportTabs=[...document.querySelectorAll('#reports .tab')],yearTab=reportTabs.find(x=>x.dataset.report==='yearly'),detailTab=reportTabs.find(x=>x.textContent.includes('Detaylı Raporlar'));
