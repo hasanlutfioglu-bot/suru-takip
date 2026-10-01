@@ -84,6 +84,12 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .pulseTrack{height:8px;border-radius:99px;background:linear-gradient(90deg,#efdede 0 33%,#f4e8bd 33% 66%,#dcecdf 66% 100%);position:relative;overflow:visible}.pulseMarker{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;transform:translate(-50%,-50%);border:2px solid #fff;box-shadow:0 1px 4px #0003}.pulseMarker.good{background:#2f8a55}.pulseMarker.watch{background:#c5951b}.pulseMarker.bad{background:#b54848}.pulseMarker.na{background:#88928c}
 .pulseStatus{font-size:10px;font-weight:800;border-radius:99px;padding:4px 7px;white-space:nowrap}.pulseStatus.good{background:#e3f2e8;color:#17623a}.pulseStatus.watch{background:#fff0c7;color:#815a00}.pulseStatus.bad{background:#f7dddd;color:#9a2f2f}.pulseStatus.na{background:#edf0ee;color:#5d6962}
 .pulseAttention{margin-top:10px;background:#f6f9f7;border:1px solid var(--line);border-radius:15px;padding:11px 12px}.pulseAttention b{font-size:12px}.pulseAttention .muted{font-size:10px;margin-top:3px}.pulseLegend{display:flex;gap:10px;flex-wrap:wrap;margin-top:9px;font-size:9px;color:var(--muted)}.pulseLegend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}.pulseLegend .g{background:#2f8a55}.pulseLegend .w{background:#c5951b}.pulseLegend .r{background:#b54848}.pulseLegend .n{background:#88928c}
+.reportViz{background:#fff;border:1px solid var(--line);border-radius:20px;padding:14px;margin:10px 0;box-shadow:var(--shadow)}.reportVizHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}.reportVizHead b{font-size:15px}.reportVizHead span{font-size:10px;color:var(--muted);text-align:right}
+.vizBars{height:132px;display:flex;align-items:flex-end;gap:8px;padding:8px 2px 0;border-bottom:1px solid #e0e8e3}.vizGroup{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}.vizPair{height:100px;width:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px}.vizBar{width:36%;min-width:6px;border-radius:6px 6px 2px 2px;background:#4f8f6d}.vizBar.exp{background:#c58d62}.vizBar.birth{background:#6f9f83}.vizBar.sale{background:#b8893d}.vizBar.health{background:#8d9d95}.vizMonth{font-size:9px;color:var(--muted);margin-top:5px;white-space:nowrap}.vizLegend{display:flex;gap:12px;flex-wrap:wrap;font-size:9px;color:var(--muted);margin-top:8px}.vizLegend i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:4px}.vizLegend .inc{background:#4f8f6d}.vizLegend .exp{background:#c58d62}.vizLegend .birth{background:#6f9f83}.vizLegend .sale{background:#b8893d}.vizLegend .health{background:#8d9d95}
+.herdMix{height:18px;border-radius:99px;overflow:hidden;display:flex;background:#edf1ee;margin:12px 0 8px}.herdMix span{height:100%}.herdMix .ewe{background:#4f8f6d}.herdMix .ram{background:#53788f}.herdMix .lamb{background:#c9a44b}.mixLegend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.mixLegend div{background:#f6f9f7;border-radius:12px;padding:9px;text-align:center}.mixLegend b{display:block;font-size:16px}.mixLegend small{font-size:9px;color:var(--muted)}
+.birthTrend{display:flex;align-items:flex-end;gap:8px;height:110px;margin-top:8px;border-bottom:1px solid #e0e8e3}.birthTrendCol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}.birthTrendBar{width:62%;border-radius:6px 6px 2px 2px;background:#6f9f83;min-height:4px}.birthTrendVal{font-size:9px;font-weight:800;margin-bottom:3px}.birthTrendLabel{font-size:8px;color:var(--muted);margin-top:4px;text-align:center}
+.archiveBars{height:118px;display:flex;align-items:flex-end;gap:4px;border-bottom:1px solid #e0e8e3;padding-top:6px}.archiveCol{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}.archiveBar{width:66%;min-height:2px;border-radius:5px 5px 2px 2px;background:#708f7e}.archiveVal{font-size:8px;font-weight:800;margin-bottom:2px}.archiveMonth{font-size:7px;color:var(--muted);margin-top:4px}
+
 @media(max-width:380px){.pulseRow{grid-template-columns:78px 1fr auto;padding:10px 9px;gap:7px}.pulseName,.pulseValue{font-size:11px}.pulseStatus{font-size:9px;padding:4px 6px}}
 
 @media(max-width:360px){.reportHeroNet b{font-size:24px}.reportKpi b{font-size:18px}.reportNav button{font-size:10px}}
@@ -257,6 +263,11 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
  <div id="plusReportDetails">
   <div class="reportPanel" data-report-panel="finance">
    <div class="reportSectionTitle"><b>Finans Detayı</b><button class="small" onclick="openSub('finance')">Kayıtlara Git</button></div>
+   <div class="reportViz">
+    <div class="reportVizHead"><div><b>📈 Finans Akışı</b><div class="muted">Son 6 ay gelir ve gider</div></div><span id="financeVizSummary">—</span></div>
+    <div class="vizBars" id="financeVizBars"></div>
+    <div class="vizLegend"><span><i class="inc"></i>Gelir</span><span><i class="exp"></i>Gider</span></div>
+   </div>
    <div class="reportMiniGrid">
     <button class="reportActionCard" onclick="openFinanceDetail('feed')"><b id="rQuickFeed">0</b><span>Yem gideri</span></button>
     <button class="reportActionCard" onclick="openFinanceDetail('medicine')"><b id="rQuickMedicine">0</b><span>İlaç / Veteriner</span></button>
@@ -284,6 +295,17 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
     <button class="reportActionCard" onclick="openSaleCandidates()"><b id="rSaleCandidatesHerd">0</b><span>Satışa hazır</span></button>
    </div>
 
+   <div class="reportViz">
+    <div class="reportVizHead"><div><b>🐑 Sürü Dağılımı</b><div class="muted">Aktif sürünün yapısı</div></div><span id="herdVizTotal">—</span></div>
+    <div class="herdMix" id="herdMixBar"></div>
+    <div class="mixLegend">
+     <div><b id="herdVizEwes">0</b><small>Koyun</small></div>
+     <div><b id="herdVizRams">0</b><small>Koç</small></div>
+     <div><b id="herdVizLambs">0</b><small>Kuzu</small></div>
+    </div>
+    <div class="reportVizHead" style="margin-top:14px;margin-bottom:4px"><b>Doğum Dönemleri</b><span>Son 4 dönem · kuzu verimi</span></div>
+    <div class="birthTrend" id="birthTrendViz"></div>
+   </div>
    <div class="reportSectionTitle"><b>Mevcut Sürü</b></div>
    <div class="reportMiniGrid">
     <div class="reportActionCard"><b id="rActiveAnimals">0</b><span>Aktif hayvan</span></div>
@@ -331,6 +353,11 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
   </div>
 
   <div class="reportPanel" data-report-panel="archive" id="detailedReportsPanel">
+   <div class="reportViz">
+    <div class="reportVizHead"><div><b>🗂 Yıllık Kayıt Hareketi</b><div class="muted">Ay ay işletme kayıt yoğunluğu</div></div><span id="archiveVizYear">—</span></div>
+    <div class="archiveBars" id="archiveVizBars"></div>
+    <div class="vizLegend"><span><i class="birth"></i>Doğum</span><span><i class="sale"></i>Satış</span><span><i class="health"></i>Sağlık / diğer</span></div>
+   </div>
    <div class="reportSectionTitle"><b>Geçmiş Raporlar</b></div>
    <div class="card">
     <div class="muted">Yıl ve ay seçerek geçmiş döneme in.</div>
@@ -1513,7 +1540,8 @@ function setupDetailedReportControls(){
  db.records.forEach(r=>{let n=parseInt(String(r.date||'').slice(0,4),10);if(n)years.add(n)});
  let selected=y.value||String(current);
  y.innerHTML=[...years].sort((a,b)=>b-a).map(v=>`<option value="${v}" ${String(v)===selected?'selected':''}>${v}</option>`).join('');
- renderProductionPeriods();
+ y.onchange=()=>renderArchiveViz();
+ renderProductionPeriods();renderArchiveViz();
 }
 function applyArchiveReport(){
  
@@ -2033,11 +2061,11 @@ function pulseState(key,state,value,sub,reason,pos){
  if(!marker||!status||!val||!txt)return;
  let label={good:'Düzgün',watch:'Takip',bad:'Sıkıntı',na:'Nötr'}[state]||'Nötr';
  marker.className='pulseMarker '+state;marker.style.left=(pos??(state==='bad'?17:state==='watch'?50:state==='good'?83:50))+'%';
- status.className='pulseStatus '+state;status.textContent=label;val.textContent=value;txt.textContent=sub;pulseReasons[key]=reason;
+ status.className='pulseStatus '+state;status.textContent=label;val.textContent=value;txt.textContent=sub;pulseReasons[String(key).toLowerCase()]=reason;
 }
 function openPulseReason(key){
  let title={finance:'Finans durumu',birth:'Doğum performansı',growth:'Kuzu gelişimi',sale:'Satış hazırlığı',health:'Sağlık / kayıp'}[key]||'İşletme Nabzı';
- let r=pulseReasons[key]||{state:'na',lines:['Bu alan için yeterli veri yok.'],action:''};
+ key=String(key||'').toLowerCase();let r=pulseReasons[key]||{state:'na',lines:['Bu alan için henüz hesaplanmış veri yok.'],action:''};
  let badge={good:'🟢 Düzgün',watch:'🟡 Takip',bad:'🔴 Sıkıntı',na:'⚪ Nötr / veri yetersiz'}[r.state]||'⚪ Nötr';
  showModal(title,`<div class="card"><b>${badge}</b><div class="muted" style="margin-top:7px">${r.lines.map(escHtml).join('<br>')}</div></div>${r.action||''}`);
 }
@@ -2095,11 +2123,55 @@ function renderBusinessPulse(f){
  if(att)att.textContent=parts.length?parts.join(' · '):'Şu an kayıtlara göre acil dikkat isteyen bir durum görünmüyor.';
 }
 
+function financeSixMonthData(){
+ let now=new Date(),out=[];
+ for(let i=5;i>=0;i--){
+  let d=new Date(now.getFullYear(),now.getMonth()-i,1),y=d.getFullYear(),m=d.getMonth();
+  let rows=db.records.filter(r=>{if(!r.date)return false;let x=new Date(r.date+'T00:00:00');return x.getFullYear()===y&&x.getMonth()===m});
+  let income=rows.filter(r=>['income','sale'].includes(r.kind)).reduce((s,r)=>s+(+r.amount||0),0);
+  let expense=rows.filter(r=>['expense','stock'].includes(r.kind)).reduce((s,r)=>s+(+r.amount||0),0);
+  out.push({label:d.toLocaleDateString('tr-TR',{month:'short'}),income,expense});
+ }
+ return out;
+}
+function renderFinanceViz(){
+ let box=document.getElementById('financeVizBars');if(!box)return;
+ let data=financeSixMonthData(),mx=Math.max(1,...data.flatMap(x=>[x.income,x.expense]));
+ box.innerHTML=data.map(x=>`<div class="vizGroup"><div class="vizPair"><i class="vizBar" style="height:${Math.max(x.income?5:2,Math.round(x.income/mx*96))}px" title="${escHtml(money(x.income))} gelir"></i><i class="vizBar exp" style="height:${Math.max(x.expense?5:2,Math.round(x.expense/mx*96))}px" title="${escHtml(money(x.expense))} gider"></i></div><span class="vizMonth">${escHtml(x.label)}</span></div>`).join('');
+ let inc=data.reduce((s,x)=>s+x.income,0),exp=data.reduce((s,x)=>s+x.expense,0),sum=document.getElementById('financeVizSummary');
+ if(sum)sum.textContent='6 ay net '+money(inc-exp);
+}
+function renderHerdViz(){
+ let active=db.animals.filter(isActiveAnimal),ewes=active.filter(a=>a.type==='Koyun').length,rams=active.filter(a=>a.type==='Koç').length,lambs=active.filter(a=>a.type==='Kuzu').length,total=active.length||1;
+ let mix=document.getElementById('herdMixBar');
+ if(mix)mix.innerHTML=`<span class="ewe" style="width:${ewes/total*100}%"></span><span class="ram" style="width:${rams/total*100}%"></span><span class="lamb" style="width:${lambs/total*100}%"></span>`;
+ let set=(id,v)=>{let e=document.getElementById(id);if(e)e.textContent=v};
+ set('herdVizTotal',(active.length||0)+' aktif hayvan');set('herdVizEwes',ewes);set('herdVizRams',rams);set('herdVizLambs',lambs);
+ let periods=allBirthPeriods().slice(-4),trend=document.getElementById('birthTrendViz');
+ if(trend){
+  if(!periods.length){trend.innerHTML='<div class="muted" style="margin:auto">Henüz doğum dönemi yok.</div>';return}
+  let mx=Math.max(100,...periods.map(p=>p.prolificacy));
+  trend.innerHTML=periods.map((p,i)=>{let label=new Date(p.start+'T00:00:00').toLocaleDateString('tr-TR',{month:'short',year:'2-digit'});return `<div class="birthTrendCol"><span class="birthTrendVal">${Math.round(p.prolificacy)}%</span><i class="birthTrendBar" style="height:${Math.max(8,Math.round(p.prolificacy/mx*72))}px"></i><span class="birthTrendLabel">${escHtml(label)}</span></div>`}).join('');
+ }
+}
+function renderArchiveViz(){
+ let box=document.getElementById('archiveVizBars');if(!box)return;
+ let y=+(document.getElementById('archiveYear')?.value||new Date().getFullYear()),months=Array.from({length:12},(_,m)=>({m,birth:0,sale:0,other:0,total:0}));
+ db.records.forEach(r=>{
+  if(!r.date)return;let d=new Date(r.date+'T00:00:00');if(isNaN(d)||d.getFullYear()!==y)return;
+  let x=months[d.getMonth()];x.total++;
+  if(r.kind==='birth')x.birth++;else if(r.kind==='sale')x.sale++;else x.other++;
+ });
+ let mx=Math.max(1,...months.map(x=>x.total)),names=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+ box.innerHTML=months.map(x=>`<div class="archiveCol"><span class="archiveVal">${x.total||''}</span><i class="archiveBar" style="height:${Math.max(x.total?5:2,Math.round(x.total/mx*82))}px" title="Doğum ${x.birth} · Satış ${x.sale} · Diğer ${x.other}"></i><span class="archiveMonth">${names[x.m]}</span></div>`).join('');
+ let yl=document.getElementById('archiveVizYear');if(yl)yl.textContent=String(y);
+}
+function renderReportVisuals(){renderFinanceViz();renderHerdViz();renderArchiveViz();}
 function renderReports(){
  let m=db.report||'monthly';
  
  let f=calcFinance(m), metrics=birthMetrics(m), births=f.arr.filter(x=>x.kind==='birth').reduce((s,x)=>s+(+x.count||0),0);
- renderBusinessPulse(f);
+ renderBusinessPulse(f);renderReportVisuals();
  let range=m==='birthperiod'?latestBirthPeriodRange():null;
  reportLabel.textContent=reportDateLabel(m);
  let reportTabs=[...document.querySelectorAll('#reports .tab')],yearTab=reportTabs.find(x=>x.dataset.report==='yearly'),detailTab=reportTabs.find(x=>x.textContent.includes('Detaylı Raporlar'));
