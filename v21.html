@@ -233,7 +233,10 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
    <div class="reportActionCard"><b id="rLambedEwes">0</b><span>Doğuran anaç</span></div>
    <div class="reportActionCard"><b id="rDeaths">0</b><span>Kayıp / ölüm</span></div>
   </div>
-  <div class="pulseWrap">
+  <div id="proPulseLock" class="card" style="display:none">
+   <div class="row"><div><b>🔒 İşletme Nabzı · PRO</b><div class="muted" style="margin-top:4px">Finans, doğum, gelişim, satış ve sağlık durumunu tek ekranda analiz eder.</div></div><button class="small primary" onclick="openPlans()">PRO</button></div>
+  </div>
+  <div class="pulseWrap" id="proPulseContent">
    <div class="pulseHead">
     <div><b>📊 İşletme Nabzı</b><div class="muted" style="margin-top:3px">Her alan kendi gerçek verisine göre değerlendirilir; renklerin nedeni satıra dokununca görünür.</div></div>
     <span class="pulseBadge">CANLI</span>
@@ -522,9 +525,9 @@ const KEY='suru_takip_v5';
 const SUPABASE_URL='https://nqbfyahiijdkrroojlct.supabase.co';
 let SUPABASE_PUBLISHABLE_KEY='sb_publishable_OnTZGx8h0RwxDV7X6DhXQQ_-jJbxfRN';
 const LIVE_APP_URL='https://hasanlutfioglu-bot.github.io/suru-takip/v21.html';
-let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTimer=null, cloudApplying=false, lastCloudStamp='', currentPlan='free';
+let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTimer=null, cloudApplying=false, lastCloudStamp='', currentPlan='free', subscriptionStatus='free';
 const FREE_ANIMAL_LIMIT=20;
-const FREE_MONTHLY_FINANCE_LIMIT=30;
+const FREE_MONTHLY_FINANCE_LIMIT=10;
 
 function localDateISO(d=new Date()){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
 const today=()=>localDateISO();
@@ -583,7 +586,7 @@ function save(){
 }
 function money(n){return new Intl.NumberFormat('tr-TR',{maximumFractionDigits:0}).format(+n||0)+' TL'}
 function toast(s){let t=document.getElementById('toast');t.textContent=s;t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
-function go(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===id));window.scrollTo(0,0);renderAll()}
+function go(id){if(!isPro()&&(id==='growth'||id==='chat'))return showProRequired(id==='growth'?'Kuzu Gelişim Analizi':'ChatGPT ile Yönetim');document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===id));window.scrollTo(0,0);renderAll()}
 function closeModal(){document.getElementById('modal').classList.remove('show')}
 function showModal(title,body){modalTitle.textContent=title;modalBody.innerHTML=body;modal.classList.add('show')}
 function animalName(a){return (a.tag?'#'+a.tag:'Küpesiz')+' · '+a.type}
@@ -605,8 +608,29 @@ function promoteAgedBreederLambs(){
 }
 function isActiveAnimal(a){return !['Satıldı','Öldü','Kesildi'].includes(a.status)}
 function activeAnimalCount(){return db.animals.filter(isActiveAnimal).length}
-function isPlus(){return currentPlan==='plus'}
-function canAddAnimals(n=1){return isPlus() || (activeAnimalCount()+n)<=FREE_ANIMAL_LIMIT}
+function isPro(){return subscriptionStatus==='trialing'||((subscriptionStatus==='active'||subscriptionStatus==='offline')&&['pro','plus'].includes(currentPlan))}
+function isPlus(){return isPro()}
+function planBadge(){return subscriptionStatus==='trialing'?'PRO DENEME':isPro()?'PRO':'FREE'}
+function openPlans(){
+ showModal('Sürü Takip PRO',`
+  <div class="card" style="background:linear-gradient(145deg,#123e30,#1f694c);color:#fff">
+   <div class="row"><div><b style="font-size:20px">PRO</b><div style="opacity:.82;font-size:11px;margin-top:3px">İşletmeni sadece kaydetme; analiz et.</div></div><span class="tag" style="background:#ffffff22;color:#fff">30 GÜN DENEME</span></div>
+  </div>
+  <div class="card"><b>FREE</b><div class="muted" style="margin-top:6px">20 aktif hayvan · ayda 10 finans kaydı · temel sürü, doğum, sağlık ve tartım kayıtları · bu ay temel özet.</div></div>
+  <div class="card"><b>PRO ile açılanlar</b>
+   <div class="muted" style="margin-top:6px;line-height:1.65">✓ Sınırsız / yüksek sürü kapasitesi<br>✓ Kuzu gelişim analizi<br>✓ İşletme Nabzı ve gelişmiş raporlar<br>✓ Finans grafikleri ve satış potansiyeli<br>✓ Yıllık / özel dönem / arşiv raporları<br>✓ Anaç performans geçmişi<br>✓ CSV / PDF dışa aktarma<br>✓ ChatGPT ile yönetim</div>
+  </div>
+  <button class="primary" onclick="toast('Mağaza abonelik bağlantısı ödeme entegrasyonunda aktif olacak')">PRO'ya Geç</button>
+  <div class="muted" style="margin-top:8px;text-align:center">Yeni hesaplarda hedef: ilk 30 gün PRO, sonra ödeme yapılmazsa FREE.</div>
+ `);
+}
+function showProRequired(feature='Bu özellik'){
+ showModal('PRO özelliği',`
+  <div class="card"><b>🔒 ${escHtml(feature)}</b><div class="muted" style="margin-top:6px">Bu bölüm PRO paketinde kullanılabilir. FREE hesabındaki kayıtların silinmez; PRO'ya geçince aynı veriler gelişmiş analizlerde açılır.</div></div>
+  <button class="primary" onclick="openPlans()">FREE ve PRO'yu Karşılaştır</button>
+ `);
+}
+function canAddAnimals(n=1){return isPro() || (activeAnimalCount()+n)<=FREE_ANIMAL_LIMIT}
 function monthKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
 function monthlyFinanceCount(){
  const mk=monthKey();
@@ -615,29 +639,17 @@ function monthlyFinanceCount(){
   return isFinance && (r.date||'').slice(0,7)===mk;
  }).length;
 }
-function canAddFinance(n=1){return isPlus() || (monthlyFinanceCount()+n)<=FREE_MONTHLY_FINANCE_LIMIT}
+function canAddFinance(n=1){return isPro() || (monthlyFinanceCount()+n)<=FREE_MONTHLY_FINANCE_LIMIT}
 function showFinancePlusRequired(){
- showModal('Sürü Takip Plus',`
-  <div class="card">
-   <b>Ücretsiz paket: ayda 30 gelir-gider kaydı</b>
-   <div class="muted" style="margin-top:6px">Bu ay ${monthlyFinanceCount()} finans kaydı oluşturdun. Yeni kayıt için Plus üyelik gerekir.</div>
-  </div>
-  <div class="card">
-   <b>Plus</b>
-   <div class="muted" style="margin-top:6px">Gelir-gider kayıt sınırı kalkar ve gelişmiş raporlar açılır.</div>
-  </div>
+ showModal('Sürü Takip PRO',`
+  <div class="card"><b>FREE: ayda 10 finans kaydı</b><div class="muted" style="margin-top:6px">Bu ay ${monthlyFinanceCount()}/${FREE_MONTHLY_FINANCE_LIMIT} kayıt kullandın. Yeni finans kaydı için PRO gerekir.</div></div>
+  <button class="primary" onclick="openPlans()">PRO'yu Gör</button>
  `);
 }
 function showPlusRequired(extra=1){
- showModal('Sürü Takip Plus',`
-  <div class="card">
-   <b>Ücretsiz paket: 20 hayvana kadar</b>
-   <div class="muted" style="margin-top:6px">Bu işlemle aktif hayvan sayın ${activeAnimalCount()+extra} olacak. 20 hayvandan fazlası için Plus üyelik gerekir.</div>
-  </div>
-  <div class="card">
-   <b>Plus</b>
-   <div class="muted" style="margin-top:6px">20 hayvan sınırı kalkar. Abonelik ve ödeme bağlantısını sonraki adımda ekleyeceğiz.</div>
-  </div>
+ showModal('Sürü Takip PRO',`
+  <div class="card"><b>FREE: 20 aktif hayvana kadar</b><div class="muted" style="margin-top:6px">Bu işlemle aktif hayvan sayın ${activeAnimalCount()+extra} olacak. 20 hayvandan sonrası PRO paketinde.</div></div>
+  <button class="primary" onclick="openPlans()">PRO'yu Gör</button>
  `);
 }
 function animalOptions(types){return db.animals.filter(a=>isActiveAnimal(a)&&(!types||types.includes(a.type))).map(a=>`<option value="${a.id}">${animalName(a)}</option>`).join('')}
@@ -676,12 +688,12 @@ function normalizeState(x){
 function readStored(key,fallback){try{const raw=localStorage.getItem(key);if(!raw)return cloneState(fallback);const parsed=JSON.parse(raw);return normalizeState(parsed._localEnvelope===1?parsed.data:parsed)}catch(e){try{localStorage.setItem(key+'_damaged_'+Date.now(),localStorage.getItem(key)||'')}catch(ignore){}setCloudUI('local','Cihaz kaydı okunamadı. Eski kayıt korunuyor; yedekten geri yükleyebilirsin.');return cloneState(fallback)}}
 function rememberDeviceContext(){
  if(!cloudSession?.user?.id||!cloudFarmId)return;
- localStorage.setItem(DEVICE_CONTEXT_KEY,JSON.stringify({userId:cloudSession.user.id,farmId:cloudFarmId,key:activeStorageKey,role:cloudRole,plan:currentPlan}));
+ localStorage.setItem(DEVICE_CONTEXT_KEY,JSON.stringify({userId:cloudSession.user.id,farmId:cloudFarmId,key:activeStorageKey,role:cloudRole,plan:currentPlan,subscriptionStatus}));
 }
 function restoreDeviceContext(userId){
  const c=readDeviceContext(userId);if(!c)return false;
  if(activeStorageKey!==c.key){activeStorageKey=c.key;db=readStored(c.key,seed())}
- cloudFarmId=c.farmId;cloudRole=c.role||'';currentPlan=c.plan||'free';
+ cloudFarmId=c.farmId;cloudRole=c.role||'';currentPlan=c.plan||'free';subscriptionStatus=c.subscriptionStatus||(['pro','plus'].includes(currentPlan)?'offline':'free');
  let cache={};try{const stored=JSON.parse(localStorage.getItem(c.key)||'{}');cache=stored.sync||JSON.parse(localStorage.getItem(c.key+'_sync')||'{}')}catch(e){}
  try{cloudBase=cache.base?normalizeState(cache.base):null}catch(e){cloudBase=null}
  cloudVersion=cache.version||null;cloudDirty=!!cache.dirty;syncConflict=null;return true;
@@ -710,7 +722,7 @@ function mergeStates(base,local,remote){
  out.report=local.report||'monthly';out._meta={...remote._meta,...local._meta,updatedAt:new Date().toISOString()};
  return {data:out,conflicts};
 }
-function resetCloudContext(){sessionEpoch++;clearTimeout(cloudSyncTimer);cloudFarmId=null;cloudRole='';currentPlan='free';cloudBase=null;cloudVersion=null;cloudDirty=false;syncConflict=null;if(cloudChannel&&sb)sb.removeChannel(cloudChannel);cloudChannel=null;}
+function resetCloudContext(){sessionEpoch++;clearTimeout(cloudSyncTimer);cloudFarmId=null;cloudRole='';currentPlan='free';subscriptionStatus='free';cloudBase=null;cloudVersion=null;cloudDirty=false;syncConflict=null;if(cloudChannel&&sb)sb.removeChannel(cloudChannel);cloudChannel=null;}
 let authEventVersion=0, explicitSignOut=false;
 function handleCloudSession(event,session){
  const version=++authEventVersion;
@@ -775,7 +787,7 @@ async function connectCloud(){
   cloudBase=cache.base?normalizeState(cache.base):null;cloudVersion=cache.version||null;cloudDirty=!!cache.dirty;syncConflict=null;renderAll();
  }
  const {data:sub}=await sb.from('subscriptions').select('plan,status').eq('farm_id',farmId).maybeSingle();if(epoch!==sessionEpoch)return;
- currentPlan=(sub?.status==='active'||sub?.status==='trialing')?(sub?.plan||'free'):'free';
+ subscriptionStatus=sub?.status||'free';currentPlan=sub?.plan||'free';
  persistLocal();
  await uploadCloudState();if(epoch===sessionEpoch)subscribeCloud();
  }catch(e){if(epoch===sessionEpoch)setCloudUI('local','Bağlantı kurulamadı; cihazdaki kayıtlar korunuyor: '+e.message)}finally{connectBusy=false;if(epoch!==sessionEpoch&&cloudSession)setTimeout(connectCloud,0)}
@@ -1245,9 +1257,10 @@ function openAccount(){
    <div class="card stat"><b>${db.records.length}</b><span>Toplam kayıt</span></div>
   </div>
   <div class="card">
-   <div class="row"><div><b>Üyelik</b><div class="muted">${isPlus()?'20 hayvan sınırı yok':'20 hayvana kadar ücretsiz'}</div></div><span class="tag">${isPlus()?'PLUS':'ÜCRETSİZ'}</span></div>
-   <div class="muted" style="margin-top:8px">${isPlus()?'Plus üyeliğin aktif.':'21. aktif hayvandan itibaren Plus üyelik gerekir.'}</div>
-   <div class="muted" style="margin-top:4px">${isPlus()?'Gelir-gider kaydı sınırsız.':'Bu ay '+monthlyFinanceCount()+'/'+FREE_MONTHLY_FINANCE_LIMIT+' finans kaydı kullanıldı.'}</div>
+   <div class="row"><div><b>Üyelik</b><div class="muted">${isPro()?'Tüm gelişmiş özellikler açık':'Temel kayıt paketi'}</div></div><span class="tag">${planBadge()}</span></div>
+   <div class="muted" style="margin-top:8px">${isPro()?(subscriptionStatus==='trialing'?'PRO deneme süren aktif.':'PRO üyeliğin aktif.'):'FREE · '+active+'/'+FREE_ANIMAL_LIMIT+' aktif hayvan'}</div>
+   <div class="muted" style="margin-top:4px">${isPro()?'Finans kayıtları ve gelişmiş analizler açık.':'Bu ay '+monthlyFinanceCount()+'/'+FREE_MONTHLY_FINANCE_LIMIT+' finans kaydı kullanıldı.'}</div>
+   ${isPro()?'':'<button class="small primary" style="margin-top:10px" onclick="openPlans()">PRO\'yu Gör</button>'}
   </div>
   <button class="primary" onclick="saveAccountFarmName()">İşletme Bilgisini Kaydet</button>
  `);
@@ -1569,12 +1582,13 @@ function setupReportFolds(){
 let reportView='overview';
 function switchReportView(view,btn){
  reportView=view||'overview';
+ if(!isPro()&&['finance','herd','archive'].includes(reportView)){reportView='overview';return showProRequired(view==='finance'?'Gelişmiş Finans Raporları':view==='herd'?'Sürü Performans Raporları':'Rapor Arşivi')}
  document.querySelectorAll('[data-report-panel]').forEach(p=>p.classList.toggle('active',p.dataset.reportPanel===reportView));
  document.querySelectorAll('[data-report-view]').forEach(b=>b.classList.toggle('active',b.dataset.reportView===reportView));
  if(reportView==='archive'){setupDetailedReportControls();renderProductionPeriods()}
  window.scrollTo({top:0,behavior:'smooth'});
 }
-function toggleDetailedReports(){switchReportView('archive')}
+function toggleDetailedReports(){if(!isPro())return showProRequired('Rapor Arşivi');switchReportView('archive')}
 function setupDetailedReportControls(){
  let y=document.getElementById('archiveYear');if(!y)return;
  let current=new Date().getFullYear(),years=new Set([current]);
@@ -1823,7 +1837,7 @@ function previousPeriodRecords(){
  return db.records.filter(r=>{if(!r.date)return false;let d=new Date(r.date+'T00:00:00');return d>=ps&&d<=pe})
 }
 function exportReportCSV(){
- 
+ if(!isPro())return showProRequired('Excel / CSV dışa aktarma');
  let rows=reportRecords(db.report||'monthly');
  let csv=['Tarih,Tür,Başlık,Kategori,Üretim Dönemi,Tutar,Not'];
  rows.forEach(r=>csv.push([r.date||'',r.kind||'',r.label||'',r.category||'',r.productionPeriod||'',r.amount||'',r.note||''].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')));
@@ -2009,12 +2023,12 @@ function birthMetrics(mode){
 }
 function pct(n){return new Intl.NumberFormat('tr-TR',{maximumFractionDigits:1}).format(n||0)+'%'}
 function showReportPlusRequired(){
- showModal('Sürü Takip Plus',`
-  <div class="card"><b>Gelişmiş raporlar Plus'a özel</b>
-  <div class="muted" style="margin-top:6px">Yıllık, doğum dönemi, genel raporlar ve detaylı sürü analizleri Plus üyelikte açılır.</div></div>`);
+ showModal('Sürü Takip PRO',`
+  <div class="card"><b>Gelişmiş raporlar PRO'ya özel</b>
+  <div class="muted" style="margin-top:6px">Yıllık, doğum dönemi, genel raporlar ve detaylı sürü analizleri PRO üyelikte açılır.</div></div>`);
 }
 function setReport(m,el){customReportStart='';customReportEnd='';
- 
+ if(!isPro()&&m!=='monthly')return showProRequired('Gelişmiş rapor dönemleri');
  db.report=m;
  document.querySelectorAll('#reports .tab').forEach(x=>x.classList.remove('active'));
  if(el)el.classList.add('active');
@@ -2035,6 +2049,7 @@ function financeDetailRows(group){
  });
 }
 function openFinanceDetail(group){
+ if(!isPro())return showProRequired('Finans detay analizi');
  let map={feed:'Yem Gideri',medicine:'İlaç / Veteriner Gideri',field:'Tarla Gideri',sale:'Hayvan Satış Geliri'};
  let rows=financeDetailRows(group).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
  let total=rows.reduce((s,x)=>s+(+x.amount||0),0);
@@ -2398,11 +2413,13 @@ function renderReports(){
  if(document.getElementById('stockReportList'))stockReportList.innerHTML=Object.entries(db.stock).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${v}</b></div>`).join('')||'<div class="muted">Stok kaydı yok.</div>';
 
  let pd=document.getElementById('plusReportDetails'), pn=document.getElementById('reportPlanNote');
- if(pd)pd.style.display='block';
- if(pn)pn.innerHTML='';
+ if(pd)pd.style.display=isPro()?'block':'none';
+ if(pn){pn.style.display=isPro()?'none':'block';pn.innerHTML=isPro()?'':'<div class="card"><div class="row"><div><b>PRO raporları</b><div class="muted">Finans, sürü performansı ve arşiv raporları PRO ile açılır.</div></div><button class="small primary" onclick="openPlans()">PRO</button></div></div>'}
+ let pc=document.getElementById('proPulseContent'),pl=document.getElementById('proPulseLock');
+ if(pc)pc.style.display=isPro()?'block':'none';if(pl)pl.style.display=isPro()?'none':'block';
 }
 let currentSub='';
-function openSub(k){currentSub=k;let title={health:'Sağlık',births:'Doğum-Kuzulama',performance:'Anaç Performansı',calendar:'Koç & Takvim',weights:'Tartım',stock:'Stok',finance:'Gelir-Gider',moves:'Sürü Hareketleri',today:'Bugün Yapılacaklar'}[k];subTitle.textContent=title;let body='';
+function openSub(k){if(!isPro()&&k==='performance')return showProRequired('Anaç Performans Geçmişi');currentSub=k;let title={health:'Sağlık',births:'Doğum-Kuzulama',performance:'Anaç Performansı',calendar:'Koç & Takvim',weights:'Tartım',stock:'Stok',finance:'Gelir-Gider',moves:'Sürü Hareketleri',today:'Bugün Yapılacaklar'}[k];subTitle.textContent=title;let body='';
  if(k==='stock')body=Object.entries(db.stock).map(([a,v])=>`<div class="card row"><b>${a}</b><span>${v}</span></div>`).join('');
  else if(k==='finance')body=`<div class="row" style="margin-bottom:10px"><button class="primary" onclick="openAdd('income')">Gelir Ekle</button><button onclick="openAdd('expense')">Gider Ekle</button></div>`+db.records.filter(x=>['income','expense','sale','stock'].includes(x.kind)).slice().reverse().map(recordHtml).join('');
  else if(k==='births')body=`<button class="primary" onclick="openAdd('birth')">Yeni Doğum</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='birth').slice().reverse().map(recordHtml).join('');
