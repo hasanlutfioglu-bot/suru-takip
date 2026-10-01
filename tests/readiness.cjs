@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),make=require('./audit-harness.cjs');
+(async()=>{
+let count=0;const h=make(),{run,fill,document,storage}=h;function equal(a,b){assert.equal(a,b);count++}h.pro();
+run('db=seed();openAdd("harvest")');fill('harvestProduct','Arpa');fill('qty','2');fill('harvestUnit','ton');run('submitHarvest()');equal(run('db.stock.Arpa'),2000);equal(run('stockUnit("Arpa")'),'kg');
+run('openAdd("harvest")');fill('harvestProduct','Arpa');fill('qty','500');fill('harvestUnit','kg');run('submitHarvest()');equal(run('db.stock.Arpa'),2500);
+let id=run('db.records.find(r=>r.unit==="ton").id');run(`editRecord('${id}')`);fill('editQty','1');run(`saveRecordEdit('${id}','harvest')`);equal(run('db.stock.Arpa'),1500);run(`deleteRecord('${id}')`);equal(run('db.stock.Arpa'),500);
+run('openAdd("harvest")');fill('harvestProduct','Arpa');fill('qty','1');fill('harvestUnit','balya');run('submitHarvest()');equal(run('db.stock.Arpa'),500);equal(run('db.records.length'),1);
+run("db=seed();db.stock.Arpa=3;db.records=[{id:'legacy',kind:'harvest',stockItem:'Arpa',qty:3,unit:'ton',date:today()}]");equal(run('stockAdjustment("Arpa",1000,"kg").qty'),1);equal(run('db.stock.Arpa'),3);
+run("db.records.push({id:'mixed',kind:'harvest',stockItem:'Arpa',qty:1,unit:'kg',date:today()})");assert.throws(()=>run('stockAdjustment("Arpa",1,"kg")'),/karışık/);count++;
+run("db=seed();currentPlan='free';subscriptionStatus='canceled';db.records=Array.from({length:10},(_,i)=>({id:'fin'+i,kind:'expense',date:'2025-03-01',amount:1}))");equal(run('canAddFinance(1,"2025-03-02")'),false);equal(run('canAddFinance(1,today())'),true);equal(run('canAddFinance(1,"2025-03-02","fin1")'),true);
+run('openAdd("expense")');fill('date','2025-03-02');fill('amount','10');run('submitSimple("expense")');equal(run('db.records.length'),10);
+h.pro();run("db=seed();db.animals=[{id:'mother',type:'Koyun',sex:'Dişi',birth:'2022-01-01',status:'Aktif'},{id:'kid',type:'Kuzu',sex:'Erkek',birth:'2025-03-01',status:'Aktif',motherId:'mother'}];db.records=[{id:'birth',kind:'birth',date:'2025-03-01',motherId:'mother',count:1,childIds:['kid']},{id:'w',kind:'weight',date:'2025-03-05',animalId:'kid',weight:10}];editRecord('birth')");fill('editDate','2025-03-06');run("saveRecordEdit('birth','birth')");equal(run('db.animals[1].birth'),'2025-03-01');
+run('openAdd("health")');fill('animal','kid');fill('note','');run('submitAnimal("health")');equal(run('db.records.length'),2);fill('note','Aşı');fill('date','2025-03-10');fill('reminderDays','custom');fill('reminderDate','2025-03-01');run('submitAnimal("health")');equal(run('db.records.length'),2);
+run('openAccount()');equal(document.querySelector('[role="dialog"]').getAttribute('aria-modal'),'true');equal(document.querySelector('label[for="accountFarmName"]').textContent,'Çiftlik / İşletme adı');
+// Account deletion is simulated; no real account or database is touched.
+h.c.navigator.onLine=true;run("cloudSession={user:{id:'me'}};cloudFarmId='f';cloudRole='owner'");let calls=0;
+h.c.mockDeleteResult={ok:true};h.c.deleteService={functions:{invoke:async()=>{calls++;return {data:h.c.mockDeleteResult}}},auth:{signOut:async()=>({})}};run('sb=deleteService;openDeleteAccount()');fill('deleteConfirmation','wrong');await run('deleteOwnAccount()');equal(calls,0);
+fill('deleteConfirmation','HESABIMI SIL');h.c.mockDeleteResult={error:'reauth_required'};await run('deleteOwnAccount()');equal(run('accountDeleting'),false);equal(run('cloudSession.user.id'),'me');assert.match(document.getElementById('modalBody').textContent,/yeniden giriş/);count++;
+run('openDeleteAccount()');fill('deleteConfirmation','HESABIMI SIL');h.c.mockDeleteResult={ok:true};const prefix=run("KEY+'_user_me_farm_'");storage.set(prefix+'f','data');storage.set(prefix+'f_recovery_1','data');storage.set(prefix.replace('_me_','_other_')+'f','unrelated');await run('deleteOwnAccount()');equal(storage.has(prefix+'f'),false);equal(storage.has(prefix+'f_recovery_1'),false);equal(storage.get(prefix.replace('_me_','_other_')+'f'),'unrelated');equal(run('cloudSession'),null);
+console.log('readiness PASS:',count,'stock units/legacy data, per-month quota, birth chronology, health validation, dialog labels and simulated account deletion checks');
+})().catch(e=>{console.error(e);process.exit(1)});
