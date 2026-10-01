@@ -751,7 +751,7 @@ function animalCard(id){
  let explain=a.breedingStatus==='Anaç Adayı'?'<div class="muted" style="margin-top:8px">Bu hayvan şu an anaç adayıdır. İlk doğum kaydında otomatik anaç olur; istersen “Anaç Yap” ile şimdi de aktarabilirsin.</div>':'';
  let mother=a.motherId?db.animals.find(x=>x.id===a.motherId):null;
  let bs=(a.type==='Koyun'||a.breedingStatus==='Anaç')?eweBirthSummary(a):null;
- let birthBox=bs?`<div class="card"><b>🐑 Kuzulama Özeti</b><div class="grid" style="margin-top:10px"><div class="stat"><b>${bs.count}</b><span>Kuzulama</span></div><div class="stat"><b>${bs.lambs}</b><span>Toplam kuzu</span></div></div><div class="muted" style="margin-top:8px">Son doğum: ${bs.last}</div><div style="margin-top:8px">${birthHistoryHtml(a)}</div></div>`:'';
+ let birthBox=bs?`<div class="card"><b>🐑 Kuzulama Özeti</b><div class="grid" style="margin-top:10px"><div class="stat"><b>${bs.count}</b><span>Kuzulama</span></div><div class="stat"><b>${bs.lambs}</b><span>Toplam kuzu</span></div><div class="stat"><b>%${bs.birthRate}</b><span>Doğum oranı</span></div></div><div class="muted" style="margin-top:8px">Hesap: kuzu sayısı ÷ 1 anaç × 100 · Son doğum: ${bs.last}</div><div style="margin-top:8px">${birthHistoryHtml(a)}</div></div>`:'';
  showModal(animalName(a),`
   <div class="card">
    <b>${a.type} · ${a.sex}</b>
@@ -838,7 +838,8 @@ function eweBirthSummary(a){
  let births=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id).slice().sort((x,y)=>String(y.date||'').localeCompare(String(x.date||'')));
  let lambs=births.reduce((s,r)=>s+(+r.count||0),0);
  let last=births.find(r=>r.date)?.date||'Yok';
- return {births,count:births.length,lambs,last};
+ let birthRate=lambs*100; // kuzu sayısı ÷ 1 anaç × 100
+ return {births,count:births.length,lambs,last,birthRate};
 }
 function birthHistoryHtml(a){
  let s=eweBirthSummary(a);
@@ -869,7 +870,7 @@ function quickAnimalLookup(){
   const canBirth=isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı');
   const bs=(a.type==='Koyun'||a.breedingStatus==='Anaç')?eweBirthSummary(a):null;
   return `<div class="quickResult">
-   <div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.status}${a.weight?' · '+a.weight+' kg':''}${a.breedingStatus?' · '+a.breedingStatus:''}</div>${bs?`<div class="muted" style="margin-top:4px"><b>${bs.count} kuzulama · ${bs.lambs} kuzu</b> · Son doğum: ${bs.last}</div>`:''}</div>
+   <div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.status}${a.weight?' · '+a.weight+' kg':''}${a.breedingStatus?' · '+a.breedingStatus:''}</div>${bs?`<div class="muted" style="margin-top:4px"><b>${bs.count} kuzulama · ${bs.lambs} kuzu · Doğum oranı %${bs.birthRate}</b> · Son doğum: ${bs.last}</div>`:''}</div>
    <div class="quickActions">
     <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button>
     <button class="small" onclick="openAddForAnimal('health','${a.id}')">💉 Sağlık</button>
