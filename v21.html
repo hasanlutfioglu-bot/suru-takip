@@ -40,6 +40,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .homeSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.summaryCard{background:white;text-align:left;border:1px solid var(--line);border-radius:20px;padding:20px 16px;color:var(--ink);box-shadow:var(--shadow);min-width:0}.summaryCard span{display:block;font-size:15px;line-height:1.4}.summaryCard b{display:block;font-size:32px;line-height:1.25;margin:12px 0;overflow-wrap:anywhere}.summaryCard small{display:block;font-size:14px;line-height:1.5;color:var(--muted);font-weight:400}.saleSummary{grid-column:1/-1}.homeMenu{width:100%;margin:18px 0;padding:16px;font-size:16px;background:var(--green);color:white}
 .screen>h3,.screen>.row>h3{font-size:22px;margin:18px 0}.card{padding:18px;border-radius:20px}.stat span,.muted,.rateHelp,label{font-size:14px;line-height:1.5}.menuGrid{gap:12px;margin-bottom:18px}.menuBtn{font-size:22px;border-radius:18px;padding:20px 16px;box-shadow:var(--shadow)}.menuBtn b{font-size:16px;line-height:1.5}.tabs{gap:8px;padding-bottom:12px}.tab{font-size:14px}.listitem{padding:16px 0}.row{flex-wrap:wrap}.row>div{min-width:0}.recordActions{margin-left:auto}input,select,textarea{font-size:16px;min-height:46px}.small{font-size:14px}.nav{font-size:12px;min-height:54px}.sheet{padding:20px}.sheet h3{font-size:20px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #bc871c;outline-offset:3px}
 @media(max-width:360px){.homeSummary{grid-template-columns:1fr}.hero h2{font-size:32px}.summaryCard b{font-size:28px}}
+.herdName{padding:0;background:transparent;color:var(--ink);font-size:16px;text-align:left}.herdName:hover{text-decoration:underline}.eweBrief{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}.eweBrief b{display:inline-block;margin-left:5px;color:var(--green);font-size:14px}.birthEntry{padding:14px 0;border-top:1px solid var(--line)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
@@ -611,13 +612,25 @@ function openSaleCandidates(){
  `);
 }
 function openHerdFilter(filter){herdFilter=filter;go('herd')}
+function eweBirthHistory(id){
+ const history=db.records.filter(r=>r.kind==='birth'&&r.motherId===id).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+ const born=history.reduce((n,r)=>n+Math.max(0,Number(r.count)||0),0);
+ return {history,born,rate:history.length?(born/history.length).toLocaleString('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1}):'—',last:history[0]?.date||''};
+}
+function eweDateLabel(date){const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(date||'');return m?`${m[3]}.${m[2]}.${m[1]}`:'Kayıt yok'}
+function eweBirthSummary(a){if(a.sex!=='Dişi'||a.type!=='Koyun')return '';const d=eweBirthHistory(a.id);return `<div class="eweBrief"><span>Doğum oranı <b>${d.rate}</b></span><span>Son doğum <b>${eweDateLabel(d.last)}</b></span></div>`}
+function eweBirthCard(a){
+ if(a.sex!=='Dişi'||(a.type!=='Koyun'&&!db.records.some(r=>r.kind==='birth'&&r.motherId===a.id)))return '';
+ const d=eweBirthHistory(a.id);
+ return `<section class="card"><h3 style="margin-top:0">Doğum Geçmişi</h3>${eweBirthSummary(a)}<p class="muted">${d.history.length} doğum · ${d.born} kuzu. Doğum oranı = kayıtlı kuzu sayısı ÷ kayıtlı doğum sayısı. Tüm yıllar dahildir.</p>${d.history.length?d.history.map(r=>{const children=Array.isArray(r.childIds)?r.childIds.map(id=>db.animals.find(k=>k.id===id)).filter(Boolean):db.animals.filter(k=>k.motherId===a.id&&k.birth===r.date);return `<div class="birthEntry"><div class="row"><b>${eweDateLabel(r.date)}</b><span class="tag">${Math.max(0,+r.count||0)} kuzu</span></div>${children.length?`<div class="muted" style="margin-top:8px">${children.map(k=>escHtml((k.tag?'#'+k.tag:'Küpesiz')+' · '+k.sex+' · '+k.status)).join('<br>')}</div>`:'<div class="muted" style="margin-top:8px">Kuzu bağlantısı kayıtlı değil.</div>'}${r.note?`<p class="muted">${escHtml(r.note)}</p>`:''}<button class="small" style="margin-top:8px" onclick="editRecord('${r.id}')">Doğum Kaydını Düzenle</button></div>`}).join(''):'<div class="muted">Henüz doğum kaydı yok.</div>'}</section>`;
+}
 function renderHerd(){
  let filters=['Tümü','Anaçlar','Anaç Adayları','Kuzular','Erkek Kuzular','Dişi Kuzular','Koç','Satılacaklar','Takipte','Pasif'];herdTabs.innerHTML=filters.map(f=>`<button class="tab ${herdFilter===f?'active':''}" onclick="herdFilter='${f}';renderHerd()">${f}</button>`).join('');
  let q=(herdSearch?.value||'').toLowerCase(); let arr=db.animals.filter(a=>{
   let ok=herdFilter==='Tümü'||(herdFilter==='Anaçlar'&&a.type==='Koyun'&&a.breedingStatus!=='Anaç Adayı'&&isActiveAnimal(a))||(herdFilter==='Anaç Adayları'&&a.breedingStatus==='Anaç Adayı'&&isActiveAnimal(a))||(herdFilter==='Kuzular'&&a.type==='Kuzu'&&isActiveAnimal(a))||(herdFilter==='Erkek Kuzular'&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a))||(herdFilter==='Dişi Kuzular'&&a.type==='Kuzu'&&a.sex==='Dişi'&&isActiveAnimal(a))||(herdFilter==='Koç'&&a.type==='Koç'&&isActiveAnimal(a))||(herdFilter==='Satılacaklar'&&isSaleCandidate(a))||(herdFilter==='Takipte'&&a.status==='Takipte')||(herdFilter==='Pasif'&&['Satıldı','Öldü','Kesildi'].includes(a.status));
   return ok&&((a.tag||'').toLowerCase().includes(q)||a.type.toLowerCase().includes(q)||a.status.toLowerCase().includes(q));
  });
- herdList.innerHTML=arr.length?arr.map(a=>`<div class="card"><div class="row"><div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.weight? a.weight+' kg · ':''}${a.status}</div></div><span class="tag">${a.type}</span></div><div style="margin-top:10px"><button class="small" onclick="editTag('${a.id}')">${a.tag?'Küpe Düzenle':'Küpe No Ekle'}</button> <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div></div>`).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>';
+ herdList.innerHTML=arr.length?arr.map(a=>`<div class="card"><div class="row"><div><button class="herdName" onclick="animalCard('${a.id}')">${escHtml(animalName(a))}</button><div class="muted">${escHtml(a.sex)} · ${age(a.birth)} · ${a.weight? a.weight+' kg · ':''}${a.status}</div></div><span class="tag">${a.type}</span></div>${eweBirthSummary(a)}<div style="margin-top:10px"><button class="small" onclick="editTag('${a.id}')">${a.tag?'Küpe Düzenle':'Küpe No Ekle'}</button> <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div></div>`).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>';
 }
 
 function escHtml(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -744,12 +757,12 @@ function saveTag(id){const tagInput=document.getElementById('tagInput');let v=ta
 function openBulkTags(){showModal('Küpe Numaralarını Toplu Düzenle',db.animals.map(a=>`<label>${a.type} · ${a.sex}</label><input data-id="${a.id}" class="bulkTag" value="${escHtml(a.tag||'')}" placeholder="Küpe no">`).join('')+`<button class="primary" onclick="saveBulkTags()">Tümünü Kaydet</button>`)}
 function saveBulkTags(){let vals=[...document.querySelectorAll('.bulkTag')].map(x=>x.value.trim()).filter(Boolean);if(new Set(vals).size!==vals.length)return toast('Aynı küpe numarası iki kez girilmiş');document.querySelectorAll('.bulkTag').forEach(x=>db.animals.find(a=>a.id===x.dataset.id).tag=x.value.trim());save();closeModal();toast('Küpeler kaydedildi')}
 function animalCard(id){
- let a=db.animals.find(x=>x.id===id);
+ let a=db.animals.find(x=>x.id===id);if(!a)return toast('Hayvan bulunamadı');
  let rec=db.records.filter(r=>r.animalId===id||r.motherId===id||(Array.isArray(r.animalIds)&&r.animalIds.includes(id)));
  let breederBtn=(a.sex==='Dişi'&&a.type==='Kuzu'&&isActiveAnimal(a)&&a.breedingStatus!=='Anaç Adayı')?` <button class="small primary" onclick="markBreeder('${id}')">Damızlığa Ayır</button>`:'';
  let promoteBtn=(a.breedingStatus==='Anaç Adayı'&&isActiveAnimal(a))?` <button class="small primary" onclick="promoteBreeder('${id}')">Anaç Yap</button>`:'';
  let explain=a.breedingStatus==='Anaç Adayı'?'<div class="muted" style="margin-top:8px">Bu hayvan şu an anaç adayıdır. İlk doğum kaydında otomatik anaç olur; istersen “Anaç Yap” ile şimdi de aktarabilirsin.</div>':'';
- showModal(animalName(a),`<div class="card"><b>${a.type} · ${a.sex}</b><div class="muted">${age(a.birth)} · Durum: ${a.status}${a.breedingStatus?' · '+a.breedingStatus:''}</div>${explain}</div><button onclick="editTag('${id}')">Küpe Ekle/Düzenle</button> <button onclick="editAnimal('${id}')">Hayvanı Düzenle</button>${breederBtn}${promoteBtn}<h3>Geçmiş</h3>${rec.length?rec.map(recordHtml).join(''):'<div class="muted">Kayıt yok.</div>'}`)
+ showModal(animalName(a),`<div class="card"><b>${a.type} · ${a.sex}</b><div class="muted">${age(a.birth)} · Durum: ${a.status}${a.breedingStatus?' · '+a.breedingStatus:''}</div>${explain}</div><button onclick="editTag('${id}')">Küpe Ekle/Düzenle</button> <button onclick="editAnimal('${id}')">Hayvanı Düzenle</button>${breederBtn}${promoteBtn}${eweBirthCard(a)}<h3>Diğer Kayıtlar</h3>${rec.filter(r=>r.kind!=='birth').length?rec.filter(r=>r.kind!=='birth').map(recordHtml).join(''):'<div class="muted">Kayıt yok.</div>'}`)
 }
 function markBreeder(id){
  let a=db.animals.find(x=>x.id===id);
@@ -838,7 +851,7 @@ function quickAnimalLookup(){
  box.innerHTML=arr.length?arr.map(a=>{
   const canBirth=isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı');
   return `<div class="quickResult">
-   <div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.status}${a.weight?' · '+a.weight+' kg':''}</div></div>
+   <div><button class="herdName" onclick="animalCard('${a.id}')">${escHtml(animalName(a))}</button><div class="muted">${escHtml(a.sex)} · ${age(a.birth)} · ${a.status}${a.weight?' · '+a.weight+' kg':''}</div></div>
    <div class="quickActions">
     <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button>
     <button class="small" onclick="openAddForAnimal('health','${a.id}')">💉 Sağlık</button>
