@@ -72,6 +72,15 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .weighDue{display:inline-block;margin-left:2px;font-size:11px}.growthNearRow{background:#f7faf8}.growthStatus.near{background:#e7eef9;color:#315a8a}
 .growthGroupAlert{display:none;background:#fff7e6;border:1px solid #ead08f;border-radius:16px;padding:12px 13px;margin:0 0 10px}.growthGroupAlert.show{display:block}.growthGroupAlert b{font-size:13px}.growthGroupAlert .muted{font-size:11px;margin-top:3px}
 .growthControlRow{background:#fdeaea}.growthReason{background:#f8faf8;border-radius:14px;padding:11px 12px;margin:8px 0;font-size:12px;line-height:1.5}.growthReason strong{display:block;margin-bottom:2px}
+.reportHead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:15px 0 10px}.reportHead h3{margin:0;font-size:24px}.reportHead .muted{font-size:12px}
+.reportPeriodTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.reportPeriodTabs .tab{justify-content:center;margin:0}
+.reportHero{background:linear-gradient(125deg,#163f31,#246f51);color:#fff;border-radius:22px;padding:17px;margin-bottom:10px}.reportHero .muted{color:#dcebe3}.reportHeroNet{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:10px}.reportHeroNet b{font-size:28px;line-height:1}.reportHeroNet span{font-size:11px;opacity:.88}
+.reportKpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}.reportKpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;min-width:0}.reportKpi b{display:block;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.reportKpi span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.reportNav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px}.reportNav button{padding:9px 4px;border-radius:13px;font-size:11px;line-height:1.2;background:#edf2ef}.reportNav button.active{background:var(--green);color:#fff}.reportNav button b{display:block;font-size:17px;margin-bottom:3px}
+.reportPanel{display:none}.reportPanel.active{display:block}.reportSectionTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:15px 2px 8px}.reportSectionTitle b{font-size:16px}.reportMiniGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.reportActionCard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;text-align:left}.reportActionCard b{display:block;font-size:18px}.reportActionCard span{font-size:11px;color:var(--muted)}.reportInsight{background:#f6f9f7;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.reportInsight b{font-size:14px}.reportInsight .muted{font-size:11px;margin-top:3px}
+.reportTools{display:grid;grid-template-columns:1fr 1fr;gap:8px}.reportTools button{width:100%}
+@media(max-width:360px){.reportHeroNet b{font-size:24px}.reportKpi b{font-size:18px}.reportNav button{font-size:10px}}
+
 
 @media(max-width:360px){.growthMarket{grid-template-columns:96px 1fr 1fr}.growthMoneyBox b{font-size:13px}.growthPriceEdit input{width:50px}}
 
@@ -152,111 +161,157 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
  </div><h3>Son 5 kayıt</h3><div class="card" id="last5"></div>
 </section>
 
-<section id="reports" class="screen"><h3>Raporlar</h3><div class="tabs">
- <button class="tab active" data-report="monthly" onclick="setReport('monthly',this)">Bu Ay</button>
- <button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Bu Yıl</button>
- <button class="tab" onclick="toggleDetailedReports()">Detaylı Raporlar ▾</button>
+<section id="reports" class="screen">
+ <div class="reportHead">
+  <div><h3>Raporlar</h3><div class="muted">İşletmenin durumunu tek bakışta gör.</div></div>
+  <button class="small" onclick="switchReportView('archive')">🗂 Arşiv</button>
  </div>
- <div class="card" id="reportPlanNote"><div class="muted">Özet ekranda gelir, gider, net sonuç, satışa hazır kuzu ve yeni doğan kuzu görünür. Diğer ayrıntılar aşağıdadır.</div></div>
- <div id="detailedReportsPanel" style="display:none">
-  <div class="card">
-   <b>Geçmişe dönük rapor</b>
-   <div class="muted" style="margin-top:4px">Yılı seç; istersen sadece bir aya in.</div>
-   <div class="row" style="gap:8px;margin-top:8px">
-    <select id="archiveYear" style="flex:1;margin:0"></select>
-    <select id="archiveMonth" style="flex:1;margin:0">
-     <option value="">Tüm yıl</option>
-     <option value="0">Ocak</option><option value="1">Şubat</option><option value="2">Mart</option><option value="3">Nisan</option>
-     <option value="4">Mayıs</option><option value="5">Haziran</option><option value="6">Temmuz</option><option value="7">Ağustos</option>
-     <option value="8">Eylül</option><option value="9">Ekim</option><option value="10">Kasım</option><option value="11">Aralık</option>
-    </select>
-   </div>
-   <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
-    <button class="small primary" onclick="applyArchiveReport()">Göster</button>
-    <button class="small" onclick="setReport('birthperiod')">Doğum Dönemi</button>
-    <button class="small" onclick="setReport('all')">Tüm Zamanlar</button>
-   </div>
-  </div>
-  <div class="card">
-   <div class="row"><b>🌾 Tarla / Üretim Dönemleri</b><button class="small" onclick="openAdd('harvest')">Hasat Ekle</button></div>
-   <div id="productionPeriodList" style="margin-top:8px"></div>
-  </div>
-  <div class="card" id="customReportRange">
-   <b>Özel tarih aralığı</b>
-   <div class="row" style="gap:8px;margin-top:8px">
-    <input id="reportStart" type="date" style="flex:1">
-    <input id="reportEnd" type="date" style="flex:1">
-   </div>
-   <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
-    <button class="small" onclick="applyCustomReport()">Uygula</button>
-    <button class="small" onclick="clearCustomReport()">Temizle</button>
-    <button class="small" onclick="exportReportCSV()">Excel/CSV</button>
-    <button class="small" onclick="window.print()">PDF / Yazdır</button>
-   </div>
-  </div>
+
+ <div class="reportPeriodTabs">
+  <button class="tab active" data-report="monthly" onclick="setReport('monthly',this)">Bu Ay</button>
+  <button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Bu Yıl</button>
  </div>
- <div class="card">
+
+ <div class="reportHero">
   <div class="muted" id="reportLabel">Bu ay</div>
-  <div class="grid" style="margin-top:10px">
-   <div class="stat"><b id="rIncome">0</b><span>Gelir</span></div>
-   <div class="stat"><b id="rExpense">0</b><span>Gider</span></div>
-   <div class="stat"><b id="rNet">0</b><span>Net kâr / zarar</span></div>
-   <div class="stat clickcard" onclick="openSaleCandidates()"><b id="rSaleReadyTop">0</b><span>Satışa hazır kuzu · dokun</span></div>
-   <div class="stat"><b id="rBirths">0</b><span>Yeni doğan kuzu</span></div>
+  <div class="reportHeroNet">
+   <div><span>NET SONUÇ</span><b id="rNet">0 TL</b></div>
+   <div style="text-align:right"><span>Önceki döneme göre</span><b id="rPrevNet" style="font-size:16px">—</b></div>
   </div>
  </div>
+
+ <div class="reportKpis">
+  <div class="reportKpi"><b id="rIncome">0</b><span>Gelir</span></div>
+  <div class="reportKpi"><b id="rExpense">0</b><span>Gider</span></div>
+  <div class="reportKpi clickcard" onclick="openSaleCandidates()"><b id="rSaleReadyTop">0</b><span>Satışa hazır kuzu</span></div>
+  <div class="reportKpi"><b id="rBirths">0</b><span>Yeni doğan kuzu</span></div>
+ </div>
+
+ <div class="reportInsight">
+  <b id="rTopExpenseTitle">Dönem özeti hazırlanıyor…</b>
+  <div class="muted" id="rTopExpenseHint">Kayıtlar analiz ediliyor.</div>
+ </div>
+
+ <div class="reportNav">
+  <button class="active" data-report-view="overview" onclick="switchReportView('overview',this)"><b>▦</b>Genel</button>
+  <button data-report-view="finance" onclick="switchReportView('finance',this)"><b>₺</b>Finans</button>
+  <button data-report-view="herd" onclick="switchReportView('herd',this)"><b>🐑</b>Sürü</button>
+  <button data-report-view="archive" onclick="switchReportView('archive',this)"><b>🗂</b>Arşiv</button>
+ </div>
+
+ <div id="reportPlanNote" style="display:none"></div>
+
+ <div class="reportPanel active" data-report-panel="overview">
+  <div class="reportSectionTitle"><b>İşletme Özeti</b></div>
+  <div class="reportMiniGrid">
+   <button class="reportActionCard" onclick="openFinanceDetail('sale')"><b id="rQuickSale">0</b><span>Hayvan satış geliri</span></button>
+   <button class="reportActionCard" onclick="go('growth')"><b id="rSaleCandidates">0</b><span>Kuzu gelişim / satış</span></button>
+   <div class="reportActionCard"><b id="rLambedEwes">0</b><span>Doğuran anaç</span></div>
+   <div class="reportActionCard"><b id="rDeaths">0</b><span>Kayıp / ölüm</span></div>
+  </div>
+  <div class="reportSectionTitle"><b>Doğum Performansı</b><button class="small" onclick="switchReportView('herd')">Detay ›</button></div>
+  <div class="reportMiniGrid">
+   <div class="reportActionCard"><b id="rProlificacy">0%</b><span>Kuzu verimi</span></div>
+   <button class="reportActionCard" onclick="toggleNonLambing()"><b id="rLambingRate">0%</b><span>Anaç sürü doğum oranı</span></button>
+  </div>
+ </div>
+
  <div id="plusReportDetails">
-  <h3>Hızlı Finans Detayı</h3><div class="grid">
-   <div class="card stat clickcard" onclick="openFinanceDetail('feed')"><b id="rQuickFeed">0</b><span>Yem gideri · dokun</span></div>
-   <div class="card stat clickcard" onclick="openFinanceDetail('medicine')"><b id="rQuickMedicine">0</b><span>İlaç / Veteriner · dokun</span></div>
-   <div class="card stat clickcard" onclick="openFinanceDetail('field')"><b id="rQuickField">0</b><span>Tarla gideri · dokun</span></div>
-   <div class="card stat clickcard" onclick="openFinanceDetail('sale')"><b id="rQuickSale">0</b><span>Hayvan satış geliri · dokun</span></div>
-  </div>
-  <h3>Kuzu Detayı</h3><div class="grid">
-   <div class="card stat clickcard" onclick="openHerdFilter('Erkek Kuzular')"><b id="rMaleLambs">0</b><span>Erkek kuzu · dokun</span></div>
-   <div class="card stat clickcard" onclick="openHerdFilter('Dişi Kuzular')"><b id="rFemaleLambs">0</b><span>Dişi kuzu · dokun</span></div>
-   <div class="card stat"><b id="rUnknownLambs">0</b><span>Cinsiyet bilinmiyor</span></div>
-   <div class="card stat clickcard" onclick="openSaleCandidates()" title="Satış adaylarını aç"><b id="rSaleCandidates">0</b><span>Satılacak · dokun</span></div>
-  </div>
-  <h3>Kayıt Özeti</h3><div class="grid">
-   <div class="card stat"><b id="rHealth">0</b><span>Sağlık kaydı</span></div>
-   <div class="card stat"><b id="rWeights">0</b><span>Tartım kaydı</span></div>
-   <div class="card stat"><b id="rSales">0</b><span>Satış kaydı</span></div>
-   <div class="card stat"><b id="rStockMoves">0</b><span>Stok alımı</span></div>
-  </div>
-  <div class="card">
-   <div class="reportFold closed" id="incomeBreakdownToggle" onclick="toggleIncomeBreakdown()"><b>Gelir Dağılımı</b></div>
-   <div id="incomeBreakdownPanel" style="display:none;margin-top:8px"></div>
-  </div>
-  <div class="card">
-   <div class="reportFold closed" id="expenseBreakdownToggle" onclick="toggleExpenseBreakdown()"><b>Gider Dağılımı</b></div>
-   <div id="expenseBreakdownPanel" style="display:none;margin-top:8px"></div>
+  <div class="reportPanel" data-report-panel="finance">
+   <div class="reportSectionTitle"><b>Finans Detayı</b><button class="small" onclick="openSub('finance')">Kayıtlara Git</button></div>
+   <div class="reportMiniGrid">
+    <button class="reportActionCard" onclick="openFinanceDetail('feed')"><b id="rQuickFeed">0</b><span>Yem gideri</span></button>
+    <button class="reportActionCard" onclick="openFinanceDetail('medicine')"><b id="rQuickMedicine">0</b><span>İlaç / Veteriner</span></button>
+    <button class="reportActionCard" onclick="openFinanceDetail('field')"><b id="rQuickField">0</b><span>Tarla gideri</span></button>
+    <button class="reportActionCard" onclick="openFinanceDetail('sale')"><b id="rQuickSaleFinance">0</b><span>Hayvan satış geliri</span></button>
+   </div>
+   <div class="card" style="margin-top:10px">
+    <div class="reportFold closed" id="incomeBreakdownToggle" onclick="toggleIncomeBreakdown()"><b>Gelir Dağılımı</b></div>
+    <div id="incomeBreakdownPanel" style="display:none;margin-top:8px"></div>
+   </div>
+   <div class="card">
+    <div class="reportFold closed" id="expenseBreakdownToggle" onclick="toggleExpenseBreakdown()"><b>Gider Dağılımı</b></div>
+    <div id="expenseBreakdownPanel" style="display:none;margin-top:8px"></div>
+   </div>
+   <div class="reportSectionTitle"><b>Tüm finans kırılımı</b></div>
+   <div class="card" id="financeBreakdown"></div>
   </div>
 
-  <h3>Anaç Performansı</h3><div class="card" id="ewePerformanceList"></div>
-  <h3>Kuzu Gelişimi</h3><div class="card" id="lambPerformanceList"></div>
-  <h3>Sağlık Özeti</h3><div class="card" id="healthReportList"></div>
-  <h3>Satış Özeti</h3><div class="card" id="salesReportList"></div>
-  <h3>Stok Durumu</h3><div class="card" id="stockReportList"></div>
+  <div class="reportPanel" data-report-panel="herd">
+   <div class="reportSectionTitle"><b>Sürü ve Performans</b><button class="small primary" onclick="go('growth')">Kuzu Gelişim</button></div>
+   <div class="reportMiniGrid">
+    <button class="reportActionCard" onclick="openHerdFilter('Erkek Kuzular')"><b id="rMaleLambs">0</b><span>Erkek kuzu</span></button>
+    <button class="reportActionCard" onclick="openHerdFilter('Dişi Kuzular')"><b id="rFemaleLambs">0</b><span>Dişi kuzu</span></button>
+    <div class="reportActionCard"><b id="rUnknownLambs">0</b><span>Cinsiyeti bilinmeyen</span></div>
+    <button class="reportActionCard" onclick="openSaleCandidates()"><b id="rSaleCandidatesHerd">0</b><span>Satışa hazır</span></button>
+   </div>
+
+   <div class="reportSectionTitle"><b>Doğum performansı</b></div>
+   <div class="reportMiniGrid">
+    <div class="reportActionCard"><b id="rLambedEwesHerd">0</b><span>Doğuran anaç</span></div>
+    <div class="reportActionCard"><b id="rProlificacyHerd">0%</b><span>Doğuranların kuzu verimi</span></div>
+    <button class="reportActionCard" onclick="toggleNonLambing()"><b id="rLambingRateHerd">0%</b><span>Anaç sürü doğum oranı</span></button>
+    <button class="reportActionCard" onclick="toggleNonLambing()"><b id="rNonLambingCount">0</b><span>Doğurmayan anaç</span></button>
+   </div>
+   <div class="card rateHelp"><b>Hesap:</b> Kuzu verimi = doğan kuzu ÷ doğuran anaç × 100. Anaç sürü doğum oranı = doğuran farklı anaç ÷ aktif anaç × 100.</div>
+   <div id="nonLambingPanel" class="card" style="display:none"><div class="row"><b>Doğurmayan anaçlar</b><button class="small" onclick="toggleNonLambing()">Kapat</button></div><div class="muted" id="nonLambingHint" style="margin:8px 0"></div><div id="nonLambingList" class="reportList"></div></div>
+
+   <div class="reportSectionTitle"><b>Kayıplar / Ölüm</b></div>
+   <div class="reportMiniGrid">
+    <div class="reportActionCard"><b id="rDeathEwes">0</b><span>Ölen koyun</span></div>
+    <div class="reportActionCard"><b id="rDeathLambs">0</b><span>Ölen kuzu</span></div>
+   </div>
+   <div class="card"><div id="deathReportList"></div></div>
+
+   <details class="card"><summary><b>Anaç performans listesi</b></summary><div id="ewePerformanceList" style="margin-top:10px"></div></details>
+   <details class="card"><summary><b>Sağlık özeti</b></summary><div id="healthReportList" style="margin-top:10px"></div></details>
+   <details class="card"><summary><b>Satış özeti</b></summary><div id="salesReportList" style="margin-top:10px"></div></details>
+   <details class="card"><summary><b>Stok durumu</b></summary><div id="stockReportList" style="margin-top:10px"></div></details>
+
+   <div style="display:none">
+    <b id="rHealth">0</b><b id="rWeights">0</b><b id="rSales">0</b><b id="rStockMoves">0</b>
+    <div id="lambPerformanceList"></div>
+   </div>
+  </div>
+
+  <div class="reportPanel" data-report-panel="archive" id="detailedReportsPanel">
+   <div class="reportSectionTitle"><b>Geçmiş Raporlar</b></div>
+   <div class="card">
+    <div class="muted">Yıl ve ay seçerek geçmiş döneme in.</div>
+    <div class="row" style="gap:8px;margin-top:8px">
+     <select id="archiveYear" style="flex:1;margin:0"></select>
+     <select id="archiveMonth" style="flex:1;margin:0">
+      <option value="">Tüm yıl</option>
+      <option value="0">Ocak</option><option value="1">Şubat</option><option value="2">Mart</option><option value="3">Nisan</option>
+      <option value="4">Mayıs</option><option value="5">Haziran</option><option value="6">Temmuz</option><option value="7">Ağustos</option>
+      <option value="8">Eylül</option><option value="9">Ekim</option><option value="10">Kasım</option><option value="11">Aralık</option>
+     </select>
+    </div>
+    <div class="reportTools" style="margin-top:8px">
+     <button class="small primary" onclick="applyArchiveReport()">Dönemi Göster</button>
+     <button class="small" onclick="setReport('all')">Tüm Zamanlar</button>
+    </div>
+    <button class="small" style="width:100%;margin-top:8px" onclick="setReport('birthperiod')">Doğum Dönemini Göster</button>
+   </div>
+
+   <div class="reportSectionTitle"><b>Özel Tarih Aralığı</b></div>
+   <div class="card" id="customReportRange">
+    <div class="row" style="gap:8px">
+     <input id="reportStart" type="date" style="flex:1">
+     <input id="reportEnd" type="date" style="flex:1">
+    </div>
+    <div class="reportTools" style="margin-top:8px">
+     <button class="small primary" onclick="applyCustomReport()">Uygula</button>
+     <button class="small" onclick="clearCustomReport()">Temizle</button>
+     <button class="small" onclick="exportReportCSV()">Excel / CSV</button>
+     <button class="small" onclick="window.print()">PDF / Yazdır</button>
+    </div>
+   </div>
+
+   <div class="reportSectionTitle"><b>🌾 Üretim Dönemleri</b><button class="small" onclick="openAdd('harvest')">Hasat Ekle</button></div>
+   <div class="card"><div id="productionPeriodList"></div></div>
+  </div>
  </div>
- <h3>Doğum performansı</h3>
- <div class="grid">
-  <div class="card stat"><b id="rLambedEwes">0</b><span>Doğuran anaç</span></div>
-  <div class="card stat"><b id="rProlificacy">0%</b><span>Doğuranların kuzu verimi</span></div>
-  <div class="card stat clickcard" onclick="toggleNonLambing()"><b id="rLambingRate">0%</b><span>Anaç sürü doğum oranı · dokun</span></div>
-  <div class="card stat clickcard" onclick="toggleNonLambing()"><b id="rNonLambingCount">0</b><span>Doğurmayan anaç · dokun</span></div>
- </div>
- <div class="card rateHelp"><b>Hesap:</b> Doğuranların kuzu verimi = doğan kuzu ÷ doğuran anaç × 100. Anaç sürü doğum oranı = doğuran farklı anaç ÷ aktif anaç × 100.</div>
- <div id="nonLambingPanel" class="card" style="display:none"><div class="row"><b>Doğurmayan anaçlar</b><button class="small" onclick="toggleNonLambing()">Kapat</button></div><div class="muted" id="nonLambingHint" style="margin:8px 0"></div><div id="nonLambingList" class="reportList"></div></div>
- <h3>Kayıplar / Ölüm</h3><div class="card">
- <div class="grid">
-  <div class="stat"><b id="rDeaths">0</b><span>Ölen hayvan</span></div>
-  <div class="stat"><b id="rDeathEwes">0</b><span>Ölen koyun</span></div>
-  <div class="stat"><b id="rDeathLambs">0</b><span>Ölen kuzu</span></div>
- </div>
- <div id="deathReportList" style="margin-top:10px"></div>
-</div>
-<h3>Gelir / gider kırılımı</h3><div class="card" id="financeBreakdown"></div>
 </section>
 
 <section id="growth" class="screen">
@@ -1386,12 +1441,15 @@ function setupReportFolds(){
   h.onclick=()=>{const closed=target.style.display==='none';target.style.display=closed?'':'none';h.classList.toggle('closed',!closed)};
  });
 }
-function toggleDetailedReports(){
- 
- let p=document.getElementById('detailedReportsPanel');if(!p)return;
- p.style.display=p.style.display==='none'?'block':'none';
- if(p.style.display==='block'){setupDetailedReportControls();renderProductionPeriods()}
+let reportView='overview';
+function switchReportView(view,btn){
+ reportView=view||'overview';
+ document.querySelectorAll('[data-report-panel]').forEach(p=>p.classList.toggle('active',p.dataset.reportPanel===reportView));
+ document.querySelectorAll('[data-report-view]').forEach(b=>b.classList.toggle('active',b.dataset.reportView===reportView));
+ if(reportView==='archive'){setupDetailedReportControls();renderProductionPeriods()}
+ window.scrollTo({top:0,behavior:'smooth'});
 }
+function toggleDetailedReports(){switchReportView('archive')}
 function setupDetailedReportControls(){
  let y=document.getElementById('archiveYear');if(!y)return;
  let current=new Date().getFullYear(),years=new Set([current]);
@@ -1886,6 +1944,9 @@ function renderReports(){
  rIncome.textContent=money(f.income);rExpense.textContent=money(f.expense);rNet.textContent=money(f.income-f.expense);rBirths.textContent=births;
  if(document.getElementById('rSaleReadyTop'))rSaleReadyTop.textContent=db.animals.filter(a=>isActiveAnimal(a)&&isSaleCandidate(a)).length;
  rLambedEwes.textContent=metrics.lambedIds.length;rProlificacy.textContent=pct(metrics.prolificacy);rLambingRate.textContent=pct(metrics.lambingRate);rNonLambingCount.textContent=metrics.nonLambing.length;
+ if(document.getElementById('rLambedEwesHerd'))rLambedEwesHerd.textContent=metrics.lambedIds.length;
+ if(document.getElementById('rProlificacyHerd'))rProlificacyHerd.textContent=pct(metrics.prolificacy);
+ if(document.getElementById('rLambingRateHerd'))rLambingRateHerd.textContent=pct(metrics.lambingRate);
  nonLambingHint.textContent=`${metrics.ewes.length} aktif anaçtan ${metrics.lambedIds.length} tanesi bu seçili dönemde doğurdu; ${metrics.nonLambing.length} tanesinin doğum kaydı yok.`;
  nonLambingList.innerHTML=metrics.nonLambing.length?metrics.nonLambing.map(a=>{let last=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id&&r.date).map(r=>r.date).sort().pop()||'Hiç doğum kaydı yok';return `<div class="listitem row"><div><b>${animalName(a)}</b><div class="muted">Bu dönemde doğurmadı · son doğum: ${last}</div></div><button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div>`}).join(''):'<div class="muted">Bu dönemde doğurmayan aktif anaç yok.</div>';
  let cats={};f.arr.filter(x=>x.amount).forEach(x=>cats[x.category||x.label]=(cats[x.category||x.label]||0)+(+x.amount||0));
@@ -1914,6 +1975,7 @@ function renderReports(){
  if(document.getElementById('rFemaleLambs'))rFemaleLambs.textContent=lambsActive.filter(a=>a.sex==='Dişi').length;
  if(document.getElementById('rUnknownLambs'))rUnknownLambs.textContent=lambsActive.filter(a=>!a.sex||a.sex==='Bilinmiyor').length;
  if(document.getElementById('rSaleCandidates'))rSaleCandidates.textContent=active.filter(isSaleCandidate).length;
+ if(document.getElementById('rSaleCandidatesHerd'))rSaleCandidatesHerd.textContent=active.filter(isSaleCandidate).length;
  if(document.getElementById('rHealth'))rHealth.textContent=periodRows.filter(x=>x.kind==='health').length;
  if(document.getElementById('rWeights'))rWeights.textContent=periodRows.filter(x=>x.kind==='weight').length;
  if(document.getElementById('rSales'))rSales.textContent=periodRows.filter(x=>x.kind==='sale').length;
@@ -1966,7 +2028,14 @@ function renderReports(){
  if(document.getElementById('rQuickMedicine'))rQuickMedicine.textContent=money(expenseGroups['İlaç / Veteriner']);
  if(document.getElementById('rQuickField'))rQuickField.textContent=money(expenseGroups['Tarla']);
  if(document.getElementById('rQuickSale'))rQuickSale.textContent=money(saleIncome);
+ if(document.getElementById('rQuickSaleFinance'))rQuickSaleFinance.textContent=money(saleIncome);
 
+ let topExpense=Object.entries(expenseGroups).sort((a,b)=>b[1]-a[1])[0];
+ let topTitle=document.getElementById('rTopExpenseTitle'),topHint=document.getElementById('rTopExpenseHint');
+ if(topTitle&&topHint){
+  if(topExpense&&topExpense[1]>0){topTitle.textContent='En yüksek gider: '+topExpense[0];topHint.textContent=money(topExpense[1])+' · '+reportDateLabel(m)}
+  else {topTitle.textContent='Bu dönemde gider kaydı yok';topHint.textContent='Gider kaydı ekledikçe özet burada oluşur.'}
+ }
  let expensePanel=document.getElementById('expenseBreakdownPanel');
  if(expensePanel){
   let mainHtml=Object.entries(expenseGroups).map(([k,v])=>`<div class="listitem row"><span>${k}</span><b>${money(v)}</b></div>`).join('');
@@ -1997,7 +2066,7 @@ function renderReports(){
 
  let pd=document.getElementById('plusReportDetails'), pn=document.getElementById('reportPlanNote');
  if(pd)pd.style.display='block';
- if(pn)pn.innerHTML='<div class="muted">Bu Ay / Bu Yıl açık. Geçmiş ve üretim dönemi detayları “Detaylı Raporlar” içinde.</div>';
+ if(pn)pn.innerHTML='';
 }
 let currentSub='';
 function openSub(k){currentSub=k;let title={health:'Sağlık',births:'Doğum-Kuzulama',performance:'Anaç Performansı',calendar:'Koç & Takvim',weights:'Tartım',stock:'Stok',finance:'Gelir-Gider',moves:'Sürü Hareketleri',today:'Bugün Yapılacaklar'}[k];subTitle.textContent=title;let body='';
