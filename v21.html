@@ -64,6 +64,11 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .weightSummary{background:white;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:10px}.weightSummaryGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.weightMetric{background:#f6f9f7;border-radius:14px;padding:11px}.weightMetric b{display:block;font-size:20px}.weightMetric span{font-size:12px;color:var(--muted)}
 .weightResult{background:white;border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:8px}.weightResultTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.weightBadge{font-size:11px;font-weight:800;padding:5px 8px;border-radius:99px;white-space:nowrap}.weightGood{background:#e6f3ea;color:#1f6b3d}.weightWatch{background:#fff3d6;color:#805b00}.weightLow{background:#f8e4e4;color:#9b3434}.weightStart{background:#edf0ee;color:#657168}.weightExcellent{background:#dff3e6;color:#145c35}
 .weightDetail{font-size:12px;color:var(--muted);line-height:1.55;margin-top:6px}.weightDetail b{color:var(--ink)}.weightLegend{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+.growthHero{background:linear-gradient(120deg,#123c2e,#227653);color:#fff;border-radius:22px;padding:18px;margin-bottom:12px}.growthHero .row{align-items:flex-start}.growthHero b{font-size:20px}.growthHero .muted{color:#e5f1ea}
+.growthStats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px}.growthStat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px}.growthStat b{display:block;font-size:24px}.growthStat span{font-size:12px;color:var(--muted)}
+.growthFilters{display:flex;gap:7px;overflow:auto;margin:0 0 10px}.growthFilters button{white-space:nowrap}.growthFilters .active{background:var(--green);color:#fff}
+.growthTableWrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.growthTable{border-collapse:collapse;width:100%;min-width:830px;font-size:12px}.growthTable th{position:sticky;top:0;background:#eef4ef;color:#365543;text-align:left;padding:11px;border-bottom:1px solid var(--line);white-space:nowrap}.growthTable td{padding:11px;border-bottom:1px solid #edf1ee;vertical-align:top;white-space:nowrap}.growthTable tr:last-child td{border-bottom:0}.growthTable tr.saleReadyRow{background:#edf8f0}.growthTable tr.saleLightRow{background:#fff6dc}.growthTable tr.saleLowRow{background:#fdeaea}.growthTable .tagcell{font-weight:800}.growthNote{font-size:11px;color:var(--muted);margin-top:3px}.growthStatus{display:inline-block;border-radius:99px;padding:5px 8px;font-size:11px;font-weight:800}.growthStatus.ok{background:#e3f2e8;color:#17623a}.growthStatus.warn{background:#fff0c7;color:#815a00}.growthStatus.bad{background:#f7dddd;color:#9a2f2f}.growthStatus.neutral{background:#edf0ee;color:#5d6962}
+
 @media(max-width:420px){.weightInputWrap{grid-template-columns:1fr 105px}}
 
 .homeMenu{width:100%;margin:18px 0;padding:16px;font-size:16px;background:var(--green);color:white}
@@ -246,6 +251,27 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 <h3>Gelir / gider kırılımı</h3><div class="card" id="financeBreakdown"></div>
 </section>
 
+<section id="growth" class="screen">
+ <div class="growthHero">
+  <div class="row">
+   <div><b>📈 Kuzu Gelişim</b><div class="muted" style="margin-top:4px">Yaş, son kilo ve kilo alma hızını birlikte takip et.</div></div>
+   <button class="small" onclick="openBulkWeight()">Tartım Yap</button>
+  </div>
+ </div>
+ <div class="growthStats">
+  <div class="growthStat"><b id="growthLambCount">0</b><span>Aktif kuzu</span></div>
+  <div class="growthStat"><b id="growthSaleReady">0</b><span>Satış yaşı gelen</span></div>
+  <div class="growthStat"><b id="growthBelowAvg">0</b><span>Yaş grubuna göre düşük kilo</span></div>
+  <div class="growthStat"><b id="growthAvgAdg">—</b><span>Ort. günlük artış</span></div>
+ </div>
+ <div class="growthFilters" id="growthFilters"></div>
+ <div class="growthTableWrap"><table class="growthTable">
+  <thead><tr><th>Kuzu</th><th>Yaş</th><th>Son kilo</th><th>Kilo alımı</th><th>g/gün</th><th>Yaş grubu ort.</th><th>Durum</th></tr></thead>
+  <tbody id="growthTableBody"></tbody>
+ </table></div>
+ <div class="weightLegend" style="margin:10px 2px">Yeşil: satış yaşı gelmiş ve kilosu yaş grubuna uygun. Sarı/kırmızı: satış yaşı gelmiş ancak aynı yaş grubundaki kuzulara göre kilosu düşük. Değerlendirme 5,5+ aylık erkek kuzular için satış durumunu öne çıkarır.</div>
+</section>
+
 <section id="chat" class="screen"><h3>ChatGPT ile Yönetim</h3>
  <div class="card"><b>Konuşarak yönet</b><p class="muted">Mikrofona bas, komutunu söyle. Tanınan cümle aşağıya gelir ve yerel sürü komutları işlenir.</p></div>
  <div class="card chatBox" id="chatLog"><div class="chatMsg botMsg">Hazırım. Örneğin “245 numaralı koyun iki kuzu doğurdu” diyebilirsin.</div></div>
@@ -263,6 +289,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
  <button class="menuBtn" onclick="openSub('today')">✓<br><b>Bugün Yapılacaklar</b></button>
  <button class="menuBtn" onclick="openBackup()">💾<br><b>Yedekleme / Geri Yükleme</b></button>
  <button class="menuBtn" onclick="openAccount()">👤<br><b>Hesabım / İşletmem</b></button>
+ <button class="menuBtn" onclick="go('chat')">◉<br><b>ChatGPT ile Yönetim</b></button>
  </div>
  <div class="card" id="installCard" hidden><b>📲 Sürü Takip’i Telefona Kur</b><p class="muted">Ana ekranından uygulama olarak aç.</p><button class="primary" id="installAppBtn" type="button" onclick="installApp()">Uygulamayı Kur</button></div>
  <div class="card" id="cloudCard">
@@ -290,7 +317,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 <button class="nav" data-go="herd" onclick="go('herd')"><b>🐑</b>Sürü</button>
 <button class="nav" data-go="add" onclick="go('add')"><b>＋</b>Kayıt Ekle</button>
 <button class="nav" data-go="reports" onclick="go('reports')"><b>▥</b>Raporlar</button>
-<button class="nav" data-go="chat" onclick="go('chat')"><b>◉</b>ChatGPT</button>
+<button class="nav" data-go="growth" onclick="go('growth')"><b>📈</b>Kuzu Gelişim</button>
 </div></nav>
 </div>
 
@@ -720,6 +747,68 @@ function renderHomeUpcoming(){
   return `<div class="upcomingItem"><div class="upcomingIcon">${icon(x)}</div><div class="upcomingText"><b>${escHtml(x.text)}</b><div class="upcomingMeta ${cls}">${escHtml(meta)}</div></div><button class="small" onclick="${action}">${btn}</button></div>`;
  }).join('');
 }
+let growthFilter='Tümü';
+function latestWeightInfo(a){
+ let rows=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id&&r.date).slice().sort((x,y)=>String(y.date).localeCompare(String(x.date)));
+ let latest=rows[0]||null,prev=rows[1]||null;
+ let weight=latest?weightValueFromRecord(latest):(+a.weight||0);
+ let prevWeight=prev?weightValueFromRecord(prev):(+latest?.previousWeight||0);
+ let days=prev?.date&&latest?.date?Math.max(1,dateDiffDays(prev.date,latest.date)):(+latest?.gainDays||0);
+ let gain=prevWeight&&weight?weight-prevWeight:(Number.isFinite(+latest?.gainKg)?+latest.gainKg:0);
+ let adg=prevWeight&&days>0?Math.round(gain*1000/days):(Number.isFinite(+latest?.adg)&&+latest.adg>0?+latest.adg:null);
+ return {latest,prev,weight,prevWeight,days,gain,adg};
+}
+function renderGrowth(){
+ let body=document.getElementById('growthTableBody'),filters=document.getElementById('growthFilters');
+ if(!body||!filters)return;
+ let lambs=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a));
+ let infos=lambs.map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
+ let groupWeights={};
+ infos.filter(x=>x.wi.weight>0).forEach(x=>{let g=Math.floor(x.months);(groupWeights[g]||(groupWeights[g]=[])).push(x.wi.weight)});
+ infos.forEach(x=>{
+  let vals=groupWeights[Math.floor(x.months)]||[];
+  x.groupAvg=vals.length?vals.reduce((s,v)=>s+v,0)/vals.length:0;
+  x.weightPct=x.groupAvg&&x.wi.weight?((x.wi.weight-x.groupAvg)/x.groupAvg)*100:null;
+  x.saleAge=x.a.sex==='Erkek'&&x.months>=5.5;
+  x.lowWeight=x.weightPct!==null&&x.weightPct<=-10;
+  x.veryLowWeight=x.weightPct!==null&&x.weightPct<=-20;
+  if(x.saleAge&&x.veryLowWeight)x.state='saleLow';
+  else if(x.saleAge&&x.lowWeight)x.state='saleWarn';
+  else if(x.saleAge)x.state='saleReady';
+  else if(x.lowWeight)x.state='low';
+  else x.state='normal';
+ });
+ let adgs=infos.map(x=>x.wi.adg).filter(v=>Number.isFinite(v)&&v>0);
+ let avgAdg=adgs.length?Math.round(adgs.reduce((s,v)=>s+v,0)/adgs.length):0;
+ growthLambCount.textContent=infos.length;
+ growthSaleReady.textContent=infos.filter(x=>x.saleAge).length;
+ growthBelowAvg.textContent=infos.filter(x=>x.lowWeight).length;
+ growthAvgAdg.textContent=avgAdg?avgAdg+' g':'—';
+
+ let fs=['Tümü','Satış yaşı gelen','Kilo düşük','Takip'];
+ filters.innerHTML=fs.map(f=>`<button class="small ${growthFilter===f?'active':''}" onclick="growthFilter='${f}';renderGrowth()">${f}</button>`).join('');
+ let shown=infos.filter(x=>growthFilter==='Tümü'||(growthFilter==='Satış yaşı gelen'&&x.saleAge)||(growthFilter==='Kilo düşük'&&x.lowWeight)||(growthFilter==='Takip'&&(x.state==='saleWarn'||x.state==='saleLow'||x.state==='low')));
+ shown.sort((a,b)=>{
+  let rank={saleLow:0,saleWarn:1,saleReady:2,low:3,normal:4};
+  return (rank[a.state]??9)-(rank[b.state]??9)||b.months-a.months;
+ });
+ body.innerHTML=shown.length?shown.map(x=>{
+  let rowCls=x.state==='saleReady'?'saleReadyRow':x.state==='saleWarn'?'saleLightRow':x.state==='saleLow'?'saleLowRow':'';
+  let statusClass=x.state==='saleReady'?'ok':x.state==='saleWarn'?'warn':(x.state==='saleLow'||x.state==='low')?'bad':'neutral';
+  let status=x.state==='saleReady'?'Satış yaşı uygun':x.state==='saleWarn'?'Yaşı uygun · kilo düşük':x.state==='saleLow'?'Yaşı uygun · kilo çok düşük':x.state==='low'?'Yaş grubuna göre düşük':'Gelişim izleniyor';
+  let gain=x.wi.prevWeight&&x.wi.days?`${x.wi.gain>=0?'+':''}${x.wi.gain.toFixed(1)} kg / ${x.wi.days} gün`:'—';
+  let pct=x.weightPct!==null?` · ${x.weightPct>=0?'+':''}${Math.round(x.weightPct)}%`:'';
+  return `<tr class="${rowCls}" onclick="animalCard('${x.a.id}')" style="cursor:pointer">
+   <td class="tagcell">${escHtml(animalName(x.a))}<div class="growthNote">${x.a.sex}</div></td>
+   <td>${escHtml(age(x.a.birth))}</td>
+   <td>${x.wi.weight?x.wi.weight.toFixed(1)+' kg':'—'}</td>
+   <td>${gain}</td>
+   <td>${Number.isFinite(x.wi.adg)?x.wi.adg+' g':'—'}</td>
+   <td>${x.groupAvg?x.groupAvg.toFixed(1)+' kg'+pct:'Yeterli veri yok'}</td>
+   <td><span class="growthStatus ${statusClass}">${status}</span></td>
+  </tr>`;
+ }).join(''):'<tr><td colspan="7" class="empty">Bu filtrede kuzu yok.</td></tr>';
+}
 function renderAll(){
  let agedChanged=promoteAgedBreederLambs();
  if(agedChanged){try{persistLocal()}catch(e){} if(cloudFarmId){cloudDirty=true;queueCloudSync()}}
@@ -743,9 +832,9 @@ function renderAll(){
  }
  recent.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz hareket yok.</div>';
  last5.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz kayıt yok.</div>';
- renderHerd();renderReports();setupReportFolds();setupDetailedReportControls();
+ renderHerd();renderGrowth();renderReports();setupReportFolds();setupDetailedReportControls();
  if(currentSub==='performance')subBody.innerHTML=ewePerformanceHtml('history');
- chatHints.innerHTML='<b>Örnek komutlar</b><div class="listitem">“Bugün yapılacak ne var?”</div><div class="listitem">“Bu ay ne kadar yem masrafı yaptım?”</div><div class="listitem">“245 numaralı koyun ikiz doğurdu; biri erkek biri dişi.”</div>';
+ if(typeof chatHints!=='undefined'&&chatHints)chatHints.innerHTML='<b>Örnek komutlar</b><div class="listitem">“Bugün yapılacak ne var?”</div><div class="listitem">“Bu ay ne kadar yem masrafı yaptım?”</div><div class="listitem">“245 numaralı koyun ikiz doğurdu; biri erkek biri dişi.”</div>';
 }
 function recordHtml(x){
  let sign=x.kind==='income'||x.kind==='sale'?'+':x.kind==='expense'||x.kind==='stock'?'-':'';
