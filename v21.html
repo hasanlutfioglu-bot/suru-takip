@@ -119,7 +119,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></h1><span class="pill" id="cloudStatus">Yerel mod</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></h1><div style="display:flex;gap:6px;align-items:center"><button class="pill" id="planStatus" onclick="openPlans()" style="border:0;font-weight:800">FREE</button><span class="pill" id="cloudStatus">Yerel mod</span></div></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="hero"><small>SÜRÜ SAYISI</small><h2 id="heroTotal">0 hayvan</h2><div id="heroSub"></div></div>
@@ -525,7 +525,7 @@ const KEY='suru_takip_v5';
 const SUPABASE_URL='https://nqbfyahiijdkrroojlct.supabase.co';
 let SUPABASE_PUBLISHABLE_KEY='sb_publishable_OnTZGx8h0RwxDV7X6DhXQQ_-jJbxfRN';
 const LIVE_APP_URL='https://hasanlutfioglu-bot.github.io/suru-takip/v21.html';
-let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTimer=null, cloudApplying=false, lastCloudStamp='', currentPlan='free', subscriptionStatus='free';
+let sb=null, cloudSession=null, cloudFarmId=null, cloudChannel=null, cloudSyncTimer=null, cloudApplying=false, lastCloudStamp='', currentPlan='free', subscriptionStatus='free', trialEndsAt=null, currentPeriodEnd=null;
 const FREE_ANIMAL_LIMIT=20;
 const FREE_MONTHLY_FINANCE_LIMIT=10;
 
@@ -608,9 +608,21 @@ function promoteAgedBreederLambs(){
 }
 function isActiveAnimal(a){return !['Satıldı','Öldü','Kesildi'].includes(a.status)}
 function activeAnimalCount(){return db.animals.filter(isActiveAnimal).length}
-function isPro(){return subscriptionStatus==='trialing'||((subscriptionStatus==='active'||subscriptionStatus==='offline')&&['pro','plus'].includes(currentPlan))}
+function trialDaysLeft(){
+ if(!trialEndsAt)return 0;
+ let ms=new Date(trialEndsAt).getTime()-Date.now();
+ return Math.max(0,Math.ceil(ms/864e5));
+}
+function trialActive(){return subscriptionStatus==='trialing'&&!!trialEndsAt&&new Date(trialEndsAt).getTime()>Date.now()}
+function isPro(){return trialActive()||((subscriptionStatus==='active'||subscriptionStatus==='offline')&&['pro','plus'].includes(currentPlan))}
 function isPlus(){return isPro()}
-function planBadge(){return subscriptionStatus==='trialing'?'PRO DENEME':isPro()?'PRO':'FREE'}
+function planBadge(){return trialActive()?'PRO DENEME':isPro()?'PRO':'FREE'}
+function renderPlanStatus(){
+ let el=document.getElementById('planStatus');if(!el)return;
+ if(trialActive()){el.textContent='PRO · '+trialDaysLeft()+' gün';el.style.background='#fff0c7';el.style.color='#815a00'}
+ else if(isPro()){el.textContent='PRO';el.style.background='#e3f2e8';el.style.color='#17623a'}
+ else {el.textContent='FREE';el.style.background='#edf0ee';el.style.color='#5d6962'}
+}
 function openPlans(){
  showModal('Sürü Takip PRO',`
   <div class="card" style="background:linear-gradient(145deg,#123e30,#1f694c);color:#fff">
@@ -621,7 +633,7 @@ function openPlans(){
    <div class="muted" style="margin-top:6px;line-height:1.65">✓ Sınırsız / yüksek sürü kapasitesi<br>✓ Kuzu gelişim analizi<br>✓ İşletme Nabzı ve gelişmiş raporlar<br>✓ Finans grafikleri ve satış potansiyeli<br>✓ Yıllık / özel dönem / arşiv raporları<br>✓ Anaç performans geçmişi<br>✓ CSV / PDF dışa aktarma<br>✓ ChatGPT ile yönetim</div>
   </div>
   <button class="primary" onclick="toast('Mağaza abonelik bağlantısı ödeme entegrasyonunda aktif olacak')">PRO'ya Geç</button>
-  <div class="muted" style="margin-top:8px;text-align:center">Yeni hesaplarda hedef: ilk 30 gün PRO, sonra ödeme yapılmazsa FREE.</div>
+  <div class="muted" style="margin-top:8px;text-align:center">${trialActive()?'PRO denemesinde '+trialDaysLeft()+' gün kaldı.':'Yeni hesaplarda ilk 30 gün PRO, sonra ödeme yapılmazsa FREE.'}</div>
  `);
 }
 function showProRequired(feature='Bu özellik'){
@@ -722,7 +734,7 @@ function mergeStates(base,local,remote){
  out.report=local.report||'monthly';out._meta={...remote._meta,...local._meta,updatedAt:new Date().toISOString()};
  return {data:out,conflicts};
 }
-function resetCloudContext(){sessionEpoch++;clearTimeout(cloudSyncTimer);cloudFarmId=null;cloudRole='';currentPlan='free';subscriptionStatus='free';cloudBase=null;cloudVersion=null;cloudDirty=false;syncConflict=null;if(cloudChannel&&sb)sb.removeChannel(cloudChannel);cloudChannel=null;}
+function resetCloudContext(){sessionEpoch++;clearTimeout(cloudSyncTimer);cloudFarmId=null;cloudRole='';currentPlan='free';subscriptionStatus='free';trialEndsAt=null;currentPeriodEnd=null;cloudBase=null;cloudVersion=null;cloudDirty=false;syncConflict=null;if(cloudChannel&&sb)sb.removeChannel(cloudChannel);cloudChannel=null;renderPlanStatus();}
 let authEventVersion=0, explicitSignOut=false;
 function handleCloudSession(event,session){
  const version=++authEventVersion;
@@ -786,9 +798,10 @@ async function connectCloud(){
   cloudBase=null;cloudVersion=null;cloudDirty=false;let cache={};try{const stored=JSON.parse(localStorage.getItem(key)||'{}');cache=stored.sync||JSON.parse(localStorage.getItem(key+'_sync')||'{}')}catch(e){}
   cloudBase=cache.base?normalizeState(cache.base):null;cloudVersion=cache.version||null;cloudDirty=!!cache.dirty;syncConflict=null;renderAll();
  }
- const {data:sub}=await sb.from('subscriptions').select('plan,status').eq('farm_id',farmId).maybeSingle();if(epoch!==sessionEpoch)return;
- subscriptionStatus=sub?.status||'free';currentPlan=sub?.plan||'free';
- persistLocal();
+ const {data:sub}=await sb.from('subscriptions').select('plan,status,trial_ends_at,current_period_end').eq('farm_id',farmId).maybeSingle();if(epoch!==sessionEpoch)return;
+ currentPlan=sub?.plan||'free';subscriptionStatus=sub?.status||'free';trialEndsAt=sub?.trial_ends_at||null;currentPeriodEnd=sub?.current_period_end||null;
+ if(subscriptionStatus==='trialing'&&!trialActive()){subscriptionStatus='free';currentPlan='free'}
+ persistLocal();renderPlanStatus();
  await uploadCloudState();if(epoch===sessionEpoch)subscribeCloud();
  }catch(e){if(epoch===sessionEpoch)setCloudUI('local','Bağlantı kurulamadı; cihazdaki kayıtlar korunuyor: '+e.message)}finally{connectBusy=false;if(epoch!==sessionEpoch&&cloudSession)setTimeout(connectCloud,0)}
 }
@@ -1125,6 +1138,7 @@ function renderGrowth(){
  }).join(''):'<tr><td colspan="6" class="empty">Bu filtrede kuzu yok.</td></tr>';
 }
 function renderAll(){
+ renderPlanStatus();
  let agedChanged=promoteAgedBreederLambs();
  if(agedChanged){try{persistLocal()}catch(e){} if(cloudFarmId){cloudDirty=true;queueCloudSync()}}
  let A=db.animals.filter(a=>!['Satıldı','Öldü','Kesildi'].includes(a.status)), e=A.filter(a=>a.type==='Koyun').length,r=A.filter(a=>a.type==='Koç').length,l=A.filter(a=>a.type==='Kuzu').length,f=A.filter(a=>a.status==='Takipte').length;
@@ -1258,7 +1272,7 @@ function openAccount(){
   </div>
   <div class="card">
    <div class="row"><div><b>Üyelik</b><div class="muted">${isPro()?'Tüm gelişmiş özellikler açık':'Temel kayıt paketi'}</div></div><span class="tag">${planBadge()}</span></div>
-   <div class="muted" style="margin-top:8px">${isPro()?(subscriptionStatus==='trialing'?'PRO deneme süren aktif.':'PRO üyeliğin aktif.'):'FREE · '+active+'/'+FREE_ANIMAL_LIMIT+' aktif hayvan'}</div>
+   <div class="muted" style="margin-top:8px">${isPro()?(trialActive()?'PRO denemesi aktif · '+trialDaysLeft()+' gün kaldı':'PRO üyeliğin aktif.'):'FREE · '+active+'/'+FREE_ANIMAL_LIMIT+' aktif hayvan'}</div>
    <div class="muted" style="margin-top:4px">${isPro()?'Finans kayıtları ve gelişmiş analizler açık.':'Bu ay '+monthlyFinanceCount()+'/'+FREE_MONTHLY_FINANCE_LIMIT+' finans kaydı kullanıldı.'}</div>
    ${isPro()?'':'<button class="small primary" style="margin-top:10px" onclick="openPlans()">PRO\'yu Gör</button>'}
   </div>
