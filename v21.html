@@ -588,7 +588,7 @@ function reminderItems(){
   }
   if(x.removalDone&&x.actualRemovalDate){
    let birthEnd=addDaysISO(x.actualRemovalDate,147),dbe=dateDiffDays(today(),birthEnd);
-   if(!x.birthPeriodDone)out.push({type:'birth_end',date:birthEnd,text:'Doğumlar tamamlandı mı?',days:dbe,calendarId:x.id});
+   if(dbe<=0&&!x.birthEndNotified)out.push({type:'birth_end_info',date:birthEnd,text:'Tahmini doğum dönemi sona erdi',days:dbe,calendarId:x.id});
   }
  });
  return out.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
@@ -604,13 +604,13 @@ function markReminderDone(type,id){
    else if(type==='mating'){c.matingDone=true;c.actualMatingDate=today()}
    else if(type==='ram_removal'){c.removalDone=true;c.actualRemovalDate=today()}
    else if(type==='birth_start')c.birthStartAcknowledged=true;
-   else if(type==='birth_end'){c.birthPeriodDone=true;c.birthPeriodDoneDate=today()}
+   else if(type==='birth_end_info'){c.birthEndNotified=true;c.birthEndNotifiedDate=today()}
   }
  }
  save();
  let msg=type==='mating'?'Koç katımı onaylandı; tahmini doğum başlangıcı hesaplandı':
          type==='ram_removal'?'Koç çıkarma onaylandı; tahmini doğum bitişi hesaplandı':
-         type==='birth_end'?'Doğum dönemi tamamlandı olarak işaretlendi':'Hatırlatma tamamlandı';
+         type==='birth_end_info'?'Tahmini doğum dönemi sona erdi bildirimi kapatıldı':'Hatırlatma tamamlandı';
  toast(msg)
 }
 
@@ -630,12 +630,12 @@ function renderHomeUpcoming(){
   box.innerHTML='<div class="muted" style="padding:12px 0">Yaklaşan iş yok. Her şey güncel.</div>';
   return;
  }
- let icon=x=>x.type==='health'?'💉':x.type==='flushing'?'🌾':x.type==='mating'?'🐏':x.type==='ram_removal'?'🚪':x.type==='birth_start'?'🐑':x.type==='birth_end'?'✅':'✓';
+ let icon=x=>x.type==='health'?'💉':x.type==='flushing'?'🌾':x.type==='mating'?'🐏':x.type==='ram_removal'?'🚪':x.type==='birth_start'?'🐑':x.type==='birth_end_info'?'✅':'✓';
  box.innerHTML=all.slice(0,4).map(x=>{
   let meta=x.manual?'Manuel yapılacak':(x.nearestOnly?'En yakın planlı iş · '+x.date+' · '+reminderLabel(x):(x.date+' · '+reminderLabel(x)));
   let cls=x.manual?'':(x.days<0?'upcomingLate':x.days===0?'upcomingToday':'');
   let action=x.manual?`doneTask(${x.taskIndex})`:`markReminderDone('${x.type}','${x.recordId||x.calendarId}')`;
-  let btn=x.manual?'Yapıldı':x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_start'?'Gördüm':x.type==='birth_end'?'Doğumlar bitti':'Yapıldı';
+  let btn=x.manual?'Yapıldı':x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';
   return `<div class="upcomingItem"><div class="upcomingIcon">${icon(x)}</div><div class="upcomingText"><b>${escHtml(x.text)}</b><div class="upcomingMeta ${cls}">${escHtml(meta)}</div></div><button class="small" onclick="${action}">${btn}</button></div>`;
  }).join('');
 }
@@ -643,7 +643,7 @@ function renderAll(){
  let A=db.animals.filter(a=>!['Satıldı','Öldü','Kesildi'].includes(a.status)), e=A.filter(a=>a.type==='Koyun').length,r=A.filter(a=>a.type==='Koç').length,l=A.filter(a=>a.type==='Kuzu').length,f=A.filter(a=>a.status==='Takipte').length;
  let setupCard=document.getElementById('firstSetupCard');if(setupCard)setupCard.style.display=(db.animals.length===0&&!db.setupDone)?'block':'none';
  heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
- let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span>${x.text}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_start'?'Gördüm':x.type==='birth_end'?'Doğumlar bitti':'Yapıldı';return `<div class="listitem row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
+ let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span>${x.text}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${x.text}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
  renderHomeUpcoming();
  let fin=calcFinance('all'),net=fin.income-fin.expense;homeNet.textContent=money(net);homeNet.className=net<0?'money minus':'money plus';
  let births=db.records.filter(x=>x.kind==='birth'&&x.motherId&&Number.isFinite(+x.count)&&+x.count>0),mothers=new Set(births.map(x=>x.motherId)),born=births.reduce((n,x)=>n+(+x.count),0);
@@ -1482,7 +1482,8 @@ function openSub(k){currentSub=k;let title={health:'Sağlık',births:'Doğum-Kuz
  let actualIn=x.actualMatingDate||'',actualOut=x.actualRemovalDate||'';
  let birthStart=actualIn?addDaysISO(actualIn,147):'Koç katımı onaylanınca hesaplanır';
  let birthEnd=actualOut?addDaysISO(actualOut,147):'Koç çıkarma onaylanınca hesaplanır';
- return `<div class="card"><div class="row"><b>🐏 Üreme dönemi</b><button class="small" onclick="editRamCalendar('${x.id}')">Düzenle</button></div><div class="muted" style="margin-top:6px">Planlanan koç katımı: ${x.matingDate||'—'}${x.matingDone?' · Onay: '+actualIn:' · Onay bekliyor'}</div><div class="muted">Planlanan koç çıkarma: ${x.removalDate||'Belirtilmedi'}${x.removalDone?' · Onay: '+actualOut:(x.removalDate?' · Onay bekliyor':'')}</div><div class="muted">Flushing başlangıcı: ${x.matingDate?addDaysISO(x.matingDate,-30):'—'}</div><div style="margin-top:10px"><b>Tahmini doğum dönemi</b><div class="muted">${birthStart} → ${birthEnd}</div>${x.birthPeriodDone?'<div class="muted">Doğum dönemi tamamlandı · '+(x.birthPeriodDoneDate||'')+'</div>':''}</div></div>`;
+ let birthEnded=actualOut&&dateDiffDays(today(),birthEnd)<=0;
+ return `<div class="card"><div class="row"><b>🐏 Üreme dönemi</b><button class="small" onclick="editRamCalendar('${x.id}')">Düzenle</button></div><div class="muted" style="margin-top:6px">Planlanan koç katımı: ${x.matingDate||'—'}${x.matingDone?' · Onay: '+actualIn:' · Onay bekliyor'}</div><div class="muted">Planlanan koç çıkarma: ${x.removalDate||'Belirtilmedi'}${x.removalDone?' · Onay: '+actualOut:(x.removalDate?' · Onay bekliyor':'')}</div><div class="muted">Flushing başlangıcı: ${x.matingDate?addDaysISO(x.matingDate,-30):'—'}</div><div style="margin-top:10px"><b>Tahmini doğum dönemi</b><div class="muted">${birthStart} → ${birthEnd}</div>${birthEnded?'<div class="muted"><b>✓ Tahmini doğum dönemi sona erdi</b></div>':''}</div></div>`;
  }).join(''):'<div class="card muted">Henüz üreme dönemi yok.</div>')}
  else if(k==='performance')body=ewePerformanceHtml('history');
  else body=db.records.slice().reverse().map(recordHtml).join('')||'<div class="card muted">Henüz kayıt yok.</div>';
@@ -1492,7 +1493,7 @@ function openRamMating(){
  showModal('Üreme Dönemi',`
   <label>Planlanan koç katım tarihi</label><input id="ramMatingDate" type="date" value="${today()}">
   <label>Planlanan koç çıkarma tarihi</label><input id="ramRemovalDate" type="date">
-  <div class="muted" style="margin-bottom:10px">Katım günü geldiğinde “Koçu kattım” demediğin sürece her gün hatırlatılır. Çıkarma için de aynı şekilde onay istenir. Tahmini doğum dönemi gerçek onay tarihlerinden otomatik hesaplanır.</div>
+  <div class="muted" style="margin-bottom:10px">Katım günü geldiğinde “Koçu kattım” demediğin sürece her gün hatırlatılır. Çıkarma için de aynı şekilde onay istenir. Tahmini doğum dönemi gerçek onay tarihlerinden otomatik hesaplanır; bitiş tarihi geldiğinde uygulama kendisi “Tahmini doğum dönemi sona erdi” diye bildirir.</div>
   <button class="primary" onclick="saveRamMating()">Kaydet</button>`)
 }
 function saveRamMating(){
