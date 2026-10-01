@@ -1019,6 +1019,13 @@ function promoteBreeder(id){
  save();closeModal();toast('Hayvan anaç sürüye aktarıldı')
 }
 
+function isBirthRegisteredAnimal(a){
+ if(!a)return false;
+ return db.records.some(r=>r.kind==='birth'&&(
+  (Array.isArray(r.childIds)&&r.childIds.includes(a.id))||
+  (a.motherId&&r.motherId===a.motherId&&a.birth&&r.date===a.birth)
+ ));
+}
 function editAnimal(id){
  let a=db.animals.find(x=>x.id===id);if(!a)return toast('Hayvan bulunamadı');
  showModal('Hayvanı Düzenle',`
@@ -1036,12 +1043,15 @@ function editAnimal(id){
     <option ${a.status==='Kesildi'?'selected':''}>Kesildi</option>
     <option ${a.status==='Öldü'?'selected':''}>Öldü</option>
   </select>
-  <label>Doğum Tarihi</label><input id="editAnimalBirth" type="date" value="${a.birth||''}">
-  <div class="muted" style="margin:-3px 0 8px">Tam tarihi bilmiyorsan yaşı yazabilirsin. Sistem yaklaşık doğum tarihini hesaplar.</div>
-  <div class="ageEditGrid">
-   <div><label>Yaş</label><input id="editAnimalAgeYears" type="number" min="0" placeholder="Yıl"></div>
-   <div><label>Ek ay</label><input id="editAnimalAgeMonths" type="number" min="0" max="11" placeholder="Ay"></div>
-  </div>
+  ${isBirthRegisteredAnimal(a)?
+   `<label>Doğum Tarihi</label><input id="editAnimalBirth" type="date" value="${a.birth||''}" disabled>
+     <div class="muted" style="margin:-3px 0 8px">Bu hayvan doğum kaydından oluşturuldu. Yaşı doğum tarihinden otomatik hesaplanır ve buradan değiştirilemez.</div>`:
+   `<label>Doğum Tarihi</label><input id="editAnimalBirth" type="date" value="${a.birth||''}">
+     <div class="muted" style="margin:-3px 0 8px">Tam tarihi bilmiyorsan yaşı yazabilirsin. Sistem yaklaşık doğum tarihini hesaplar.</div>
+     <div class="ageEditGrid">
+      <div><label>Yaş</label><input id="editAnimalAgeYears" type="number" min="0" placeholder="Yıl"></div>
+      <div><label>Ek ay</label><input id="editAnimalAgeMonths" type="number" min="0" max="11" placeholder="Ay"></div>
+     </div>`}
   <div id="deathFields" style="display:${a.status==='Öldü'?'block':'none'}">
     <label>Ölüm Tarihi</label><input id="editDeathDate" type="date" value="${a.deathDate||today()}">
     <label>Ölüm Nedeni</label><input id="editDeathReason" value="${a.deathReason||''}" placeholder="Örn. hastalık, kaza...">
@@ -1061,9 +1071,11 @@ function saveAnimalEdit(id){
  let newTag=editAnimalTag.value.trim();
  if(newTag&&db.animals.some(x=>x.id!==id&&x.tag===newTag))return toast('Bu küpe numarası başka hayvanda kullanılıyor');
  let oldStatus=a.status;
+ let lockedBirth=isBirthRegisteredAnimal(a);
  let ageY=document.getElementById('editAnimalAgeYears')?.value||'',ageM=document.getElementById('editAnimalAgeMonths')?.value||'';
- let approxBirth=approximateBirthFromAge(ageY,ageM);
- a.tag=newTag;a.sex=editAnimalSex.value;a.status=editAnimalStatus.value;a.birth=approxBirth||editAnimalBirth.value;
+ let approxBirth=lockedBirth?'':approximateBirthFromAge(ageY,ageM);
+ let birthValue=lockedBirth?a.birth:(approxBirth||(document.getElementById('editAnimalBirth')?.value||''));
+ a.tag=newTag;a.sex=editAnimalSex.value;a.status=editAnimalStatus.value;a.birth=birthValue;
  if(a.status==='Öldü'){
   a.deathDate=editDeathDate.value||today();
   a.deathReason=editDeathReason.value.trim();
