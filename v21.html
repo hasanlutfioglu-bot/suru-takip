@@ -368,7 +368,9 @@ function ageMonths(b){
 function promoteAgedBreederLambs(){
  let changed=false;
  db.animals.forEach(a=>{
-  if(a.type==='Kuzu'&&a.sex==='Dişi'&&a.breedingStatus==='Anaç Adayı'&&isActiveAnimal(a)&&a.birth&&ageMonths(a.birth)>=12){a.type='Koyun';changed=true}
+  if(a.type!=='Kuzu'||!isActiveAnimal(a)||!a.birth||ageMonths(a.birth)<12)return;
+  if(a.sex==='Dişi'&&a.breedingStatus==='Anaç Adayı'){a.type='Koyun';changed=true}
+  else if(a.sex==='Erkek'){a.type='Koç';a.status='Aktif';changed=true}
  });
  return changed;
 }
