@@ -46,6 +46,11 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .animalQuickActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 14px}.animalQuickActions button{width:100%}
 .animalSnapshot{margin-top:10px;padding-top:10px;border-top:1px solid #edf1ee}.animalSnapshot .muted{margin-top:3px}
 .saleSoonTag{display:inline-block;margin-top:6px;padding:5px 9px;border-radius:999px;background:#fff5d9;color:#835d00;font-size:12px;font-weight:700}
+.herdHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px}.herdHead h3{margin:0}.herdToolbar{display:flex;gap:8px;flex-wrap:wrap}.herdToolsPanel{display:none;background:white;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.herdToolsPanel.show{display:block}.herdToolsPanel .small{margin:3px}
+.herdSearchCard{background:white;border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin-bottom:10px}.herdSearchCard input{margin:8px 0 0}.herdSearchTitle{display:flex;align-items:center;justify-content:space-between;gap:8px}.herdSearchTitle b{font-size:15px}.herdSearchTitle span{font-size:12px;color:var(--muted)}
+.herdControls{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:8px;margin:10px 0 12px}.herdControls input,.herdControls select{margin:0}
+.herdCount{font-size:12px;color:var(--muted);margin:0 2px 8px}.herdAnimal{padding:15px 16px}.herdAnimalTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.herdAnimalName{font-size:16px;font-weight:800}.herdAnimalMeta{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}.herdAnimalActions{display:flex;gap:7px;margin-top:12px}.herdAnimalActions .openCard{flex:1;background:#eef4ef}.herdAnimalActions .small{white-space:nowrap}
+@media(max-width:420px){.herdControls{grid-template-columns:1fr}.herdToolbar .small{flex:1}}
 .homeMenu{width:100%;margin:18px 0;padding:16px;font-size:16px;background:var(--green);color:white}
 .screen>h3,.screen>.row>h3{font-size:22px;margin:18px 0}.card{padding:18px;border-radius:20px}.stat span,.muted,.rateHelp,label{font-size:14px;line-height:1.5}.menuGrid{gap:12px;margin-bottom:18px}.menuBtn{font-size:22px;border-radius:18px;padding:20px 16px;box-shadow:var(--shadow)}.menuBtn b{font-size:16px;line-height:1.5}.tabs{gap:8px;padding-bottom:12px}.tab{font-size:14px}.listitem{padding:16px 0}.row{flex-wrap:wrap}.row>div{min-width:0}.recordActions{margin-left:auto}input,select,textarea{font-size:16px;min-height:46px}.small{font-size:14px}.nav{font-size:12px;min-height:54px}.sheet{padding:20px}.sheet h3{font-size:20px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #bc871c;outline-offset:3px}
 @media(max-width:360px){.homeSummary{grid-template-columns:1fr}.hero h2{font-size:32px}.summaryCard b{font-size:28px}}
@@ -78,15 +83,32 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
  <button class="homeMenu" onclick="go('all')">☰ Tüm Menüler</button>
 </section>
 
-<section id="herd" class="screen"><div class="row"><h3>Sürü</h3><div><button class="small primary" onclick="openAddAnimal()">+ Hayvan Ekle</button> <button class="small" onclick="openBulkSex()">Kuzu Cinsiyetleri</button> <button class="small" onclick="openBulkTags()">Toplu Küpe</button></div></div>
- <div class="card">
-  <b>🔎 Hayvan Bul / Hızlı İşlem</b>
-  <div class="muted" style="margin-top:4px">Küpe numarasını yaz; hayvan kartı ve işlemler hemen açılsın.</div>
-  <input id="quickAnimalSearch" inputmode="numeric" placeholder="Örn. 245" oninput="quickAnimalLookup()">
+<section id="herd" class="screen">
+ <div class="herdHead">
+  <h3>Sürü</h3>
+  <div class="herdToolbar">
+   <button class="small primary" onclick="openAddAnimal()">+ Hayvan Ekle</button>
+   <button class="small" onclick="toggleHerdTools()">Toplu İşlemler ▾</button>
+  </div>
+ </div>
+ <div class="herdToolsPanel" id="herdToolsPanel">
+  <button class="small" onclick="openBulkSex()">Kuzu Cinsiyetleri</button>
+  <button class="small" onclick="openBulkTags()">Toplu Küpe</button>
+ </div>
+
+ <div class="herdSearchCard">
+  <div class="herdSearchTitle"><b>🔎 Küpe ile hızlı bul</b><span>Direkt işlem aç</span></div>
+  <input id="quickAnimalSearch" inputmode="numeric" placeholder="Küpe no yaz · örn. 245" oninput="quickAnimalLookup()">
   <div id="quickAnimalResults" class="quickResults"></div>
  </div>
- <input id="herdSearch" placeholder="Küpe veya hayvan ara..." oninput="renderHerd()">
- <div class="tabs" id="herdTabs"></div><div id="herdList"></div>
+
+ <div class="herdControls">
+  <input id="herdSearch" placeholder="Listedeki hayvanları ara..." oninput="renderHerd()">
+  <select id="herdFilterSelect" onchange="herdFilter=this.value;renderHerd()"></select>
+ </div>
+ <div class="herdCount" id="herdCount"></div>
+ <div id="herdTabs" style="display:none"></div>
+ <div id="herdList"></div>
 </section>
 
 <section id="add" class="screen"><h3>Kayıt Ekle</h3><div class="menuGrid">
@@ -731,13 +753,54 @@ function openSaleCandidates(){
  `);
 }
 function openHerdFilter(filter){herdFilter=filter;go('herd')}
+function toggleHerdTools(){
+ let p=document.getElementById('herdToolsPanel');if(p)p.classList.toggle('show');
+}
 function renderHerd(){
- let filters=['Tümü','Anaçlar','Anaç Adayları','Kuzular','Erkek Kuzular','Dişi Kuzular','Koç','Satılacaklar','Takipte','Pasif'];herdTabs.innerHTML=filters.map(f=>`<button class="tab ${herdFilter===f?'active':''}" onclick="herdFilter='${f}';renderHerd()">${f}</button>`).join('');
- let q=(herdSearch?.value||'').toLowerCase(); let arr=db.animals.filter(a=>{
-  let ok=herdFilter==='Tümü'||(herdFilter==='Anaçlar'&&a.type==='Koyun'&&a.breedingStatus!=='Anaç Adayı'&&isActiveAnimal(a))||(herdFilter==='Anaç Adayları'&&a.breedingStatus==='Anaç Adayı'&&isActiveAnimal(a))||(herdFilter==='Kuzular'&&a.type==='Kuzu'&&isActiveAnimal(a))||(herdFilter==='Erkek Kuzular'&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a))||(herdFilter==='Dişi Kuzular'&&a.type==='Kuzu'&&a.sex==='Dişi'&&isActiveAnimal(a))||(herdFilter==='Koç'&&a.type==='Koç'&&isActiveAnimal(a))||(herdFilter==='Satılacaklar'&&isSaleCandidate(a))||(herdFilter==='Takipte'&&a.status==='Takipte')||(herdFilter==='Pasif'&&['Satıldı','Öldü','Kesildi'].includes(a.status));
-  return ok&&((a.tag||'').toLowerCase().includes(q)||a.type.toLowerCase().includes(q)||a.status.toLowerCase().includes(q));
+ let filters=['Tümü','Anaçlar','Anaç Adayları','Kuzular','Erkek Kuzular','Dişi Kuzular','Koç','Satılacaklar','Takipte','Pasif'];
+ let sel=document.getElementById('herdFilterSelect');
+ if(sel){
+  if(!sel.options.length)sel.innerHTML=filters.map(f=>`<option value="${f}">${f}</option>`).join('');
+  sel.value=herdFilter;
+ }
+ let hiddenTabs=document.getElementById('herdTabs');
+ if(hiddenTabs)hiddenTabs.innerHTML=filters.map(f=>`<button class="tab ${herdFilter===f?'active':''}" onclick="herdFilter='${f}';renderHerd()">${f}</button>`).join('');
+
+ let q=(herdSearch?.value||'').toLocaleLowerCase('tr-TR').trim();
+ let arr=db.animals.filter(a=>{
+  let ok=herdFilter==='Tümü'||
+   (herdFilter==='Anaçlar'&&a.type==='Koyun'&&a.breedingStatus!=='Anaç Adayı'&&isActiveAnimal(a))||
+   (herdFilter==='Anaç Adayları'&&a.breedingStatus==='Anaç Adayı'&&isActiveAnimal(a))||
+   (herdFilter==='Kuzular'&&a.type==='Kuzu'&&isActiveAnimal(a))||
+   (herdFilter==='Erkek Kuzular'&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a))||
+   (herdFilter==='Dişi Kuzular'&&a.type==='Kuzu'&&a.sex==='Dişi'&&isActiveAnimal(a))||
+   (herdFilter==='Koç'&&a.type==='Koç'&&isActiveAnimal(a))||
+   (herdFilter==='Satılacaklar'&&isSaleCandidate(a))||
+   (herdFilter==='Takipte'&&a.status==='Takipte')||
+   (herdFilter==='Pasif'&&['Satıldı','Öldü','Kesildi'].includes(a.status));
+  let haystack=[a.tag,a.type,a.status,a.sex,a.breedingStatus].filter(Boolean).join(' ').toLocaleLowerCase('tr-TR');
+  return ok&&(!q||haystack.includes(q));
  });
- herdList.innerHTML=arr.length?arr.map(a=>`<div class="card"><div class="row"><div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.type==='Kuzu'&&a.weight? a.weight+' kg · ':''}${a.status}</div></div><span class="tag">${a.type}</span></div><div style="margin-top:10px"><button class="small" onclick="editTag('${a.id}')">${a.tag?'Küpe Düzenle':'Küpe No Ekle'}</button> <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div></div>`).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>';
+ let count=document.getElementById('herdCount');
+ if(count)count.textContent=herdFilter+' · '+arr.length+' hayvan';
+ herdList.innerHTML=arr.length?arr.map(a=>{
+  let extra=a.breedingStatus==='Anaç Adayı'?' · Anaç adayı':'';
+  let saleSoon=a.type==='Kuzu'&&a.sex==='Erkek'&&a.birth&&ageMonths(a.birth)>=5&&ageMonths(a.birth)<5.5;
+  return `<div class="card herdAnimal">
+   <div class="herdAnimalTop">
+    <div>
+     <div class="herdAnimalName">${animalName(a)}</div>
+     <div class="herdAnimalMeta">${a.sex} · ${age(a.birth)}${a.type==='Kuzu'&&a.weight?' · '+a.weight+' kg':''} · ${a.status}${extra}</div>
+     ${saleSoon?'<span class="saleSoonTag">Satışa yaklaşıyor</span>':''}
+    </div>
+    <span class="tag">${a.type}</span>
+   </div>
+   <div class="herdAnimalActions">
+    <button class="small openCard" onclick="animalCard('${a.id}')">Kartı Aç</button>
+    <button class="small" onclick="editTag('${a.id}')">${a.tag?'Küpe':'Küpe Ekle'}</button>
+   </div>
+  </div>`;
+ }).join(''):'<div class="empty">Bu görünümde hayvan yok.</div>';
 }
 
 function escHtml(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
