@@ -298,6 +298,7 @@ function ensureRecordIds(){
 }
 ensureRecordIds();
 function save(){
+ promoteAgedBreederLambs();
  ensureRecordIds();
  if(!db._meta)db._meta={};
  if(!cloudApplying)db._meta.updatedAt=new Date().toISOString();
@@ -313,6 +314,19 @@ function closeModal(){document.getElementById('modal').classList.remove('show')}
 function showModal(title,body){modalTitle.textContent=title;modalBody.innerHTML=body;modal.classList.add('show')}
 function animalName(a){return (a.tag?'#'+a.tag:'Küpesiz')+' · '+a.type}
 function age(b){if(!b)return 'Yaş bilinmiyor';let m=Math.max(0,Math.floor((Date.now()-new Date(b))/(864e5*30.44)));return m<12?m+' aylık':Math.floor(m/12)+' yaş '+m%12+' ay'}
+function ageMonths(b){
+ if(!b)return 0;
+ let d=new Date(b+'T00:00:00'),n=new Date();
+ if(isNaN(d))return 0;
+ return (n.getFullYear()-d.getFullYear())*12+(n.getMonth()-d.getMonth())+(n.getDate()-d.getDate())/30.44;
+}
+function promoteAgedBreederLambs(){
+ let changed=false;
+ db.animals.forEach(a=>{
+  if(a.type==='Kuzu'&&a.sex==='Dişi'&&a.breedingStatus==='Anaç Adayı'&&isActiveAnimal(a)&&a.birth&&ageMonths(a.birth)>=12){a.type='Koyun';changed=true}
+ });
+ return changed;
+}
 function isActiveAnimal(a){return !['Satıldı','Öldü','Kesildi'].includes(a.status)}
 function activeAnimalCount(){return db.animals.filter(isActiveAnimal).length}
 function isPlus(){return currentPlan==='plus'}
@@ -653,6 +667,8 @@ function renderHomeUpcoming(){
  }).join('');
 }
 function renderAll(){
+ let agedChanged=promoteAgedBreederLambs();
+ if(agedChanged){try{persistLocal()}catch(e){} if(cloudFarmId){cloudDirty=true;queueCloudSync()}}
  let A=db.animals.filter(a=>!['Satıldı','Öldü','Kesildi'].includes(a.status)), e=A.filter(a=>a.type==='Koyun').length,r=A.filter(a=>a.type==='Koç').length,l=A.filter(a=>a.type==='Kuzu').length,f=A.filter(a=>a.status==='Takipte').length;
  let setupCard=document.getElementById('firstSetupCard');if(setupCard)setupCard.style.display=(db.animals.length===0&&!db.setupDone)?'block':'none';
  heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
@@ -703,7 +719,7 @@ function renderHerd(){
   let ok=herdFilter==='Tümü'||(herdFilter==='Anaçlar'&&a.type==='Koyun'&&a.breedingStatus!=='Anaç Adayı'&&isActiveAnimal(a))||(herdFilter==='Anaç Adayları'&&a.breedingStatus==='Anaç Adayı'&&isActiveAnimal(a))||(herdFilter==='Kuzular'&&a.type==='Kuzu'&&isActiveAnimal(a))||(herdFilter==='Erkek Kuzular'&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a))||(herdFilter==='Dişi Kuzular'&&a.type==='Kuzu'&&a.sex==='Dişi'&&isActiveAnimal(a))||(herdFilter==='Koç'&&a.type==='Koç'&&isActiveAnimal(a))||(herdFilter==='Satılacaklar'&&isSaleCandidate(a))||(herdFilter==='Takipte'&&a.status==='Takipte')||(herdFilter==='Pasif'&&['Satıldı','Öldü','Kesildi'].includes(a.status));
   return ok&&((a.tag||'').toLowerCase().includes(q)||a.type.toLowerCase().includes(q)||a.status.toLowerCase().includes(q));
  });
- herdList.innerHTML=arr.length?arr.map(a=>`<div class="card"><div class="row"><div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.weight? a.weight+' kg · ':''}${a.status}</div></div><span class="tag">${a.type}</span></div><div style="margin-top:10px"><button class="small" onclick="editTag('${a.id}')">${a.tag?'Küpe Düzenle':'Küpe No Ekle'}</button> <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div></div>`).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>';
+ herdList.innerHTML=arr.length?arr.map(a=>`<div class="card"><div class="row"><div><b>${animalName(a)}</b><div class="muted">${a.sex} · ${age(a.birth)} · ${a.type==='Kuzu'&&a.weight? a.weight+' kg · ':''}${a.status}</div></div><span class="tag">${a.type}</span></div><div style="margin-top:10px"><button class="small" onclick="editTag('${a.id}')">${a.tag?'Küpe Düzenle':'Küpe No Ekle'}</button> <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div></div>`).join(''):'<div class="empty">Bu filtrede hayvan yok.</div>';
 }
 
 function escHtml(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
@@ -842,7 +858,7 @@ function animalCard(id){
   <div class="card">
    <b>${a.type} · ${a.sex}</b>
    <div class="muted">Küpe: ${a.tag||'Yok'} · ${age(a.birth)} · Durum: ${a.status}${a.breedingStatus?' · '+a.breedingStatus:''}</div>
-   <div class="muted" style="margin-top:5px">Doğum tarihi: ${a.birth||'Bilinmiyor'} · Son kilo: ${a.weight?a.weight+' kg':'Yok'}${mother?' · Anne: '+animalName(mother):''}</div>
+   <div class="muted" style="margin-top:5px">Doğum tarihi: ${a.birth||'Bilinmiyor'}${a.type==='Kuzu'?' · Son kilo: '+(a.weight?a.weight+' kg':'Yok'):''}${mother?' · Anne: '+animalName(mother):''}</div>
    ${a.deathDate?`<div class="muted">Ölüm: ${a.deathDate}${a.deathReason?' · '+escHtml(a.deathReason):''}</div>`:''}
    ${explain}
   </div>
@@ -960,7 +976,7 @@ function quickAnimalLookup(){
    <div class="quickActions">
     <button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button>
     <button class="small" onclick="openAddForAnimal('health','${a.id}')">💉 Sağlık</button>
-    <button class="small" onclick="openAddForAnimal('weight','${a.id}')">⚖️ Tartım</button>
+    ${a.type==='Kuzu'?`<button class="small" onclick="openAddForAnimal('weight','${a.id}')">⚖️ Tartım</button>`:''}
     ${canBirth?`<button class="small primary" onclick="openAddForAnimal('birth','${a.id}')">🐑 Doğum</button>`:''}
    </div>
   </div>`
@@ -1049,7 +1065,7 @@ function openAdd(kind){
  expense:['Gider Ekle',`<label>Gider türü</label><select id="cat" onchange="toggleExpenseProduction()"><option>Yem</option><option>İlaç</option><option>Tarla · Tohum</option><option>Tarla · Libazma/Sürüm</option><option>Tarla · Mazot</option><option>Tarla · Gübre</option><option>Tarla · İlaçlama</option><option>Tarla · Biçim/Balya</option><option>Tarla · İşçilik</option><option>Tarla · Diğer</option><option>Veteriner</option><option>Diğer gider</option></select><div id="expenseProductionFields" style="display:none"><label>Üretim dönemi</label><input id="productionPeriod" value="${productionPeriodDefault()}" placeholder="2026-2027"><div class="muted" style="margin-bottom:8px">Tarla tarla dağıtım yok; bu gider doğrudan seçilen sezona yazılır.</div></div><label>Tutar (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Açıklama</label><input id="note"><button class="primary" onclick="submitSimple('expense')">Gideri Kaydet</button>`],
  birth:['Doğum Kaydı',`<label>Anaç</label><select id="mother">${motherOptions()}</select><label>Doğum tarihi</label><input id="date" type="date" value="${today()}"><label>Kuzu sayısı</label><select id="count" onchange="renderBirthSexFields(this.value)"><option>1</option><option>2</option><option>3</option></select><div id="birthSexFields">${birthSexFields(1)}</div><button class="primary" onclick="submitBirth()">Doğumu Kaydet ve Kuzuları Sürüye Ekle</button>`],
  health:['Sağlık Kaydı',`<label>Hayvan</label><select id="animal">${animalOptions()}</select><label>İşlem / durum</label><input id="note" placeholder="İlaç, aşı, takip..."><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Tekrar / hatırlatma</label><select id="reminderDays" onchange="document.getElementById('reminderDate').style.display=this.value==='custom'?'block':'none'"><option value="0">Hatırlatma yok</option><option value="7">7 gün sonra</option><option value="15">15 gün sonra</option><option value="30">30 gün sonra</option><option value="custom">Tarih seç</option></select><input id="reminderDate" type="date" style="display:none"><div class="muted" style="margin-bottom:8px">İstersen boş bırak; sadece gereken işlemlerde kullan.</div><button class="primary" onclick="submitAnimal('health')">Kaydet</button>`],
- weight:['Tartım Kaydı',`<label>Hayvan</label><select id="animal">${animalOptions()}</select><label>Kilo (kg)</label><input id="weight" type="number" step=".1"><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitAnimal('weight')">Kaydet</button>`],
+ weight:['Kuzu Tartım Kaydı',`<label>Kuzu</label><select id="animal">${animalOptions(['Kuzu'])}</select><label>Kilo (kg)</label><input id="weight" type="number" step=".1"><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitAnimal('weight')">Kaydet</button>`],
  sale:['Satış Kaydı',`<label>Satılan hayvanları seç</label>${salePickList()}<label>Toplam satış tutarı (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><label>Açıklama</label><input id="note"><button class="primary" onclick="submitSale()">Satışı Kaydet</button>`],
  stock:['Stok Alımı',`<label>Kalem</label><select id="cat">${Object.keys(db.stock).map(x=>`<option>${x}</option>`).join('')}</select><label>Miktar</label><input id="qty" type="number"><label>Toplam maliyet (TL)</label><input id="amount" type="number"><label>Tarih</label><input id="date" type="date" value="${today()}"><button class="primary" onclick="submitStock()">Stok ve Gider Olarak Kaydet</button>`],
  harvest:['Hasat / Ürün Girişi',`<label>Üretim dönemi</label><input id="productionPeriod" value="${productionPeriodDefault()}" placeholder="2026-2027"><label>Ürün</label><input id="harvestProduct" placeholder="Örn. Arpa, Balya"><label>Miktar</label><input id="qty" type="number" step=".1"><label>Birim</label><select id="harvestUnit"><option>kg</option><option>adet</option><option>balya</option><option>ton</option></select><label>Hasat tarihi</label><input id="date" type="date" value="${today()}"><label>Not</label><input id="note" placeholder="İsteğe bağlı"><button class="primary" onclick="submitHarvest()">Hasadı Kaydet ve Stoğa Ekle</button>`],
@@ -1073,7 +1089,7 @@ function submitBirth(){const count=document.getElementById('count'),mother=docum
  save();closeModal();toast(n+' kuzu otomatik sürüye eklendi')
 }
 function addDaysISO(base,days){let d=new Date((base||today())+'T00:00:00');d.setDate(d.getDate()+(+days||0));return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
-function submitAnimal(kind){const animal=document.getElementById('animal'),weight=document.getElementById('weight'),date=document.getElementById('date'),note=document.getElementById('note');let a=db.animals.find(x=>x.id===animal.value);if(!a||!isActiveAnimal(a))return toast('Aktif hayvan seç');if(!date.value)return toast('Tarih seç');if(kind==='weight'){if(!Number.isFinite(+weight.value)||+weight.value<=0)return toast('Sıfırdan büyük kilo gir');a.weight=+weight.value;db.records.push({id:uid('rec'),kind,label:'Tartım · '+animalName(a),date:date.value,animalId:a.id,note:weight.value+' kg'})}else{let rd=document.getElementById('reminderDays')?.value||'0',due='';if(rd==='custom')due=document.getElementById('reminderDate')?.value||'';else if(+rd>0)due=addDaysISO(date.value,+rd);db.records.push({id:uid('rec'),kind,label:'Sağlık · '+animalName(a),date:date.value,animalId:a.id,note:note.value,reminderDate:due,reminderDone:false});}save();closeModal();toast('Kayıt işlendi')}
+function submitAnimal(kind){const animal=document.getElementById('animal'),weight=document.getElementById('weight'),date=document.getElementById('date'),note=document.getElementById('note');let a=db.animals.find(x=>x.id===animal.value);if(!a||!isActiveAnimal(a))return toast('Aktif hayvan seç');if(!date.value)return toast('Tarih seç');if(kind==='weight'){if(a.type!=='Kuzu')return toast('Tartım sadece kuzular için kullanılır');if(!Number.isFinite(+weight.value)||+weight.value<=0)return toast('Sıfırdan büyük kilo gir');a.weight=+weight.value;db.records.push({id:uid('rec'),kind,label:'Tartım · '+animalName(a),date:date.value,animalId:a.id,note:weight.value+' kg'})}else{let rd=document.getElementById('reminderDays')?.value||'0',due='';if(rd==='custom')due=document.getElementById('reminderDate')?.value||'';else if(+rd>0)due=addDaysISO(date.value,+rd);db.records.push({id:uid('rec'),kind,label:'Sağlık · '+animalName(a),date:date.value,animalId:a.id,note:note.value,reminderDate:due,reminderDone:false});}save();closeModal();toast('Kayıt işlendi')}
 function selectedSaleAnimals(){return [...document.querySelectorAll('.saleAnimal:checked')].map(x=>db.animals.find(a=>a.id===x.value)).filter(Boolean).filter(isActiveAnimal)}
 function submitSelectedSale(source){const amount=document.getElementById('amount'),date=document.getElementById('date'),note=document.getElementById('note');if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir satış tutarı gir');if(!date.value)return toast('Tarih seç');if(!canAddFinance(1))return showFinancePlusRequired();let arr=selectedSaleAnimals();if(!arr.length)return toast('En az bir hayvan seç');let names=arr.map(animalName),ids=arr.map(a=>a.id),previousStatuses={};arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});db.records.push({id:uid('rec'),kind:'sale',label:`Satış · ${arr.length} hayvan`,category:'Kuzu/Hayvan satışı',amount:+amount.value,date:date.value,note:(typeof note!=='undefined'&&note?.value)||'',animalIds:ids,animalNames:names,previousStatuses,source:source||'sale'});save();closeModal();toast(arr.length+' hayvan satıldı; gelir kaydına bağlandı')}
 function submitSale(){return submitSelectedSale('sale')}
