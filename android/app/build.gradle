@@ -1,4 +1,16 @@
 plugins { id 'com.android.application' }
+def releaseStore = System.getenv('ANDROID_KEYSTORE_PATH')
+def releasePassword = System.getenv('ANDROID_KEYSTORE_PASSWORD')
+def releaseAlias = System.getenv('ANDROID_KEY_ALIAS')
+def releaseKeyPassword = System.getenv('ANDROID_KEY_PASSWORD')
+def signingValues = [releaseStore, releasePassword, releaseAlias, releaseKeyPassword]
+def signingRequested = signingValues.any { it != null }
+if (signingRequested && signingValues.any { !it?.trim() }) {
+ throw new GradleException('All four Android signing environment variables are required.')
+}
+if (signingRequested && !file(releaseStore).isFile()) {
+ throw new GradleException('Android signing keystore file is missing.')
+}
 android {
  namespace 'com.hasanlutfioglu.surutakip'
  compileSdk 36
@@ -10,7 +22,22 @@ android {
   versionName '1.0.1'
   testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
  }
- buildTypes { release { minifyEnabled false } }
+ signingConfigs {
+  if (signingRequested) {
+   release {
+    storeFile file(releaseStore)
+    storePassword releasePassword
+    keyAlias releaseAlias
+    keyPassword releaseKeyPassword
+   }
+  }
+ }
+ buildTypes {
+  release {
+   minifyEnabled false
+   if (signingRequested) signingConfig signingConfigs.release
+  }
+ }
 }
 dependencies {
  implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.3'

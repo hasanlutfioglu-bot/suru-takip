@@ -7,6 +7,14 @@ JDK 17, Android SDK platform 36, Gradle 8.13 gerekir. Android Studio ile bu klas
 
 GitHub Actions Android build iş akışı test APK ve imzasız AAB üretir. Debug APK test içindir; Play Store'a yüklenmez. AAB imzasızdır, yayın anahtarıyla imzalanmadan yüklenmez. Anahtar veya parolalar repoya konulmaz.
 
+## Güvenli imzalı test paketi
+
+`Signed Android test release` iş akışı yalnız elle başlatılır; mağazaya otomatik yükleme yapmaz. Önce uygulama testlerini çalıştırır, release lint ve AAB derlemesini yapar, paket imzasını kontrol eder. İmzalı çıktı 14 gün saklanır. Bu çıktı gerçek cihaz/Play testini geçmiş sayılmaz.
+
+GitHub'da `android-release` ortamına şu secrets eklenir: `ANDROID_KEYSTORE_BASE64` (mevcut upload keystore dosyasının Base64 hali), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Mevcut uygulama için kayıtlı upload key kullanılmalı; yeni anahtar mevcut anahtarın yerine gelişigüzel oluşturulmamalı. Anahtarları sohbetten göndermeyin. Eksik ayarla işlem başarısız olur; geçici keystore derleme sonunda silinir ve artifact içine alınmaz.
+
+Yerel imzalama aynı parola/alias değişkenleri ve `ANDROID_KEYSTORE_PATH` ile çalışır. Dört değişken birlikte verilmelidir. Play App Signing sertifikası, bu upload anahtarından farklı olabilir; `assetlinks.json` için Play uygulama imza sertifikasını kullanın.
+
 ## Yayın engelleri
 - Site doğrulaması **origin kökünde** `https://hasanlutfioglu-bot.github.io/.well-known/assetlinks.json` ister. Bu projenin `/suru-takip/.well-known/` yolu yeterli değildir. Kullanıcının root Pages reposu veya özel alan adı gerekir.
 - Play App Signing sertifikası SHA-256 alınmalı ve kök doğrulama dosyasına eklenmeli. Henüz bir anahtar oluşturulmadı, doğrulama yapılmadı. Doğrulama öncesi tarayıcı adres çubuğu görünür.
