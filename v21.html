@@ -122,6 +122,13 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 <header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></h1><div style="display:flex;gap:6px;align-items:center"><button class="pill" id="planStatus" onclick="openPlans()" style="border:0;font-weight:800">FREE</button><span class="pill" id="cloudStatus">Yerel mod</span></div></div><button id="planStrip" onclick="openPlans()" style="width:100%;margin-top:9px;border:1px solid #dfe7df;background:#fff;border-radius:13px;padding:9px 11px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b id="planStripTitle">FREE</b><small id="planStripText" style="display:block;color:#68736a;margin-top:2px">Temel paket</small></span><span style="font-weight:800;color:#245c3b">Üyelik ›</span></button></header>
 <main>
 <section id="home" class="screen active">
+ <div class="card" id="welcomeAccountCard">
+  <b id="welcomeAccountTitle">Google hesabınla başla</b>
+  <p class="muted" id="welcomeAccountText">Giriş yap veya kayıt ol. İlk kayıtta 30 gün ücretsiz PRO; sürün hesabında saklanır.</p>
+  <button class="primary" id="welcomeGoogleLoginBtn" type="button" onclick="signInGoogle()">Google ile Giriş Yap / Kayıt Ol</button>
+  <button class="small" id="welcomeAccountBtn" type="button" onclick="openAccount()" hidden>Hesabım / İşletmem</button>
+  <div id="farmChoiceBox" hidden style="margin-top:10px"><label for="farmChoice">Kullanılacak sürü</label><select id="farmChoice" onchange="switchFarm(this.value)"></select></div>
+ </div>
  <div class="hero"><small>SÜRÜ SAYISI</small><h2 id="heroTotal">0 hayvan</h2><div id="heroSub"></div></div>
  <div class="homeSummary">
   <button class="summaryCard" onclick="openSub('performance')"><span>Sürünün doğum oranı</span><b id="homeBirthRate">—</b><small id="homeBirthHint">Henüz doğum kaydı yok</small></button>
@@ -784,6 +791,15 @@ function setCloudUI(mode,msg){
      login=document.getElementById('googleLoginBtn'), sync=document.getElementById('syncNowBtn'),
      logout=document.getElementById('logoutBtn'), badge=document.getElementById('netBadge');
  if(text)text.textContent=msg||'';
+ const signedIn=!!cloudSession;
+ const homeLogin=document.getElementById('welcomeGoogleLoginBtn'),homeAccount=document.getElementById('welcomeAccountBtn');
+ if(homeLogin){homeLogin.hidden=signedIn;homeLogin.disabled=mode==='connecting'}
+ if(homeAccount)homeAccount.hidden=!signedIn;
+ const homeTitle=document.getElementById('welcomeAccountTitle'),homeText=document.getElementById('welcomeAccountText');
+ if(homeTitle)homeTitle.textContent=signedIn?'Hesabın bağlı':'Google hesabınla başla';
+ if(homeText)homeText.textContent=signedIn?(cloudSession.user.email+' · '+(msg||'')):(mode==='connecting'?'Google giriş ekranı açılıyor…':'Giriş yap veya kayıt ol. İlk kayıtta 30 gün ücretsiz PRO; sürün hesabında saklanır.');
+ if(!signedIn){const choices=document.getElementById('farmChoiceBox');if(choices)choices.hidden=true}
+
  if(mode==='online'){
   if(status)status.textContent='Bulut bağlı';
   if(login)login.style.display='none'; if(sync)sync.style.display='inline-block'; if(logout)logout.style.display='inline-block';
@@ -854,7 +870,7 @@ function mergeStates(base,local,remote){
  out.report=local.report||'monthly';out._meta={...remote._meta,...local._meta,updatedAt:new Date().toISOString()};
  return {data:out,conflicts};
 }
-function resetCloudContext(){sessionEpoch++;clearTimeout(cloudSyncTimer);cloudFarmId=null;cloudRole='';currentPlan='free';subscriptionStatus='free';trialEndsAt=null;currentPeriodEnd=null;cloudBase=null;cloudVersion=null;cloudDirty=false;syncConflict=null;if(cloudChannel&&sb)sb.removeChannel(cloudChannel);cloudChannel=null;renderPlanStatus();}
+function resetCloudContext(){cloudMemberships=[];renderFarmChoices();sessionEpoch++;clearTimeout(cloudSyncTimer);cloudFarmId=null;cloudRole='';currentPlan='free';subscriptionStatus='free';trialEndsAt=null;currentPeriodEnd=null;cloudBase=null;cloudVersion=null;cloudDirty=false;syncConflict=null;if(cloudChannel&&sb)sb.removeChannel(cloudChannel);cloudChannel=null;renderPlanStatus();}
 let authEventVersion=0, explicitSignOut=false;
 function handleCloudSession(event,session){
  const version=++authEventVersion;
@@ -902,26 +918,46 @@ async function signOutCloud(){
  resetCloudContext();cloudSession=null;activeStorageKey=KEY+'_guest';db=readStored(activeStorageKey,seed());renderAll();disconnectCloudUI();toast('Çıkış yapıldı. Hesabının kayıtları bu cihazda korundu');
 }
 function disconnectCloudUI(){setCloudUI('local',activeStorageKey!==KEY+'_guest'?'Cihazdaki sürün açık. İnternet ve geçerli giriş olduğunda bulutla eşitlenir.':'Yerel mod. Hesabınla giriş yapınca o hesaba ait sürü açılır.')}
+let cloudMemberships=[];
+function selectMembership(members,userId){
+ const preferred=localStorage.getItem(KEY+'_preferred_farm_'+userId);
+ return members.find(m=>m.farm_id===preferred)||members.find(m=>m.role==='editor')||members[0];
+}
+function renderFarmChoices(){
+ const box=document.getElementById('farmChoiceBox'),choice=document.getElementById('farmChoice');
+ if(!box||!choice)return;
+ box.hidden=!cloudSession||cloudMemberships.length<2;
+ choice.innerHTML=cloudMemberships.map((m,i)=>'<option value="'+escHtml(m.farm_id)+'"'+(m.farm_id===cloudFarmId?' selected':'')+'>'+escHtml(m.role==='owner'?'Kendi sürüm':m.role==='editor'?'Paylaşılan sürü · Düzenleme yetkisi':'Paylaşılan sürü · Görüntüleme')+(cloudMemberships.filter(x=>x.role===m.role).length>1?' '+(i+1):'')+'</option>').join('');
+}
+async function switchFarm(farmId){
+ if(!cloudSession||!cloudMemberships.some(m=>m.farm_id===farmId))return;
+ if(connectBusy||syncBusy||accountDeleting||navigator.onLine===false){renderFarmChoices();return toast('Sürü değiştirmek için bağlantının ve eşitlemenin tamamlanmasını bekle')}
+ if(cloudDirty){await uploadCloudState();if(cloudDirty){renderFarmChoices();return toast('Önce mevcut sürünün kayıtlarını eşitle')}}
+ localStorage.setItem(KEY+'_preferred_farm_'+cloudSession.user.id,farmId);
+ resetCloudContext();await connectCloud();
+}
 async function connectCloud(){
  if(!sb||!cloudSession||connectBusy||accountDeleting)return;connectBusy=true;const epoch=sessionEpoch,userId=cloudSession.user.id;
  try{
  restoreDeviceContext(userId);renderAll();
  if(navigator.onLine===false){if(subscriptionStatus==='active'&&['pro','plus'].includes(currentPlan))subscriptionStatus='offline';renderPlanStatus();setCloudUI('online','İnternet yok. Cihazdaki sürün açık; yeni kayıtlar bağlantı gelince eşitlenecek.');return}
  setCloudUI('connecting','Hesabının sürüsü bağlanıyor…');
- const {data:members,error:memErr}=await sb.from('farm_members').select('farm_id,role').eq('user_id',userId).order('created_at',{ascending:true}).limit(1);
+ const {data:members,error:memErr}=await sb.from('farm_members').select('farm_id,role').eq('user_id',userId).order('created_at',{ascending:true});
  if(epoch!==sessionEpoch||cloudSession?.user.id!==userId)return;
  if(memErr||!members?.length)throw new Error(memErr?.message||'Hesaba ait çiftlik bulunamadı');
- const farmId=members[0].farm_id,key=KEY+'_user_'+userId+'_farm_'+farmId;
- cloudFarmId=farmId;cloudRole=members[0].role;
+ const member=selectMembership(members,userId);cloudMemberships=members;
+ const farmId=member.farm_id,key=KEY+'_user_'+userId+'_farm_'+farmId;
+ if(activeStorageKey!==key&&cloudDirty)archiveRecovery(db,'Sürü değiştirmeden önce eşitlenmemiş kayıtlar');
+ cloudFarmId=farmId;cloudRole=member.role;
  if(activeStorageKey!==key){
-  cloudFarmId=farmId;cloudRole=members[0].role;activeStorageKey=key;db=readStored(key,seed());
+  cloudFarmId=farmId;cloudRole=member.role;activeStorageKey=key;db=readStored(key,seed());
   cloudBase=null;cloudVersion=null;cloudDirty=false;let cache={};try{const stored=JSON.parse(localStorage.getItem(key)||'{}');cache=stored.sync||JSON.parse(localStorage.getItem(key+'_sync')||'{}')}catch(e){}
   cloudBase=cache.base?normalizeState(cache.base):null;cloudVersion=cache.version||null;cloudDirty=!!cache.dirty;syncConflict=null;renderAll();
  }
  const {data:sub}=await sb.from('subscriptions').select('plan,status,trial_ends_at,current_period_end').eq('farm_id',farmId).maybeSingle();if(epoch!==sessionEpoch)return;
  currentPlan=sub?.plan||'free';subscriptionStatus=sub?.status||'free';trialEndsAt=sub?.trial_ends_at||null;currentPeriodEnd=sub?.current_period_end||null;
  if(subscriptionStatus==='trialing'&&!trialActive()){subscriptionStatus='free';currentPlan='free'}
- persistLocal();renderPlanStatus();
+ persistLocal();renderPlanStatus();renderFarmChoices();
  await uploadCloudState();if(epoch===sessionEpoch)subscribeCloud();
  }catch(e){if(epoch===sessionEpoch)setCloudUI('local','Bağlantı kurulamadı; cihazdaki kayıtlar korunuyor: '+e.message)}finally{connectBusy=false;if(epoch!==sessionEpoch&&cloudSession)setTimeout(connectCloud,0)}
 }
