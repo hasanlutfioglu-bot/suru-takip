@@ -119,95 +119,13 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .homeMenu{width:100%;margin:18px 0;padding:16px;font-size:16px;background:var(--green);color:white}
 .screen>h3,.screen>.row>h3{font-size:22px;margin:18px 0}.card{padding:18px;border-radius:20px}.stat span,.muted,.rateHelp,label{font-size:14px;line-height:1.5}.menuGrid{gap:12px;margin-bottom:18px}.menuBtn{font-size:22px;border-radius:18px;padding:20px 16px;box-shadow:var(--shadow)}.menuBtn b{font-size:16px;line-height:1.5}.tabs{gap:8px;padding-bottom:12px}.tab{font-size:14px}.listitem{padding:16px 0}.row{flex-wrap:wrap}.row>div{min-width:0}.recordActions{margin-left:auto}input,select,textarea{font-size:16px;min-height:46px}.small{font-size:14px}.nav{font-size:12px;min-height:54px}.sheet{padding:20px}.sheet h3{font-size:20px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #bc871c;outline-offset:3px}
 .pricingHero{background:linear-gradient(145deg,#123e30,#1f694c);color:#fff;border-radius:22px;padding:16px;margin-bottom:10px}.pricingHero b{font-size:22px}.pricingHero .muted{color:#d6e6dc}.priceGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}.priceCard{border:1px solid var(--line);background:#fff;border-radius:18px;padding:14px;text-align:left}.priceCard.selected{border:2px solid var(--green);background:#f4fbf6}.priceCard small{display:block;color:var(--muted);margin-top:3px}.priceCard strong{display:block;font-size:24px;margin-top:6px}.priceSave{display:inline-block;font-size:10px;font-weight:800;color:#815a00;background:#fff0c7;border-radius:99px;padding:4px 7px;margin-top:6px}.planCheck{display:flex;gap:8px;align-items:flex-start;padding:7px 0;font-size:13px}.planCheck i{font-style:normal;color:var(--green);font-weight:900}.purchaseFine{font-size:10px;color:var(--muted);line-height:1.45;text-align:center;margin-top:8px}@media(max-width:360px){.homeSummary{grid-template-columns:1fr}.hero h2{font-size:32px}.summaryCard b{font-size:28px}}
-
-/* Premium layout is a reversible, device-local preference. Classic rules stay intact. */
-.premiumOnly{display:none!important}
-body.premium{--bg:#f7f6f2;--ink:#18352d;--green:#173f35;--green2:#285b49;--muted:#69726d;--line:#e5e7e1;--shadow:0 3px 14px #18352d06}
-body.premium .premiumOnly{display:block!important}
-body.premium .classicOnly{display:none!important}
-body.premium header{background:#f7f6f2f5;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
-body.premium .brand h1{font-size:21px;letter-spacing:-.6px;display:flex;align-items:center;gap:8px}
-body.premium .brandMark{width:30px;height:30px}
-body.premium #planStrip,body.premium #planStatus{display:none!important}
-body.premium #cloudStatus{background:transparent;padding:0;font-size:11px;color:var(--muted);max-width:100px;text-align:right}
-body.premium .profileButton{width:38px;height:38px;border-radius:50%;padding:0;background:#e5ebdf;font-size:17px}
-body.premium main{padding:12px 16px}
-body.premium .hero{background:var(--green);padding:20px;border-radius:18px;box-shadow:none;margin-bottom:12px}
-body.premium .hero small{font-size:13px;letter-spacing:0;font-weight:500}
-body.premium .hero h2{font-size:34px;letter-spacing:-1px;margin-top:5px}
-body.premium .hero #heroSub{font-size:13px;margin-top:8px}
-body.premium .homeSummary{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-body.premium .summaryCard{padding:15px 13px;border-radius:16px;box-shadow:none}
-body.premium .summaryCard span{font-size:13px}
-body.premium .summaryCard b{font-size:27px;margin:7px 0}
-body.premium .summaryCard small{font-size:11px;line-height:1.4}
-body.premium .summaryCard:has(#homeNet){display:none}
-body.premium .saleSummary{grid-column:auto}
-body.premium .saleSummary small{font-size:0}
-body.premium .saleSummary small:after{content:'Listeyi gör ›';font-size:12px;color:var(--green)}
-body.premium .homeMenu{display:none}
-body.premium .homeUpcoming{padding:15px;border-radius:16px;margin-top:14px;box-shadow:none}
-body.premium .homeUpcomingHead .muted{display:none}
-body.premium .upcomingItem{padding:11px 0}
-body.premium .upcomingIcon{width:32px;height:32px;font-size:15px;background:#f2f4ef}
-body.premium .upcomingText b{font-size:13px}
-body.premium .card{border-radius:16px;padding:16px;box-shadow:none}
-body.premium #welcomeAccountCard{padding:13px;margin-bottom:14px}
-body.premium #welcomeAccountText{font-size:12px;margin:5px 0 10px}
-body.premium #welcomeAccountTitle{font-size:14px}
-body.premium .premiumTitle{font-size:21px;margin:16px 0 12px;letter-spacing:-.5px}
-body.premium .premiumFarm{font-weight:600;font-size:13px;display:flex!important;justify-content:space-between;align-items:center}
-body.premium .premiumFarm button{background:transparent;padding:4px 0;font-size:13px;color:var(--ink);text-align:left}
-body.premium .quickGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:16px}
-body.premium .quickGrid button{display:flex;align-items:center;flex-direction:column;gap:8px;padding:13px 4px;background:#fff;border:1px solid var(--line);font-size:12px;font-weight:600}
-.uiIcon{width:22px;height:22px;display:inline-block;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
-body.premium .herdMainSearch:before{content:'⌕';font-size:25px;top:8px;color:var(--muted)}
-body.premium .herdMainSearch input{box-shadow:none;background:#fff;border-radius:12px}
-body.premium .herdPrimaryFilters button{background:#fff;border:1px solid var(--line);font-weight:500}
-body.premium .herdPrimaryFilters button.active{background:#e4ecdE;color:var(--green);font-weight:700;border-color:#e4ecde}
-body.premium #herdList{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
-body.premium #herdList:has(.empty){background:transparent;border:0}
-body.premium .premiumAnimal{width:100%;display:flex;align-items:center;gap:11px;text-align:left;background:#fff;border-radius:0;border-bottom:1px solid var(--line);padding:16px 13px;font-weight:400;color:var(--ink)}
-body.premium .premiumAnimal:last-child{border:0}
-body.premium .animalLineMain{flex:1;min-width:0}
-body.premium .animalLineMain b{font-size:18px;letter-spacing:-.4px}
-body.premium .animalLineMain .animalType{font-size:12px;color:var(--muted);margin-left:7px}
-body.premium .animalLineMain small{display:block;font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px}
-body.premium .animalLineBadge{font-size:10px;max-width:100px;background:#eef3e9;color:var(--green);padding:5px 7px;border-radius:10px;text-align:center}
-body.premium .bottom{background:#fffffff5}
-body.premium .bottomin{padding-top:8px;gap:0}
-body.premium .nav{font-size:10px;min-height:57px;font-weight:500;display:flex;align-items:center;flex-direction:column;gap:4px}
-body.premium .nav.active{font-weight:700}
-body.premium .navAdd .uiIcon{background:var(--green);color:white;width:38px;height:38px;padding:8px;border-radius:50%;margin-top:-8px}
-body.premium .menuBtn{font-size:16px;padding:16px;min-height:65px;box-shadow:none}
-body.premium .menuBtn b{font-size:13px}
-body.premium .muted,body.premium .rateHelp{font-size:12px}
-body.premium .listitem{padding:13px 0}
-body.premium .small{font-size:12px}
-body.premium .financeHeading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 15px}
-body.premium .financeHeading h3{margin:0;font-size:23px}
-body.premium .financePeriod{max-width:170px;margin:0;background:#fff;min-height:42px;font-size:14px}
-body.premium .financeBalance{font-size:31px;letter-spacing:-.8px;margin:8px 0}
-body.premium .financeMetrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-body.premium .financeMetrics div{background:#f7f8f4;border-radius:11px;padding:12px}
-body.premium .financeMetrics b{display:block;font-size:18px;margin-top:4px;overflow-wrap:anywhere}
-body.premium .financeRows .recordActions{gap:5px}
-body.premium .financeRows .recordActions .small{background:transparent;font-weight:500;padding:8px 4px;font-size:11px}
-body.premium .financeRows .listitem>div:first-child{flex:1;min-width:100px}
-body.premium button{min-height:44px}
-body.premium .profileButton{min-height:38px}
-body.premium .appearanceChoices{display:flex;gap:10px;margin-top:12px}
-body.premium .appearanceChoices button{flex:1}
-body.premium #premiumRecent .row{cursor:pointer}
-@media(max-width:360px){body.premium main{padding:10px 12px}body.premium .animalLineBadge{max-width:78px;font-size:9px}body.premium .financeBalance{font-size:27px}}
-
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1><span class="classicOnly">🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></span><span class="premiumOnly"><img class="brandMark" src="./icons/app.svg" alt=""> Sürü Takip</span></h1><div style="display:flex;gap:6px;align-items:center"><button class="pill" id="planStatus" onclick="openPlans()" style="border:0;font-weight:800">FREE</button><span class="pill" id="cloudStatus">Yerel mod</span><button class="premiumOnly profileButton" onclick="openAccount()" aria-label="Hesabım / İşletmem">◉</button></div></div><button id="planStrip" onclick="openPlans()" style="width:100%;margin-top:9px;border:1px solid #dfe7df;background:#fff;border-radius:13px;padding:9px 11px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b id="planStripTitle">FREE</b><small id="planStripText" style="display:block;color:#68736a;margin-top:2px">Temel paket</small></span><span style="font-weight:800;color:#245c3b">Üyelik ›</span></button></header>
+<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></h1><div style="display:flex;gap:6px;align-items:center"><button class="pill" id="planStatus" onclick="openPlans()" style="border:0;font-weight:800">FREE</button><span class="pill" id="cloudStatus">Yerel mod</span></div></div><button id="planStrip" onclick="openPlans()" style="width:100%;margin-top:9px;border:1px solid #dfe7df;background:#fff;border-radius:13px;padding:9px 11px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b id="planStripTitle">FREE</b><small id="planStripText" style="display:block;color:#68736a;margin-top:2px">Temel paket</small></span><span style="font-weight:800;color:#245c3b">Üyelik ›</span></button></header>
 <main>
-<section id="home" class="screen active"><div class="premiumOnly premiumFarm"><button id="premiumFarmName" onclick="openAccount()">Sürüm ›</button><button onclick="openAppearance()" aria-label="Görünüm seç">Görünüm</button></div><h2 class="premiumOnly premiumTitle">Sürüne genel bakış</h2>
+<section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
   <b id="welcomeAccountTitle">Google hesabınla başla</b>
   <p class="muted" id="welcomeAccountText">Giriş yap veya kayıt ol. İlk kayıtta 30 gün ücretsiz PRO; sürün hesabında saklanır.</p>
@@ -215,7 +133,7 @@ body.premium #premiumRecent .row{cursor:pointer}
   <button class="small" id="welcomeAccountBtn" type="button" onclick="openAccount()" hidden>Hesabım / İşletmem</button>
   <div id="farmChoiceBox" hidden style="margin-top:10px"><label for="farmChoice">Kullanılacak sürü</label><select id="farmChoice" onchange="switchFarm(this.value)"></select></div>
  </div>
- <div class="hero"><small><span class="classicOnly">SÜRÜ SAYISI</span><span class="premiumOnly">Toplam hayvan</span></small><h2 id="heroTotal">0 hayvan</h2><div id="heroSub"></div></div>
+ <div class="hero"><small>SÜRÜ SAYISI</small><h2 id="heroTotal">0 hayvan</h2><div id="heroSub"></div></div>
  <div class="homeSummary">
   <button class="summaryCard" onclick="openSub('performance')"><span>Sürünün doğum oranı</span><b id="homeBirthRate">—</b><small id="homeBirthHint">Henüz doğum kaydı yok</small></button>
   <button class="summaryCard" onclick="go('reports')"><span>Kâr / Zarar</span><b id="homeNet">0 TL</b><small>Tüm kayıtlar · gelir − gider</small></button>
@@ -223,7 +141,7 @@ body.premium #premiumRecent .row{cursor:pointer}
  </div>
  <div class="homeUpcoming">
   <div class="homeUpcomingHead">
-   <div><b><span class="classicOnly">📅 Yaklaşan İşler</span><span class="premiumOnly">Yaklaşan işler</span></b><div class="muted">Hatırlatmalar ve yapılacaklar</div></div>
+   <div><b>📅 Yaklaşan İşler</b><div class="muted">Hatırlatmalar ve yapılacaklar</div></div>
    <span class="homeUpcomingCount" id="homeUpcomingCount">0</span>
   </div>
   <div id="homeUpcomingList"></div>
@@ -234,7 +152,6 @@ body.premium #premiumRecent .row{cursor:pointer}
   <div class="muted" id="homeDataQualityText" style="margin-top:4px"></div>
   <button class="small" onclick="openMissingAnimalData()">Eksikleri Göster</button>
  </div>
- <div class="premiumOnly"><h3>Hızlı kayıt</h3><div class="quickGrid"><button onclick="openAdd('birth')"><span id="quickBirthIcon"></span>Doğum</button><button onclick="openAdd('weight')"><span id="quickWeightIcon"></span>Tartım</button><button onclick="openAdd('health')"><span id="quickHealthIcon"></span>Sağlık</button></div><h3>Son hareketler</h3><div class="card" id="premiumRecent"></div></div>
  <button class="homeMenu" onclick="go('all')">☰ Tüm Menüler</button>
 </section>
 
@@ -574,7 +491,7 @@ body.premium #premiumRecent .row{cursor:pointer}
  <div class="card" id="chatHints"></div>
 </section>
 
-<section id="all" class="screen"><div class="row"><h3><span class="classicOnly">Tüm Menüler</span><span class="premiumOnly">Diğer</span></h3><button class="small" onclick="go('home')">Geri</button></div><div class="menuGrid">
+<section id="all" class="screen"><div class="row"><h3>Tüm Menüler</h3><button class="small" onclick="go('home')">Geri</button></div><div class="menuGrid">
  <button class="menuBtn" onclick="openSub('health')">💉<br><b>Sağlık</b></button><button class="menuBtn" onclick="openSub('births')">🐑<br><b>Doğum-Kuzulama</b></button>
  <button class="menuBtn" onclick="openSub('performance')">📈<br><b>Anaç Performansı</b></button><button class="menuBtn" onclick="openSub('calendar')">📅<br><b>Koç & Takvim</b></button>
  <button class="menuBtn" onclick="openSub('weights')">⚖️<br><b>Tartım</b></button><button class="menuBtn" onclick="openSub('stock')">📦<br><b>Stok</b></button>
@@ -582,10 +499,8 @@ body.premium #premiumRecent .row{cursor:pointer}
  <button class="menuBtn" onclick="openSub('today')">✓<br><b>Bugün Yapılacaklar</b></button>
  <button class="menuBtn" onclick="openBackup()">💾<br><b>Yedekleme / Geri Yükleme</b></button>
  <button class="menuBtn" onclick="openAccount()">👤<br><b>Hesabım / İşletmem</b></button>
- <button class="menuBtn premiumOnly" onclick="go('reports')">▥<br><b>Raporlar</b></button><button class="menuBtn premiumOnly" onclick="go('growth')">↗<br><b>Kuzu Gelişim</b></button>
  <button class="menuBtn" onclick="go('chat')">◉<br><b>ChatGPT ile Yönetim</b></button>
  </div>
- <div class="card"><div class="row"><div><b>Görünüm</b><div class="muted" id="appearanceLabel">Yeni görünüm</div></div><button class="small" onclick="openAppearance()">Değiştir</button></div></div>
  <div class="card" id="installCard" hidden><b>📲 Sürü Takip’i Telefona Kur</b><p class="muted">Ana ekranından uygulama olarak aç.</p><button class="primary" id="installAppBtn" type="button" onclick="installApp()">Uygulamayı Kur</button></div>
  <div class="card" id="cloudCard">
   <div class="row"><div><b>☁️ Bulut Senkronizasyonu</b><div class="muted" id="cloudText">Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.</div></div><span class="tag" id="netBadge">Hazır</span></div>
@@ -620,53 +535,6 @@ body.premium #premiumRecent .row{cursor:pointer}
 <div class="toast" id="toast"></div>
 <script>
 const KEY='suru_takip_v5';
-
-const APPEARANCE_KEY='suru_takip_appearance';
-let premiumAppearance=true;
-try{premiumAppearance=localStorage.getItem(APPEARANCE_KEY)!=='classic'}catch(e){}
-const classicNavigation=document.querySelector('.bottomin').innerHTML;
-const classicMenuMarkup=[...document.querySelectorAll('#all .menuBtn')].map(el=>[el,el.innerHTML]);
-let premiumFinanceMonth='';
-function uiIcon(name){
- const paths={home:'<path d="m3 10 9-7 9 7v10H6V10"/><path d="M10 20v-7h4v7"/>',herd:'<path d="M6 8c-3-4-6 2-3 4-2 4 1 6 4 5h8c3 1 5-1 4-4l3-2-1-4h-5c-1-4-7-5-10 1Z"/><path d="M7 17v4m9-4v4"/>',add:'<path d="M12 4v16M4 12h16"/>',finance:'<path d="M4 20V11h4v9m4 0V4h4v16m4 0v-7h2v7"/>',more:'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',tag:'<path d="M3 11 11 3h8v8l-8 8Z"/><circle cx="16" cy="6" r="1"/>',weight:'<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 8a5 5 0 0 1 8 0m-4-1 2 4"/>',health:'<rect x="4" y="5" width="16" height="16" rx="3"/><path d="M9 5V3h6v2m-3 5v6m-3-3h6"/>'};
- return '<svg class="uiIcon" viewBox="0 0 24 24" aria-hidden="true">'+(paths[name]||paths.more)+'</svg>';
-}
-function applyAppearance(){
- document.body.classList.toggle('premium',premiumAppearance);
- const nav=document.querySelector('.bottomin'),active=document.querySelector('.screen.active')?.id||'home';
- const appearance=premiumAppearance?'premium':'classic';
- if(nav.dataset.appearance!==appearance){
-  nav.dataset.appearance=appearance;
-  nav.innerHTML=premiumAppearance?[
-   ['home','Ana Sayfa','home',"go('home')"],['herd','Sürü','herd',"go('herd')"],['add','Ekle','add',"go('add')"],['finance','Finans','finance',"openSub('finance')"],['all','Diğer','more',"go('all')"]
-  ].map(([id,label,icon,action])=>`<button class="nav ${id==='add'?'navAdd':''}" data-go="${id}" onclick="${action}">${uiIcon(icon)}<span>${label}</span></button>`).join(''):classicNavigation;
- }
- for(const [el,markup] of classicMenuMarkup){if(el.dataset.appearance!==appearance){el.dataset.appearance=appearance;const label=el.querySelector('b')?.textContent||'';el.innerHTML=premiumAppearance?uiIcon(/Sağlık/.test(label)?'health':/Tartım/.test(label)?'weight':/Finans|Gelir/.test(label)?'finance':/Doğum|Anaç|Sürü/.test(label)?'herd':'more')+'<br><b>'+escHtml(label)+'</b>':markup}}
- const target=premiumAppearance?(active==='sub'?(currentSub==='finance'?'finance':'all'):['reports','growth','chat'].includes(active)?'all':active):active;
- document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===target));
- const farm=document.getElementById('premiumFarmName');if(farm)farm.textContent=(db.farmName||'Sürüm')+' ›';
- const label=document.getElementById('appearanceLabel');if(label)label.textContent=premiumAppearance?'Yeni · Sade görünüm':'Eski · Klasik görünüm';
- for(const [id,icon] of [['quickBirthIcon','herd'],['quickWeightIcon','weight'],['quickHealthIcon','health']]){const el=document.getElementById(id);if(el&&!el.innerHTML)el.innerHTML=uiIcon(icon)}
- const recent=document.getElementById('premiumRecent');if(recent)recent.innerHTML=db.records.filter(r=>!['income','expense','sale','stock'].includes(r.kind)).slice(-3).reverse().map(r=>`<button class="premiumAnimal" onclick="editRecord('${r.id}')"><span>${uiIcon(r.kind==='weight'?'weight':r.kind==='health'?'health':'herd')}</span><span class="animalLineMain"><b style="font-size:13px">${escHtml(r.label||'Kayıt')}</b><small>${escHtml(r.date||'')}</small></span><span>›</span></button>`).join('')||'<div class="muted">Henüz hareket yok.</div>';
-}
-function openAppearance(){
- showModal('Görünüm',`<p class="muted">İstediğin zaman eski görünüme dönebilirsin. Sürün ve kayıtların aynı kalır. Bu seçim yalnızca bu cihazda uygulanır.</p><div class="appearanceChoices"><button class="${premiumAppearance?'primary':''}" onclick="setAppearance('premium')">Yeni görünüm</button><button class="${premiumAppearance?'':'primary'}" onclick="setAppearance('classic')">Eski görünüme dön</button></div>`);
-}
-function setAppearance(mode){
- premiumAppearance=mode!=='classic';
- try{localStorage.setItem(APPEARANCE_KEY,premiumAppearance?'premium':'classic')}catch(e){toast('Görünüm bu oturum için değişti; cihaz tercihi kaydedilemedi')}
- closeModal();applyAppearance();renderHerd();if(document.getElementById('sub').classList.contains('active')&&currentSub)openSub(currentSub,true);
-}
-function premiumFinanceHtml(){
- const month=/^\d{4}-\d{2}$/.test(premiumFinanceMonth)?premiumFinanceMonth:today().slice(0,7);
- const all=db.records.filter(r=>['income','expense','sale','stock'].includes(r.kind));
- const months=[...new Set([today().slice(0,7),month,...all.map(r=>String(r.date||'').slice(0,7)).filter(m=>/^\d{4}-\d{2}$/.test(m))])].sort().reverse();
- const rows=all.filter(r=>String(r.date||'').slice(0,7)===month).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
- const income=rows.filter(r=>['income','sale'].includes(r.kind)).reduce((n,r)=>n+(+r.amount||0),0),expense=rows.filter(r=>['expense','stock'].includes(r.kind)).reduce((n,r)=>n+(+r.amount||0),0);
- const groups={};rows.filter(r=>['expense','stock'].includes(r.kind)).forEach(r=>{const cat=r.category||r.label||'Diğer gider';groups[cat]=(groups[cat]||0)+(+r.amount||0)});
- return `<div class="financeHeading"><select class="financePeriod" aria-label="Finans dönemi" onchange="premiumFinanceMonth=this.value;openSub('finance',true)">${months.map(m=>'<option value="'+m+'" '+(m===month?'selected':'')+'>'+escHtml(new Intl.DateTimeFormat('tr-TR',{month:'long',year:'numeric'}).format(new Date(m+'-01T12:00:00')))+'</option>').join('')}</select><button class="small" onclick="go('reports');switchReportView('finance')">Rapor ›</button></div><div class="card"><div>Dönem bakiyesi</div><div class="financeBalance ${income-expense>=0?'money plus':'money minus'}">${income-expense>0?'+':''}${money(income-expense)}</div><div class="muted">Gelir − gider</div><div class="financeMetrics"><div><span class="muted">Gelir</span><b class="money plus">${money(income)}</b></div><div><span class="muted">Gider</span><b>${money(expense)}</b></div></div></div><div class="row" style="margin:15px 0"><h3 style="margin:0">İşlemler</h3><div><button class="small primary" onclick="openAdd('income')">+ Gelir</button> <button class="small" onclick="openAdd('expense')">+ Gider</button></div></div><div class="card financeRows">${rows.map(recordHtml).join('')||'<div class="empty">Bu dönemde finans kaydı yok.</div>'}</div><h3>Kategoriye göre gider</h3><div class="card">${Object.entries(groups).sort((a,b)=>b[1]-a[1]).map(([cat,amount])=>'<div class="listitem row"><span>'+escHtml(cat)+'</span><b>'+money(amount)+'</b></div>').join('')||'<div class="muted">Bu dönemde gider yok.</div>'}</div>`;
-}
-
 const SUPABASE_URL='https://nqbfyahiijdkrroojlct.supabase.co';
 let SUPABASE_PUBLISHABLE_KEY='sb_publishable_OnTZGx8h0RwxDV7X6DhXQQ_-jJbxfRN';
 const LIVE_APP_URL='https://hasanlutfioglu-bot.github.io/suru-takip/v21.html';
@@ -1432,7 +1300,6 @@ function renderGrowth(){
  }).join(''):'<tr><td colspan="6" class="empty">Bu filtrede kuzu yok.</td></tr>';
 }
 function renderAll(){
- applyAppearance();
  renderPlanStatus();
  let agedChanged=promoteAgedBreederLambs();
  if(agedChanged){if(cloudFarmId)cloudDirty=true;try{persistLocal()}catch(e){}if(cloudFarmId)queueCloudSync()}
@@ -1528,12 +1395,6 @@ function renderHerd(){
  let count=document.getElementById('herdCount');
  if(count)count.textContent=arr.length+' hayvan · '+herdFilter;
  herdList.innerHTML=arr.length?arr.map(a=>{
-  if(premiumAppearance){
-   const bs=a.type==='Koyun'?eweBirthSummary(a):null;
-   const rate=bs&&bs.count?new Intl.NumberFormat('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1}).format(bs.lambs/bs.count)+' kuzu / doğum':'';
-   const detail=bs?(bs.count?'Son doğum '+bs.last:'Henüz doğum kaydı yok'):[a.sex,age(a.birth),a.weight?a.weight+' kg':'',a.status].filter(Boolean).join(' · ');
-   return `<button class="premiumAnimal" onclick="animalCard('${a.id}')">${uiIcon('tag')}<span class="animalLineMain"><b>${escHtml(a.tag||animalName(a))}</b><span class="animalType">${escHtml(a.type==='Koyun'?'Anaç':a.type)}</span><small>${escHtml(detail)}</small></span>${rate?'<span class="animalLineBadge">'+rate+'</span>':''}<span aria-hidden="true">›</span></button>`;
-  }
   let extra=a.breedingStatus==='Anaç Adayı'?' · Anaç adayı':'';
   let saleSoon=a.type==='Kuzu'&&a.sex==='Erkek'&&a.birth&&ageMonths(a.birth)>=5&&ageMonths(a.birth)<5.5;
   return `<div class="card herdAnimal">
@@ -1577,8 +1438,6 @@ function openAccount(){
    <div class="muted" style="margin-top:4px">${isPro()?'Finans kayıtları ve gelişmiş analizler açık.':'Bu ay '+monthlyFinanceCount()+'/'+FREE_MONTHLY_FINANCE_LIMIT+' finans kaydı kullanıldı.'}</div>
    ${isPro()?'':'<button class="small primary" style="margin-top:10px" onclick="openPlans()">PRO\'yu Gör</button>'}
   </div>
-  <button class="premiumOnly small" onclick="openPlans()">Üyelik ve paketler</button>
-  <div class="card row"><span>Görünüm</span><button class="small" onclick="openAppearance()">Değiştir</button></div>
   <button class="primary" onclick="saveAccountFarmName()">İşletme Bilgisini Kaydet</button>
   <div style="margin-top:16px"><a href="./data-info.html" target="_blank" rel="noopener">Verilerin ve gizlilik</a> · <a href="./delete-account.html" target="_blank" rel="noopener">Hesap silme bilgileri</a></div>
   ${user?'<button class="small" style="margin-top:14px;color:#a12929" onclick="openDeleteAccount()">Hesabımı Sil</button>':''}
@@ -2853,7 +2712,6 @@ function openSub(k,refresh=false){if(!isPro()&&k==='performance')return showProR
  }).join(''):'<div class="card muted">Henüz üreme dönemi yok.</div>')}
  else if(k==='performance')body=ewePerformanceHtml('history');
  else body=db.records.slice().reverse().map(recordHtml).join('')||'<div class="card muted">Henüz kayıt yok.</div>';
- if(premiumAppearance&&k==='finance'){body=premiumFinanceHtml();subTitle.textContent='Finans'}
  subBody.innerHTML=body;if(!refresh)go('sub')
 }
 function openRamMating(){
