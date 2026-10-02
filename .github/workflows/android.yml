@@ -2,7 +2,9 @@ name: Android build
 on:
   push:
     branches: [main]
-    paths: ['android/**', '.github/workflows/android.yml']
+    paths: ['android/**', '.github/workflows/android.yml', '.github/workflows/android-release.yml']
+  pull_request:
+    paths: ['android/**', '.github/workflows/android.yml', '.github/workflows/android-release.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -43,3 +45,26 @@ jobs:
             android/app/build/reports/androidTests/connected/debug/**
             android/app/build/outputs/androidTest-results/connected/debug/**
           if-no-files-found: error
+      - name: Verify release signing with a disposable test key
+        shell: bash
+        run: |
+          set -euo pipefail
+          export ANDROID_KEYSTORE_PATH="$RUNNER_TEMP/suru-signing-smoke.jks"
+          trap 'rm -f "$ANDROID_KEYSTORE_PATH"' EXIT
+          if gradle -p android help --no-daemon > "$RUNNER_TEMP/partial-signing.log" 2>&1; then
+            echo '::error::Partial signing configuration was accepted'
+            exit 1
+          fi
+          grep -q 'All four Android signing environment variables are required' "$RUNNER_TEMP/partial-signing.log"
+          export ANDROID_KEYSTORE_PASSWORD=disposable-test-only
+          export ANDROID_KEY_ALIAS=smoke
+          export ANDROID_KEY_PASSWORD=disposable-test-only
+          if gradle -p android help --no-daemon > "$RUNNER_TEMP/missing-keystore.log" 2>&1; then
+            echo '::error::Missing keystore was accepted'
+            exit 1
+          fi
+          grep -q 'Android signing keystore file is missing' "$RUNNER_TEMP/missing-keystore.log"
+          keytool -genkeypair -keystore "$ANDROID_KEYSTORE_PATH" -storepass:env ANDROID_KEYSTORE_PASSWORD -keypass:env ANDROID_KEY_PASSWORD -alias "$ANDROID_KEY_ALIAS" -keyalg RSA -keysize 2048 -validity 1 -dname 'CN=Disposable CI Test'
+          gradle -p android :app:bundleRelease --no-daemon
+          jarsigner -verify android/app/build/outputs/bundle/release/app-release.aab > "$RUNNER_TEMP/smoke-signature.txt" 2>&1
+          grep -q 'jar verified\.' "$RUNNER_TEMP/smoke-signature.txt"
