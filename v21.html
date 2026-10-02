@@ -78,6 +78,10 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .reportKpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}.reportKpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;min-width:0}.reportKpi b{display:block;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.reportKpi span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
 .reportNav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px}.reportNav button{padding:9px 4px;border-radius:13px;font-size:11px;line-height:1.2;background:#edf2ef}.reportNav button.active{background:var(--green);color:#fff}.reportNav button b{display:block;font-size:17px;margin-bottom:3px}
 .reportPanel{display:none}.reportPanel.active{display:block}.reportSectionTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:15px 2px 8px}.reportSectionTitle b{font-size:16px}.reportMiniGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.reportActionCard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;text-align:left}.reportActionCard b{display:block;font-size:18px}.reportActionCard span{font-size:11px;color:var(--muted)}.reportInsight{background:#f6f9f7;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.reportInsight b{font-size:14px}.reportInsight .muted{font-size:11px;margin-top:3px}
+#reports[data-report-context="overview"] [data-report-summary]:not([data-report-summary~="overview"]),
+#reports[data-report-context="finance"] [data-report-summary]:not([data-report-summary~="finance"]),
+#reports[data-report-context="herd"] [data-report-summary]:not([data-report-summary~="herd"]),
+#reports[data-report-context="archive"] [data-report-summary]{display:none}
 .reportTools{display:grid;grid-template-columns:1fr 1fr;gap:8px}.reportTools button{width:100%}
 .pulseWrap{background:#fff;border:1px solid var(--line);border-radius:22px;padding:15px;margin:12px 0;box-shadow:var(--shadow)}.pulseHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.pulseHead b{font-size:18px}.pulseBadge{font-size:10px;font-weight:800;background:#e4f2e8;color:#17623a;border-radius:99px;padding:5px 8px}
 .pulseMatrix{margin-top:12px;border:1px solid #e4ebe6;border-radius:17px;overflow:hidden}.pulseRow{width:100%;border:0;border-bottom:1px solid #e8eeea;background:#fff;padding:11px 12px;text-align:left;display:grid;grid-template-columns:92px 1fr auto;gap:9px;align-items:center}.pulseRow:last-child{border-bottom:0}.pulseName{font-size:12px;font-weight:800}.pulseValue{font-size:12px;font-weight:800;text-align:right;white-space:nowrap}.pulseSub{grid-column:2/4;font-size:10px;color:var(--muted);line-height:1.35;margin-top:-4px}
@@ -192,7 +196,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
  </div><h3>Son 5 kayıt</h3><div class="card" id="last5"></div>
 </section>
 
-<section id="reports" class="screen">
+<section id="reports" class="screen" data-report-context="overview">
  <div class="reportHead">
   <div><h3>Raporlar</h3><div class="muted">İşletmenin durumunu tek bakışta gör.</div></div>
   <button class="small" onclick="switchReportView('archive')">🗂 Arşiv</button>
@@ -205,12 +209,12 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
   <button data-report-view="archive" onclick="switchReportView('archive',this)"><b>🗂</b>Arşiv</button>
  </div>
 
- <div class="reportPeriodTabs">
+ <div class="reportPeriodTabs" data-report-summary="overview finance herd">
   <button class="tab active" data-report="monthly" onclick="setReport('monthly',this)">Bu Ay</button>
   <button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Bu Yıl</button>
  </div>
 
- <div class="reportHero">
+ <div class="reportHero" data-report-summary="overview finance">
   <div class="muted" id="reportLabel">Bu ay</div>
   <div class="reportHeroNet">
    <div><span>NET SONUÇ</span><b id="rNet">0 TL</b></div>
@@ -218,14 +222,14 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
   </div>
  </div>
 
- <div class="reportKpis">
-  <div class="reportKpi"><b id="rIncome">0</b><span>Gelir</span></div>
-  <div class="reportKpi"><b id="rExpense">0</b><span>Gider</span></div>
-  <div class="reportKpi clickcard" onclick="openSaleCandidates()"><b id="rSaleReadyTop">0</b><span>Satışa hazır kuzu</span></div>
-  <div class="reportKpi"><b id="rBirths">0</b><span>Yeni doğan kuzu</span></div>
+ <div class="reportKpis" data-report-summary="overview finance herd">
+  <div class="reportKpi" data-report-summary="overview finance"><b id="rIncome">0</b><span>Gelir</span></div>
+  <div class="reportKpi" data-report-summary="overview finance"><b id="rExpense">0</b><span>Gider</span></div>
+  <div class="reportKpi clickcard" data-report-summary="overview herd" onclick="openSaleCandidates()"><b id="rSaleReadyTop">0</b><span>Satışa hazır kuzu</span></div>
+  <div class="reportKpi" data-report-summary="overview herd"><b id="rBirths">0</b><span>Yeni doğan kuzu</span></div>
  </div>
 
- <div class="reportInsight">
+ <div class="reportInsight" data-report-summary="overview finance">
   <b id="rTopExpenseTitle">Dönem özeti hazırlanıyor…</b>
   <div class="muted" id="rTopExpenseHint">Kayıtlar analiz ediliyor.</div>
  </div>
@@ -1811,6 +1815,7 @@ let reportView='overview';
 function switchReportView(view,btn){
  reportView=view||'overview';
  if(!isPro()&&['finance','herd','archive'].includes(reportView)){reportView='overview';return showProRequired(view==='finance'?'Gelişmiş Finans Raporları':view==='herd'?'Sürü Performans Raporları':'Rapor Arşivi')}
+ document.getElementById('reports').dataset.reportContext=reportView;
  document.querySelectorAll('[data-report-panel]').forEach(p=>p.classList.toggle('active',p.dataset.reportPanel===reportView));
  document.querySelectorAll('[data-report-view]').forEach(b=>b.classList.toggle('active',b.dataset.reportView===reportView));
  if(reportView==='archive'){setupDetailedReportControls();renderProductionPeriods()}
