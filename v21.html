@@ -198,6 +198,13 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
   <button class="small" onclick="switchReportView('archive')">🗂 Arşiv</button>
  </div>
 
+ <div class="reportNav">
+  <button class="active" data-report-view="overview" onclick="switchReportView('overview',this)"><b>▦</b>Genel</button>
+  <button data-report-view="finance" onclick="switchReportView('finance',this)"><b>₺</b>Finans Detayı</button>
+  <button data-report-view="herd" onclick="switchReportView('herd',this)"><b>🐑</b>Sürü Detayı</button>
+  <button data-report-view="archive" onclick="switchReportView('archive',this)"><b>🗂</b>Arşiv</button>
+ </div>
+
  <div class="reportPeriodTabs">
   <button class="tab active" data-report="monthly" onclick="setReport('monthly',this)">Bu Ay</button>
   <button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Bu Yıl</button>
@@ -223,12 +230,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
   <div class="muted" id="rTopExpenseHint">Kayıtlar analiz ediliyor.</div>
  </div>
 
- <div class="reportNav">
-  <button class="active" data-report-view="overview" onclick="switchReportView('overview',this)"><b>▦</b>Genel</button>
-  <button data-report-view="finance" onclick="switchReportView('finance',this)"><b>₺</b>Finans</button>
-  <button data-report-view="herd" onclick="switchReportView('herd',this)"><b>🐑</b>Sürü</button>
-  <button data-report-view="archive" onclick="switchReportView('archive',this)"><b>🗂</b>Arşiv</button>
- </div>
+
 
  <div id="reportPlanNote" style="display:none"></div>
 
