@@ -2,7 +2,7 @@
 
 **Mağaza yayını için onay bekleyen taslaktır. Son politika olarak yayımlanmaz.**
 
-Veri sorumlusu/geliştirici: Hasan Lutfioğlu. Resmî işletme adı, destek/gizlilik e-postası, adres ve geçerli hukuk alanı Hasan tarafından doğrulanmalı.
+Veri sorumlusu/geliştirici: Hasan Lutfioğlu. Destek ve gizlilik iletişimi: **hasanlutfioglu@gmail.com**. Resmî işletme adı, adres ve geçerli hukuk alanı yayın öncesi doğrulanmalıdır.
 
 ## Teknik olarak doğrulanan veri akışı
 
