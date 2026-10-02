@@ -17,5 +17,25 @@ h.c.navigator.onLine=true;run("cloudSession={user:{id:'me'}};cloudFarmId='f';clo
 h.c.mockDeleteResult={ok:true};h.c.deleteService={functions:{invoke:async()=>{calls++;return {data:h.c.mockDeleteResult}}},auth:{signOut:async()=>({})}};run('sb=deleteService;openDeleteAccount()');fill('deleteConfirmation','wrong');await run('deleteOwnAccount()');equal(calls,0);
 fill('deleteConfirmation','HESABIMI SIL');h.c.mockDeleteResult={error:'reauth_required'};await run('deleteOwnAccount()');equal(run('accountDeleting'),false);equal(run('cloudSession.user.id'),'me');assert.match(document.getElementById('modalBody').textContent,/yeniden giriş/);count++;
 run('openDeleteAccount()');fill('deleteConfirmation','HESABIMI SIL');h.c.mockDeleteResult={ok:true};const prefix=run("KEY+'_user_me_farm_'");storage.set(prefix+'f','data');storage.set(prefix+'f_recovery_1','data');storage.set(prefix.replace('_me_','_other_')+'f','unrelated');await run('deleteOwnAccount()');equal(storage.has(prefix+'f'),false);equal(storage.has(prefix+'f_recovery_1'),false);equal(storage.get(prefix.replace('_me_','_other_')+'f'),'unrelated');equal(run('cloudSession'),null);
+// Shared access must select a member's farm without moving records between farms.
+const access=make(),ar=access.run;
+access.c.members=[{farm_id:'own',role:'owner'},{farm_id:'shared',role:'editor'}];
+equal(ar("selectMembership(members,'tester').farm_id"),'shared');
+access.storage.set(ar("KEY+'_preferred_farm_tester'"),'own');
+equal(ar("selectMembership(members,'tester').farm_id"),'own');
+access.storage.set(ar("KEY+'_preferred_farm_tester'"),'foreign');
+equal(ar("selectMembership(members,'tester').farm_id"),'shared');
+ar("cloudSession={user:{id:'tester',email:'test@example.invalid'}};cloudMemberships=members;cloudFarmId='shared';setCloudUI('online','Bağlı');renderFarmChoices()");
+equal(access.document.getElementById('welcomeGoogleLoginBtn').hidden,true);
+equal(access.document.getElementById('welcomeAccountBtn').hidden,false);
+equal(access.document.getElementById('farmChoiceBox').hidden,false);
+equal(access.document.querySelectorAll('#farmChoice option').length,2);
+access.c.navigator.onLine=false;await ar("switchFarm('own')");equal(ar('cloudFarmId'),'shared');
+access.c.navigator.onLine=true;
+access.c.accessService={from(table){const q={select(){return q},eq(){return q},order(){return Promise.resolve({data:access.c.members})},maybeSingle(){return Promise.resolve({data:{plan:'pro',status:'active'}})}};return q}};
+ar("sb=accessService;uploadCloudState=async()=>true;subscribeCloud=()=>{};db=seed();db.records=[{id:'own-record',kind:'note'}];activeStorageKey=KEY+'_user_tester_farm_own';cloudRole='owner';cloudFarmId='own';persistLocal()");
+await ar("switchFarm('shared')");equal(ar('cloudFarmId'),'shared');equal(ar('cloudRole'),'editor');equal(ar('db.records.length'),0);
+await ar("switchFarm('own')");equal(ar('cloudFarmId'),'own');equal(ar('db.records[0].id'),'own-record');
+ar("cloudSession=null;setCloudUI('local','')");equal(access.document.getElementById('welcomeGoogleLoginBtn').hidden,false);equal(access.document.getElementById('farmChoiceBox').hidden,true);
 console.log('readiness PASS:',count,'stock units/legacy data, per-month quota, birth chronology, health validation, dialog labels and simulated account deletion checks');
 })().catch(e=>{console.error(e);process.exit(1)});
