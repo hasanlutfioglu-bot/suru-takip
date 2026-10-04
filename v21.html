@@ -133,7 +133,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
   <button class="small" id="welcomeAccountBtn" type="button" onclick="openAccount()" hidden>Hesabım / İşletmem</button>
   <div id="farmChoiceBox" hidden style="margin-top:10px"><label for="farmChoice">Kullanılacak sürü</label><select id="farmChoice" onchange="switchFarm(this.value)"></select></div>
  </div>
- <div class="hero"><small>SÜRÜ SAYISI</small><h2 id="heroTotal">0 hayvan</h2><div id="heroSub"></div></div>
+ <div class="hero"><small>SÜRÜ SAYISI</small><h2 id="heroTotal">0 hayvan</h2><div id="heroSub"></div><div id="herdIntegrity" style="margin-top:7px;font-size:12px;font-weight:700"></div></div>
  <div class="homeSummary">
   <button class="summaryCard" onclick="openSub('performance')"><span>Sürünün doğum oranı</span><b id="homeBirthRate">—</b><small id="homeBirthHint">Henüz doğum kaydı yok</small></button>
   <button class="summaryCard" onclick="go('reports')"><span>Kâr / Zarar</span><b id="homeNet">0 TL</b><small>Tüm kayıtlar · gelir − gider</small></button>
@@ -1773,7 +1773,12 @@ function renderAll(){
  if(agedChanged){if(cloudFarmId)cloudDirty=true;try{persistLocal()}catch(e){}if(cloudFarmId)queueCloudSync()}
  let A=db.animals.filter(a=>!['Satıldı','Öldü','Kesildi'].includes(a.status)), e=A.filter(a=>a.type==='Koyun').length,r=A.filter(a=>a.type==='Koç').length,l=A.filter(a=>a.type==='Kuzu').length,f=A.filter(a=>a.status==='Takipte').length;
  let setupCard=document.getElementById('firstSetupCard');if(setupCard)setupCard.style.display=(db.animals.length===0&&!db.setupDone)?'block':'none';
- heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
+ heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;
+ let herdIntegrity=document.getElementById('herdIntegrity'),idCounts=new Map(),tagCounts=new Map();
+ A.forEach(a=>{let id=String(a.id||'');idCounts.set(id,(idCounts.get(id)||0)+1);let tag=String(a.tag||'').trim();if(tag){let key=tag.toLocaleLowerCase('tr-TR');if(!tagCounts.has(key))tagCounts.set(key,{tag,count:0});tagCounts.get(key).count++}});
+ let duplicateIds=[...idCounts.values()].filter(n=>n>1).length,duplicateTags=[...tagCounts.values()].filter(x=>x.count>1).map(x=>x.tag).slice(0,3);
+ if(herdIntegrity){let issue=A.length!==e+r+l?'type':duplicateIds?'id':duplicateTags.length?'tag':'';herdIntegrity.textContent=issue==='type'?(appLanguage==='en'?'⚠ Type counts do not match the total':'⚠ Tür sayıları toplamla uyuşmuyor'):issue==='id'?(appLanguage==='en'?'⚠ Duplicate animal record':'⚠ Tekrarlı hayvan kaydı'):issue==='tag'?(appLanguage==='en'?'⚠ Repeated ear tag: ':'⚠ Tekrarlı küpe: ')+duplicateTags.join(', '):(appLanguage==='en'?'✓ Flock count matches':'✓ Sürü sayımı tutarlı');herdIntegrity.style.color=issue?'#b42318':'#cce6d2'}
+ sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
  let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span data-no-i18n>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
  renderHomeUpcoming();
  let fin=calcFinance('all'),net=fin.income-fin.expense;homeNet.textContent=money(net);homeNet.className=net<0?'money minus':'money plus';
