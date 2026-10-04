@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21</title>
+<title>Sürü Takip V21.3</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -123,7 +123,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21.2</span></h1><div style="display:flex;gap:6px;align-items:center"><button class="pill" id="planStatus" onclick="openPlans()" style="border:0;font-weight:800">FREE</button><span class="pill" id="cloudStatus">Yerel mod</span></div></div><button id="planStrip" onclick="openPlans()" style="width:100%;margin-top:9px;border:1px solid #dfe7df;background:#fff;border-radius:13px;padding:9px 11px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b id="planStripTitle">FREE</b><small id="planStripText" style="display:block;color:#68736a;margin-top:2px">Temel paket</small></span><span style="font-weight:800;color:#245c3b">Üyelik ›</span></button><div style="display:flex;justify-content:flex-end;margin-top:8px"><label for="appLanguage" data-no-i18n style="margin:0 8px 0 0;align-self:center;font-size:14px">Dil / Language</label><select id="appLanguage" data-no-i18n onchange="setAppLanguage(this.value)" style="width:auto;margin:0;padding:6px 10px;font-size:14px"><option value="tr">Türkçe</option><option value="en">English</option></select></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21.3</span></h1><div style="display:flex;gap:6px;align-items:center"><button class="pill" id="planStatus" onclick="openPlans()" style="border:0;font-weight:800">FREE</button><span class="pill" id="cloudStatus">Yerel mod</span></div></div><button id="planStrip" onclick="openPlans()" style="width:100%;margin-top:9px;border:1px solid #dfe7df;background:#fff;border-radius:13px;padding:9px 11px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b id="planStripTitle">FREE</b><small id="planStripText" style="display:block;color:#68736a;margin-top:2px">Temel paket</small></span><span style="font-weight:800;color:#245c3b">Üyelik ›</span></button><div style="display:flex;justify-content:flex-end;margin-top:8px"><label for="appLanguage" data-no-i18n style="margin:0 8px 0 0;align-self:center;font-size:14px">Dil / Language</label><select id="appLanguage" data-no-i18n onchange="setAppLanguage(this.value)" style="width:auto;margin:0;padding:6px 10px;font-size:14px"><option value="tr">Türkçe</option><option value="en">English</option></select></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -1047,7 +1047,7 @@ function handleAppBack(){
  exitBackAt=now;toast(appLanguage==='en'?'Press Back again to exit':'Çıkmak için tekrar geri tuşuna bas');return false;
 }
 function installBackNavigation(){
- if(typeof window.CloseWatcher==='function'){
+ if(false && typeof window.CloseWatcher==='function'){
   nativeBackEnabled=true;armRootBack();
   // A new interaction cancels the pending exit. Never recreate a watcher
   // from its close handler: that would fight the platform's escape behavior.
