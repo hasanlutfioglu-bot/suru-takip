@@ -1097,7 +1097,7 @@ function promoteAgedBreederLambs(){
  if(cloudFarmId&&cloudRole==='viewer')return false;
  let changed=false;
  db.animals.forEach(a=>{
-  if(a.type!=='Kuzu'||!isActiveAnimal(a)||a.breedingReserve||!a.birth||ageMonths(a.birth)<12)return;
+  if(a.type!=='Kuzu'||!isActiveAnimal(a)||!a.birth||ageMonths(a.birth)<12)return;
   if(a.sex==='Dişi'&&a.breedingStatus==='Anaç Adayı'){a.type='Koyun';changed=true}
   else if(a.sex==='Erkek'){a.type='Koç';changed=true}
  });
@@ -2090,6 +2090,7 @@ function animalCard(id){
  let breederBtn=(a.sex==='Dişi'&&a.type==='Kuzu'&&isActiveAnimal(a)&&a.breedingStatus!=='Anaç Adayı')?` <button class="small primary" onclick="markBreeder('${id}')">Damızlığa Ayır</button>`:'';
  let promoteBtn=(a.breedingStatus==='Anaç Adayı'&&isActiveAnimal(a))?` <button class="small primary" onclick="promoteBreeder('${id}')">Anaç Yap</button>`:'';
  let explain=a.breedingStatus==='Anaç Adayı'?'<div class="muted" style="margin-top:8px">Bu hayvan şu an anaç adayıdır. İlk doğum kaydında otomatik anaç olur; istersen “Anaç Yap” ile şimdi de aktarabilirsin.</div>':'';
+ let reserveNote=a.breedingReserve?'<div class="muted" style="margin-top:8px">🐏 Koçluk için ayrıldı · satış hesabı dışında</div>':'';
  let mother=a.motherId?db.animals.find(x=>x.id===a.motherId):null;
  let bs=(a.type==='Koyun'||a.breedingStatus==='Anaç')?eweBirthSummary(a):null;
  let canBirth=isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı');
@@ -2105,14 +2106,21 @@ function animalCard(id){
    ${animalSnapshotHtml(a)}
    ${a.deathDate?`<div class="muted">Ölüm: ${a.deathDate}${a.deathReason?' · '+escHtml(a.deathReason):''}</div>`:''}
    ${explain}
+   ${reserveNote}
   </div>
   ${birthBox}
   ${quickActions}
-  <div style="margin-bottom:10px"><button onclick="editTag('${id}')">Küpe Ekle/Düzenle</button> <button onclick="editAnimal('${id}')">Hayvanı Düzenle</button>${breederBtn}${promoteBtn}</div>
+  <div style="margin-bottom:10px"><button onclick="editTag('${id}')">Küpe Ekle/Düzenle</button> <button onclick="editAnimal('${id}')">Hayvanı Düzenle</button>${a.breedingReserve?` <button class="small" onclick="releaseBreedingReserve('${id}')">Koçluk Ayırmasını Kaldır</button>`:''}${breederBtn}${promoteBtn}</div>
   <h3>Tüm Kayıt Geçmişi</h3>
   ${rec.length?rec.map(recordHtml).join(''):'<div class="muted">Kayıt yok.</div>'}
  `)
 }
+function releaseBreedingReserve(id){if(!canEditData())return;
+ let a=db.animals.find(x=>x.id===id);
+ if(!a||!a.breedingReserve||!isActiveAnimal(a))return toast('Aktif koçluk hayvanı bulunamadı');
+ a.breedingReserve=false;save();closeModal();toast('Koçluk ayırması kaldırıldı; satış seçimine açıldı');
+}
+
 function markBreeder(id){if(!canEditData())return;
  let a=db.animals.find(x=>x.id===id);
  if(!a||a.sex!=='Dişi'||!isActiveAnimal(a))return toast('Bu hayvan damızlığa ayrılamaz');
