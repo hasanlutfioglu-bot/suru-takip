@@ -1097,7 +1097,7 @@ function promoteAgedBreederLambs(){
  if(cloudFarmId&&cloudRole==='viewer')return false;
  let changed=false;
  db.animals.forEach(a=>{
-  if(a.type!=='Kuzu'||!isActiveAnimal(a)||!a.birth||ageMonths(a.birth)<12)return;
+  if(a.type!=='Kuzu'||!isActiveAnimal(a)||a.breedingReserve||!a.birth||ageMonths(a.birth)<12)return;
   if(a.sex==='Dişi'&&a.breedingStatus==='Anaç Adayı'){a.type='Koyun';changed=true}
   else if(a.sex==='Erkek'){a.type='Koç';changed=true}
  });
@@ -1247,7 +1247,7 @@ function showPlusRequired(extra=1){
 }
 function animalOptions(types){return db.animals.filter(a=>isActiveAnimal(a)&&(!types||types.includes(a.type))).map(a=>`<option value="${a.id}">${escHtml(animalName(a))}</option>`).join('')}
 function motherOptions(){return db.animals.filter(a=>isActiveAnimal(a)&&a.sex==='Dişi'&&(a.type==='Koyun'||a.breedingStatus==='Anaç Adayı')).map(a=>`<option value="${a.id}">${escHtml(animalName(a))}${a.breedingStatus==='Anaç Adayı'?' · Anaç Adayı':''}</option>`).join('')}
-function salePickList(){let arr=db.animals.filter(a=>isActiveAnimal(a));return arr.length?`<div class="pickList">${arr.map(a=>`<label class="pickRow"><input type="checkbox" class="saleAnimal" value="${a.id}"><span><b>${escHtml(animalName(a))}</b><br><span class="muted">${a.sex} · ${age(a.birth)} · ${a.status}</span></span></label>`).join('')}</div>`:'<div class="pickList"><div class="pickEmpty">Satılabilecek aktif hayvan yok.</div></div>'}
+function salePickList(){let arr=db.animals.filter(a=>isActiveAnimal(a)&&!a.breedingReserve);return arr.length?`<div class="pickList">${arr.map(a=>`<label class="pickRow"><input type="checkbox" class="saleAnimal" value="${a.id}"><span><b>${escHtml(animalName(a))}</b><br><span class="muted">${a.sex} · ${age(a.birth)} · ${a.status}</span></span></label>`).join('')}</div>`:'<div class="pickList"><div class="pickEmpty">Satılabilecek aktif hayvan yok.</div></div>'}
 function toggleIncomeAnimals(){let box=document.getElementById('incomeAnimals');if(box)box.style.display=(document.getElementById('cat')?.value==='Hayvan satışı')?'block':'none'}
 
 function setCloudUI(mode,msg){
@@ -1650,14 +1650,23 @@ function growthGroupWarnings(infos){
   return avg<band.min?{month:+m,count:arr.length,avg,band}:null;
  }).filter(Boolean);
 }
+function toggleLambBreedingReserve(id){
+ if(!canEditData())return;
+ let a=db.animals.find(x=>x.id===id);
+ if(!a||a.type!=='Kuzu'||a.sex!=='Erkek'||!isActiveAnimal(a))return toast('Sadece aktif erkek kuzuyu koçluk için ayırabilirsin');
+ a.breedingReserve=!a.breedingReserve;
+ save();
+ toast(a.breedingReserve?'Koçluk için ayrıldı; satış hesabından çıkarıldı':'Koçluk ayırması kaldırıldı');
+ showGrowthDetail(id);
+}
 function showGrowthDetail(id){
  let a=db.animals.find(x=>x.id===id);if(!a)return;
  let wi=latestWeightInfo(a),months=ageMonths(a.birth),same=db.animals.filter(x=>x.type==='Kuzu'&&isActiveAnimal(x)&&x.id!==a.id&&Math.floor(ageMonths(x.birth))===Math.floor(months)).map(x=>latestWeightInfo(x).weight).filter(v=>v>0);
  let groupAvg=same.length?(same.reduce((s,v)=>s+v,0)/same.length):0;
  let assessment=growthAssessment(a,wi,groupAvg),pct=assessment.pct,band=assessment.band;
  let lastDays=wi.latest?.date?Math.max(0,dateDiffDays(wi.latest.date,today())):null,weighDue=lastDays===null||lastDays>=21;
- let weightReady=a.sex==='Erkek'&&wi.weight>=50,ageReady=a.sex==='Erkek'&&months>=5.5,ready=weightReady||ageReady||a.status==='Satılacak';
- let readyReason=weightReady&&ageReady?'Yaş ve 50 kg hedefi':weightReady?'50 kg hedefi':ageReady?'5,5 ay hedefi':a.status==='Satılacak'?'Satılacak işaretli':'Henüz değil';
+ let weightReady=a.sex==='Erkek'&&wi.weight>=50,ageReady=a.sex==='Erkek'&&months>=5.5,ready=!a.breedingReserve&&(weightReady||ageReady||a.status==='Satılacak');
+ let readyReason=a.breedingReserve?'Koçluk için ayrıldı; satış hesabına dahil değil':weightReady&&ageReady?'Yaş ve 50 kg hedefi':weightReady?'50 kg hedefi':ageReady?'5,5 ay hedefi':a.status==='Satılacak'?'Satılacak işaretli':'Henüz değil';
  let targetRemain=wi.weight?Math.max(0,50-wi.weight):50,price=+db.lambPricePerKg||450;
  let hist=db.records.filter(r=>r.kind==='weight'&&r.animalId===id&&r.date).slice().sort((x,y)=>String(y.date).localeCompare(String(x.date))).slice(0,8);
  let history=hist.length?hist.map(r=>`<div class="listitem row"><div><b>${escHtml(r.date)}</b><div class="muted">${r.adg!==''&&r.adg!=null&&Number.isFinite(+r.adg)?Math.round(+r.adg)+' g/gün':'Tartım kaydı'}</div></div><b>${weightValueFromRecord(r).toFixed(1)} kg</b></div>`).join(''):'<div class="empty">Henüz tartım kaydı yok.</div>';
@@ -1676,10 +1685,10 @@ function showGrowthDetail(id){
    <div class="growthDetailMetric"><b>${Number.isFinite(wi.adg)?wi.adg+' g':'—'}</b><span>Günlük artış</span></div>
   </div>
   <div class="card">
-   <div class="listitem row"><span>Satış durumu</span><b>${ready?'Hazır':'Henüz değil'}</b></div>
+   <div class="listitem row"><span>Satış durumu</span><b>${a.breedingReserve?'Koçluk için ayrıldı':ready?'Hazır':'Henüz değil'}</b></div>
    <div class="listitem row"><span>Hazır olma sebebi</span><b>${readyReason}</b></div>
    <div class="listitem row"><span>50 kg hedefe kalan</span><b>${targetRemain?targetRemain.toFixed(1)+' kg':'Hedef tamam'}</b></div>
-   <div class="listitem row"><span>Tahmini mevcut değer</span><b>${wi.weight?money(wi.weight*price):'—'}</b></div>
+   <div class="listitem row"><span>Tahmini mevcut değer</span><b>${a.breedingReserve?'Satış hesabı dışında':wi.weight?money(wi.weight*price):'—'}</b></div>
    <div class="listitem row"><span>Aynı yaş grubu ort.</span><b>${groupAvg?groupAvg.toFixed(1)+' kg':'Yeterli veri yok'}</b></div>
    <div class="listitem row"><span>Ortalamaya göre</span><b>${pct===null?'—':(pct>=0?'+':'')+Math.round(pct)+'%'}</b></div>
    <div class="listitem row"><span>Normal günlük artış bandı</span><b>${band.min}–${band.max} g/gün</b></div>
@@ -1687,6 +1696,7 @@ function showGrowthDetail(id){
   <h3 style="margin:14px 0 6px">Tartım Geçmişi</h3>${history}
   <div style="display:flex;gap:8px;flex-wrap:wrap">
    <button class="primary" style="flex:1" onclick="closeModal();setTimeout(()=>openAddForAnimal('weight','${a.id}'),60)">Yeni Tartım</button>
+   <button class="small" style="flex:1" onclick="toggleLambBreedingReserve('${a.id}')">${a.breedingReserve?'Ayırmayı Kaldır':'🐏 Koçluk İçin Ayır'}</button>
    ${assessment.level==='control'? `<button class="small" style="flex:1" onclick="closeModal();setTimeout(()=>openAddForAnimal('health','${a.id}'),60)">🩺 Sağlık Kaydı</button>`:''}
   </div>`)
 }
@@ -1703,8 +1713,8 @@ function renderGrowth(){
   x.assessment=growthAssessment(x.a,x.wi,x.groupAvg);
   x.saleByAge=x.a.sex==='Erkek'&&x.months>=5.5;
   x.saleByWeight=x.a.sex==='Erkek'&&x.wi.weight>=50;
-  x.saleReady=x.a.sex==='Erkek'&&(x.saleByAge||x.saleByWeight||x.a.status==='Satılacak');
-  x.saleNear=x.a.sex==='Erkek'&&!x.saleReady&&(x.months>=5||x.wi.weight>=45);
+  x.saleReady=x.a.sex==='Erkek'&&!x.a.breedingReserve&&(x.saleByAge||x.saleByWeight||x.a.status==='Satılacak');
+  x.saleNear=x.a.sex==='Erkek'&&!x.a.breedingReserve&&!x.saleReady&&(x.months>=5||x.wi.weight>=45);
   x.lastWeighDays=x.wi.latest?.date?Math.max(0,dateDiffDays(x.wi.latest.date,today())):null;
   x.weighDue=x.lastWeighDays===null||x.lastWeighDays>=21;
   if(x.assessment.level==='control')x.state='control';
@@ -1718,7 +1728,7 @@ function renderGrowth(){
  let avgAdg=adgs.length?Math.round(adgs.reduce((s,v)=>s+v,0)/adgs.length):0;
  let ready=infos.filter(x=>x.saleReady),price=+db.lambPricePerKg||450;
  let readyValue=ready.reduce((s,x)=>s+(x.wi.weight||0)*price,0);
- let maleCount=infos.filter(x=>x.a.sex==='Erkek').length,targetValue=maleCount*50*price;
+ let maleCount=infos.filter(x=>x.a.sex==='Erkek'&&!x.a.breedingReserve).length,targetValue=maleCount*50*price;
  growthLambCount.textContent=infos.length;
  growthSaleReady.textContent=ready.length;
  growthBelowAvg.textContent=infos.filter(x=>x.assessment.level!=='normal'||x.weighDue).length;
@@ -1735,9 +1745,9 @@ function renderGrowth(){
   }else{ga.classList.remove('show');ga.innerHTML=''}
  }
 
- let fs=['Tümü','Satışa hazır','Yaklaşan','Takip'];
+ let fs=['Tümü','Satışa hazır','Koçlukta','Yaklaşan','Takip'];
  filters.innerHTML=fs.map(f=>`<button class="small ${growthFilter===f?'active':''}" onclick="growthFilter='${f}';renderGrowth()">${f}</button>`).join('');
- let shown=infos.filter(x=>growthFilter==='Tümü'||(growthFilter==='Satışa hazır'&&x.saleReady)||(growthFilter==='Yaklaşan'&&x.saleNear)||(growthFilter==='Takip'&&(x.assessment.level!=='normal'||x.weighDue)));
+ let shown=infos.filter(x=>growthFilter==='Tümü'||(growthFilter==='Satışa hazır'&&x.saleReady)||(growthFilter==='Koçlukta'&&x.a.breedingReserve)||(growthFilter==='Yaklaşan'&&x.saleNear)||(growthFilter==='Takip'&&(x.assessment.level!=='normal'||x.weighDue)));
  shown.sort((a,b)=>{
   let rank={control:0,saleWarn:1,saleReady:2,watch:3,near:4,normal:5};
   return (rank[a.state]??9)-(rank[b.state]??9)||b.months-a.months;
@@ -1748,7 +1758,7 @@ function renderGrowth(){
   let status=x.state==='control'?'Kontrol':x.state==='saleReady'?'Satış':x.state==='saleWarn'||x.state==='watch'?'Takip':x.state==='near'?'Yakın':'Normal';
   let gain=x.wi.prevWeight&&x.wi.days?`${x.wi.gain>=0?'+':''}${x.wi.gain.toFixed(1)}`:'—';
   return `<tr class="${rowCls}" onclick="showGrowthDetail('${x.a.id}')" style="cursor:pointer">
-   <td class="tagcell">${escHtml(x.a.tag?'#'+x.a.tag:'—')}</td>
+   <td class="tagcell">${escHtml(x.a.tag?'#'+x.a.tag:'—')}${x.a.breedingReserve?'<div class="muted">🐏 Koçlukta</div>':''}</td>
    <td>${compactLambAge(x.a)}</td>
    <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}</td>
    <td>${gain}</td>
@@ -2492,7 +2502,7 @@ function submitBirth(){if(!canEditData())return;const count=document.getElementB
 }
 function addDaysISO(base,days){let d=new Date((base||today())+'T00:00:00');d.setDate(d.getDate()+(+days||0));return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
 function submitAnimal(kind){if(!canEditData())return;const animal=document.getElementById('animal'),weight=document.getElementById('weight'),date=document.getElementById('date'),note=document.getElementById('note');let a=db.animals.find(x=>x.id===animal.value);if(!a||!isActiveAnimal(a))return toast('Aktif hayvan seç');if(!validRecordDate(date.value,a.birth))return toast('Geçerli işlem tarihi seç');if(kind==='weight'){if(db.records.some(r=>r.kind==='weight'&&r.animalId===a.id&&r.date===date.value))return toast('Aynı gün tartım var; mevcut kaydı düzenle');if(a.type!=='Kuzu')return toast('Tartım sadece kuzular için kullanılır');if(!Number.isFinite(+weight.value)||+weight.value<=0)return toast('Sıfırdan büyük kilo gir');let prev=previousWeightRecord(a.id,date.value),pw=prev?weightValueFromRecord(prev):0,days=prev?.date?Math.max(1,dateDiffDays(prev.date,date.value)):0,gain=pw?(+weight.value-pw):0,adg=pw&&days?Math.round(gain*1000/days):'',ageDays=lambAgeDaysAt(a,date.value),band=expectedAdgBand(ageDays);a.weight=+weight.value;db.records.push({id:uid('rec'),kind,label:'Tartım · '+animalName(a),date:date.value,animalId:a.id,note:weight.value+' kg',weight:+weight.value,previousWeight:pw||'',gainKg:pw?+gain.toFixed(2):'',gainDays:days||'',adg,ageDays,ageMonth:Math.floor(ageDays/30.44),expectedMin:band.min,expectedMax:band.max})}else{if(!note.value.trim())return toast('Sağlık işlemini yaz');let rd=document.getElementById('reminderDays')?.value||'0',due='';if(rd==='custom')due=document.getElementById('reminderDate')?.value||'';else if(+rd>0)due=addDaysISO(date.value,+rd);if(rd==='custom'&&(!validDate(due)||due<date.value))return toast('Hatırlatma tarihi işlem tarihinden önce olamaz');db.records.push({id:uid('rec'),kind,label:'Sağlık · '+animalName(a),date:date.value,animalId:a.id,note:note.value,reminderDate:due,reminderDone:false});}save();closeModal();toast('Kayıt işlendi')}
-function selectedSaleAnimals(){return [...document.querySelectorAll('.saleAnimal:checked')].map(x=>db.animals.find(a=>a.id===x.value)).filter(Boolean).filter(isActiveAnimal)}
+function selectedSaleAnimals(){return [...document.querySelectorAll('.saleAnimal:checked')].map(x=>db.animals.find(a=>a.id===x.value)).filter(Boolean).filter(a=>isActiveAnimal(a)&&!a.breedingReserve)}
 function submitSelectedSale(source){if(!canEditData())return;const amount=document.getElementById('amount'),date=document.getElementById('date'),note=document.getElementById('note');if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir satış tutarı gir');if(!validRecordDate(date.value))return toast('Geçerli işlem tarihi seç');if(!canAddFinance(1,date.value))return showFinancePlusRequired();let arr=selectedSaleAnimals();if(!arr.length)return toast('En az bir hayvan seç');let names=arr.map(animalName),ids=arr.map(a=>a.id),previousStatuses={};arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});db.records.push({id:uid('rec'),kind:'sale',label:`Satış · ${arr.length} hayvan`,category:'Kuzu/Hayvan satışı',amount:+amount.value,date:date.value,note:(typeof note!=='undefined'&&note?.value)||'',animalIds:ids,animalNames:names,previousStatuses,source:source||'sale'});save();closeModal();toast(arr.length+' hayvan satıldı; gelir kaydına bağlandı')}
 function submitSale(){return submitSelectedSale('sale')}
 function stockUnits(){return ['birim','kg','ton','adet','balya']}
