@@ -996,7 +996,37 @@ function save(){
 }
 function money(n){return new Intl.NumberFormat(appLocale(),{maximumFractionDigits:0}).format(+n||0)+' TL'}
 function toast(s){let t=document.getElementById('toast');t.textContent=uiTranslate(s);t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
-function go(id){if(!isPro()&&(id==='growth'||id==='chat'))return showProRequired(id==='growth'?'Kuzu Gelişim Analizi':'ChatGPT ile Yönetim');document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===id));window.scrollTo(0,0);renderAll()}
+function go(id,remember=true){if(!isPro()&&(id==='growth'||id==='chat'))return showProRequired(id==='growth'?'Kuzu Gelişim Analizi':'ChatGPT ile Yönetim');if(remember)rememberNavigation(id);document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===id));window.scrollTo(0,0);renderAll()}
+/* Android/PWA Back: dismiss a sheet, return through screens, then confirm exit. */
+let navigationTrail=[], navigationCurrent={screen:'home',sub:''}, exitBackAt=0;
+function rememberNavigation(id){
+ const next={screen:id,sub:id==='sub'?currentSub:''};
+ if(id==='home'){navigationTrail=[];navigationCurrent=next;exitBackAt=0;return}
+ if(next.screen!==navigationCurrent.screen||next.sub!==navigationCurrent.sub){
+  navigationTrail.push({...navigationCurrent});navigationCurrent=next;exitBackAt=0;
+ }
+}
+function handleAppBack(){
+ if(modal.classList.contains('show')){closeModal();exitBackAt=0;return false}
+ if(navigationTrail.length){
+  const previous=navigationTrail.pop();
+  if(previous.screen==='sub'&&previous.sub)openSub(previous.sub,true);
+  navigationCurrent=previous;go(previous.screen,false);exitBackAt=0;return false;
+ }
+ if(navigationCurrent.screen!=='home'){navigationCurrent={screen:'home',sub:''};go('home',false);exitBackAt=0;return false}
+ const now=Date.now();
+ if(exitBackAt&&now-exitBackAt<2000){exitBackAt=0;return true}
+ exitBackAt=now;toast(appLanguage==='en'?'Press Back again to exit':'Çıkmak için tekrar geri tuşuna bas');return false;
+}
+function installBackNavigation(){
+ if(!window.history||!window.history.pushState)return;
+ window.history.replaceState({suruBack:'boundary'},'',location.href);
+ window.history.pushState({suruBack:'guard'},'',location.href);
+ window.addEventListener('popstate',()=>{
+  if(handleAppBack()){window.history.back();return}
+  window.history.pushState({suruBack:'guard'},'',location.href);
+ });
+}
 let modalReturnFocus=null;
 function closeModal(){modal.classList.remove('show');if(modalReturnFocus?.isConnected)modalReturnFocus.focus?.();modalReturnFocus=null}
 function showModal(title,body){if(!modal.classList.contains('show'))modalReturnFocus=document.activeElement;modalTitle.textContent=title;modalBody.innerHTML=body;modal.classList.add('show');linkFormLabels(modalBody);refreshLanguage(modal);modal.querySelector('.sheet')?.focus?.()}
@@ -3240,6 +3270,7 @@ async function toggleVoice(){
 if(typeof MutationObserver!=='undefined'){let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;observer.disconnect();refreshLanguage();observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})})});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})}
 if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
 restoreDeviceContext();
+installBackNavigation();
 renderAll();
 initCloud();if(/(?:^|[?&])action=delete-account(?:&|$)/.test(location.search||''))setTimeout(openDeleteAccount,0);
 let deferredInstallPrompt=null;
