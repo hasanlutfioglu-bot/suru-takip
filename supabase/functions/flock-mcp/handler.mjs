@@ -9,7 +9,7 @@ export const tools=[
  {name:'commit_farm_record',description:'Save the exact preview only after user approval. Reuse its request_id for retries. Send expected_version from preview. A conflict requires reading and previewing again, never overwriting. No deletion or arbitrary state edits.',inputSchema:{type:'object',properties:{farm_id:field.farm_id,operation,request_id:{type:'string',minLength:8,maxLength:100},expected_version:{type:'string'},confirmed:{type:'boolean',const:true}},required:['farm_id','operation','request_id','expected_version','confirmed'],additionalProperties:false},annotations:{readOnlyHint:false,destructiveHint:true,idempotentHint:true,openWorldHint:false},securitySchemes:schemes}
 ];
 const result=value=>({content:[{type:'text',text:JSON.stringify(value)}],structuredContent:value});
-export function createHandler({url,key,resource,clientIds,createClient,now=()=>new Date()}){
+export function createHandler({url,key,resource,clientIds,pilotUserIds=[],createClient,now=()=>new Date()}){
  const metadata=resource+'/.well-known/oauth-protected-resource';
  const challenge='Bearer resource_metadata="'+metadata+'", scope="openid"';
  const json=(v,status=200,extra={})=>Response.json(v,{status,headers:{'Cache-Control':'no-store',...extra}});
@@ -35,6 +35,7 @@ export function createHandler({url,key,resource,clientIds,createClient,now=()=>n
    checkClaims(data?.claims,resource,url+'/auth/v1',clientIds,now().getTime()/1000);
    const verified=await client.auth.getUser(token);if(verified.error||!verified.data?.user||verified.data.user.id!==data.claims.sub)throw Error('unauthorized');user=verified.data.user;
   }catch{return json({error:'unauthorized'},401,{'WWW-Authenticate':challenge})}
+  if(!pilotUserIds.includes(user.id))return json({error:'pilot_access_denied'},403);
   try{
    const name=body.params?.name,args=body.params?.arguments||{};
    if(!tools.some(t=>t.name===name))return rpcError(-32602,'Unknown tool');
