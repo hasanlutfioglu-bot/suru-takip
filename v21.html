@@ -2374,7 +2374,8 @@ function weightStatus(adg,band,herdAvg){
 function renderBulkWeightRow(a){
  let prev=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id).slice().sort((x,y)=>String(y.date||'').localeCompare(String(x.date||'')))[0];
  let pw=prev?weightValueFromRecord(prev):(+a.weight||0);
- return '<div class="weightRow"><div class="weightRowTop"><div><div class="weightRowName">'+escHtml(animalName(a))+'</div><div class="weightRowMeta">'+escHtml(a.sex||'')+' · '+age(a.birth)+(pw?' · Son '+pw+' kg':'')+'</div></div><span class="tag">Kuzu</span></div><div class="weightInputWrap"><div class="muted">Yeni kilo (kg)</div><input class="bulkWeightInput" data-id="'+a.id+'" type="number" step=".1" min="0" inputmode="decimal" placeholder="kg"></div></div>';
+ let tagControl=a.tag?'<div class="muted" style="margin:6px 0">Küpe no: <b>#'+escHtml(String(a.tag))+'</b></div>':'<div class="weightInputWrap"><div class="muted">Küpe numarası ekle (isteğe bağlı)</div><input class="bulkTagInput" data-id="'+escHtml(String(a.id))+'" type="text" maxlength="32" autocomplete="off" placeholder="Yeni küpe no"></div>';
+ return '<div class="weightRow"><div class="weightRowTop"><div><div class="weightRowName">'+escHtml(animalName(a))+'</div><div class="weightRowMeta">'+escHtml(a.sex||'')+' · '+age(a.birth)+(pw?' · Son '+pw+' kg':'')+'</div></div><span class="tag">Kuzu</span></div>'+tagControl+'<div class="weightInputWrap"><div class="muted">Yeni kilo (kg)</div><input class="bulkWeightInput" data-id="'+escHtml(String(a.id))+'" type="number" step=".1" min="0" inputmode="decimal" placeholder="kg"></div></div>';
 }
 function openBulkWeight(){
  let lambs=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a)).slice().sort((a,b)=>String(a.tag||'').localeCompare(String(b.tag||''),'tr',{numeric:true}));
@@ -2392,11 +2393,17 @@ function openBulkWeight(){
 }
 function submitBulkWeight(){if(!canEditData())return;
  let date=today();
+ let tagInputs=[...document.querySelectorAll('.bulkTagInput')].filter(x=>x.value.trim()!=='');
+ let tagChanges=tagInputs.map(x=>({id:x.dataset.id,tag:x.value.trim()}));
+ if(tagChanges.some(x=>{let a=db.animals.find(a=>a.id===x.id);return !a||a.type!=='Kuzu'||!isActiveAnimal(a)||a.tag}))return toast('Küpe bilgisi değişmiş; ekranı kapatıp yeniden aç');
+ if(tagChanges.some(x=>db.animals.some(a=>a.id!==x.id&&String(a.tag||'').trim()===x.tag))||new Set(tagChanges.map(x=>x.tag)).size!==tagChanges.length)return toast('Bu küpe numarası zaten kullanılıyor');
  let inputs=[...document.querySelectorAll('.bulkWeightInput')].filter(x=>x.value.trim()!=='');
  if(inputs.some(x=>!Number.isFinite(+x.value)||+x.value<=0))return toast('Her girilen kilo sıfırdan büyük olmalı');
  let entered=inputs.map(x=>({id:x.dataset.id,weight:+x.value}));
- if(entered.some(x=>{let a=db.animals.find(a=>a.id===x.id);return !a||!isActiveAnimal(a)||!validRecordDate(date,a.birth)||db.records.some(r=>r.kind==='weight'&&r.animalId===x.id&&r.date===date)}))return toast('Tartım tarihi geçersiz veya aynı gün için kayıt var; mevcut tartımı düzenle');
- if(!entered.length)return toast('En az bir kuzunun kilosunu gir');
+ if(entered.some(x=>{let a=db.animals.find(a=>a.id===x.id);return !a||!isActiveAnimal(a)||!validRecordDate(date,a.birth)||db.records.some(r=>r.kind==='weight'&&r.animalId===x.id&&r.date===date)}))return toast('Bugünkü tartım zaten kayıtlı veya kuzu için tarih geçersiz; mevcut tartımı düzenle');
+ if(!entered.length&&!tagChanges.length)return toast('Kilo gir veya yeni küpe numarası ekle');
+ tagChanges.forEach(x=>{let a=db.animals.find(a=>a.id===x.id);a.tag=x.tag;});
+ if(!entered.length){save();closeModal();toast('Küpe numarası kaydedildi');return;}
 
  let rows=entered.map(x=>{
   let a=db.animals.find(z=>z.id===x.id),prev=previousWeightRecord(x.id,date),prevWeight=prev?weightValueFromRecord(prev):0;
