@@ -22,7 +22,11 @@ checkClaims(claims,resource,issuer,['client1']);for(const patch of [{aud:'other'
 const request=(name,args,token=true)=>new Request(resource,{method:'POST',headers:token?{Authorization:'Bearer test'}:{},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'tools/call',params:{name,arguments:args}})});
 let writes=0,role='viewer',member=true,version='v1';
 function createClient(){return {auth:{getClaims:async()=>({data:{claims}}),getUser:async()=>({data:{user:{id:user}}})},from(table){let update=false;const q={select(){return q},eq(){return q},update(){update=true;return q},async maybeSingle(){if(table==='farm_members')return {data:member?{role}:null};if(update){writes++;return {data:{updated_at:'v2'}}}return {data:null}},async single(){return {data:{data:base,updated_at:version}}}};return q}}}
-const handler=createHandler({url:'https://example.com',key:'public',resource,clientIds:['client1'],createClient,now:()=>new Date('2026-10-03T12:00:00Z')});
+const config={url:'https://example.com',key:'public',resource,clientIds:['client1'],createClient,now:()=>new Date('2026-10-03T12:00:00Z')};
+const handler=createHandler({...config,pilotUserIds:[user]});
+assert.equal((await createHandler(config)(request('list_my_farms',{}))).status,403);
+assert.equal((await createHandler({...config,pilotUserIds:['another-user']})(request('read_farm',{}))).status,403);
+assert.equal(writes,0);
 assert.equal((await handler(request('read_farm',{},false))).status,401);
 const args={farm_id:'00000000-0000-0000-0000-000000000001',operation:birth,request_id:'request001',expected_version:'v1',confirmed:true};
 assert.match(JSON.stringify(await (await handler(request('commit_farm_record',args))).json()),/forbidden/);assert.equal(writes,0);
