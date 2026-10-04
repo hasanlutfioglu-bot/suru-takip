@@ -35,5 +35,5 @@ back();assert.equal(document.querySelector('.screen.active').id,'home');restore(
 back();assert.equal(exits,1);restore();
 run('exitBackAt=Date.now()-2100');back();assert.equal(exits,1);restore();
 back();assert.equal(exits,2);
-assert.equal(pushes,1);
+assert.ok(pushes>=3,'User-activated screen changes should create navigable history entries');
 console.log('Back navigation: modal, screen trail, subpages, exit timeout, guard restoration and reload passed');
