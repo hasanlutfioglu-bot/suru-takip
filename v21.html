@@ -1815,7 +1815,7 @@ function saleCandidateAge(a){
  return months>=5.5;
 }
 function saleCandidateWeight(a){return !!a&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a)&&(+a.weight||0)>=50}
-function isSaleCandidate(a){return !!a&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a)&&(a.status==='Satılacak'||saleCandidateAge(a)||saleCandidateWeight(a));}
+function isSaleCandidate(a){return !!a&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a)&&!a.breedingReserve&&(a.status==='Satılacak'||saleCandidateAge(a)||saleCandidateWeight(a));}
 function openSaleCandidates(){
  let arr=db.animals.filter(a=>isSaleCandidate(a));
  if(!arr.length)return showModal('Satılacak Kuzular','<div class="empty">Şu anda satış adayı kuzu yok.</div>');
