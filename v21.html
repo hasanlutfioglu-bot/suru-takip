@@ -123,7 +123,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></h1><div style="display:flex;gap:6px;align-items:center"><button class="pill" id="planStatus" onclick="openPlans()" style="border:0;font-weight:800">FREE</button><span class="pill" id="cloudStatus">Yerel mod</span></div></div><button id="planStrip" onclick="openPlans()" style="width:100%;margin-top:9px;border:1px solid #dfe7df;background:#fff;border-radius:13px;padding:9px 11px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b id="planStripTitle">FREE</b><small id="planStripText" style="display:block;color:#68736a;margin-top:2px">Temel paket</small></span><span style="font-weight:800;color:#245c3b">Üyelik ›</span></button></header>
+<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21</span></h1><div style="display:flex;gap:6px;align-items:center"><button class="pill" id="planStatus" onclick="openPlans()" style="border:0;font-weight:800">FREE</button><span class="pill" id="cloudStatus">Yerel mod</span></div></div><button id="planStrip" onclick="openPlans()" style="width:100%;margin-top:9px;border:1px solid #dfe7df;background:#fff;border-radius:13px;padding:9px 11px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b id="planStripTitle">FREE</b><small id="planStripText" style="display:block;color:#68736a;margin-top:2px">Temel paket</small></span><span style="font-weight:800;color:#245c3b">Üyelik ›</span></button><div style="display:flex;justify-content:flex-end;margin-top:8px"><label for="appLanguage" data-no-i18n style="margin:0 8px 0 0;align-self:center;font-size:14px">Dil / Language</label><select id="appLanguage" data-no-i18n onchange="setAppLanguage(this.value)" style="width:auto;margin:0;padding:6px 10px;font-size:14px"><option value="tr">Türkçe</option><option value="en">English</option></select></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -534,6 +534,389 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 <div class="modal" id="modal"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1"><div class="row"><h3 id="modalTitle">Kayıt</h3><button onclick="closeModal()">Kapat</button></div><div id="modalBody"></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
+// UI language is device-local; stored flock values remain in their original format.
+let appLanguage='tr';try{appLanguage=localStorage.getItem('suru-language')==='en'?'en':'tr'}catch(e){}
+function appLocale(){return appLanguage==='en'?'en-GB':'tr-TR'}
+const UI_EN={
+ "Sürü Takip": "Flock Tracker",
+ "Ana Sayfa": "Home",
+ "Sürü": "Flock",
+ "Kayıt Ekle": "Add Record",
+ "Raporlar": "Reports",
+ "Kuzu Gelişim": "Lamb Growth",
+ "Yerel mod": "Local mode",
+ "Bulut bağlı": "Cloud connected",
+ "Temel paket": "Basic plan",
+ "Üyelik ›": "Membership ›",
+ "PRO aktif": "PRO active",
+ "Tüm gelişmiş özellikler açık": "All advanced features enabled",
+ "Hesabın bağlı": "Account connected",
+ "Hesabım / İşletmem": "My Account / Farm",
+ "Google hesabınla başla": "Start with your Google account",
+ "Google ile Giriş Yap / Kayıt Ol": "Sign In / Sign Up with Google",
+ "Giriş yap veya kayıt ol. İlk kayıtta 30 gün ücretsiz PRO; sürün hesabında saklanır.": "Sign in or sign up. New accounts get 30 days of free PRO; your flock is saved in your account.",
+ "Kullanılacak sürü": "Choose flock",
+ "SÜRÜ SAYISI": "FLOCK SIZE",
+ "Sürünün doğum oranı": "Lambs per lambing ewe",
+ "Henüz doğum kaydı yok": "No birth records yet",
+ "Kâr / Zarar": "Profit / Loss",
+ "Tüm kayıtlar · gelir − gider": "All records · income − expenses",
+ "Satışa hazır kuzular": "Lambs ready for sale",
+ "Satılacak işaretli, 5,5+ aylık veya 50+ kg erkek kuzular": "Male lambs marked for sale, aged 5.5+ months or weighing 50+ kg",
+ "📅 Yaklaşan İşler": "📅 Upcoming Tasks",
+ "Hatırlatmalar ve yapılacaklar": "Reminders and tasks",
+ "Tüm İşleri Gör": "View All Tasks",
+ "🧾 Eksik Hayvan Bilgileri": "🧾 Missing Animal Details",
+ "Eksikleri Göster": "Show Missing Details",
+ "☰ Tüm Menüler": "☰ All Menus",
+ "Tüm Menüler": "All Menus",
+ "Kuzu Cinsiyetleri": "Lamb Sexes",
+ "Toplu Küpe": "Bulk Ear Tags",
+ "Küpe no veya hayvan ara...": "Search ear tag or animal...",
+ "Diğer filtreler ▾": "More filters ▾",
+ "Doğum": "Birth",
+ "Sağlık": "Health",
+ "Tartım": "Weighing",
+ "Satış": "Sale",
+ "Stok Alımı": "Stock Purchase",
+ "Gelir": "Income",
+ "Gider": "Expense",
+ "Hasat / Ürün": "Harvest / Produce",
+ "Not": "Note",
+ "Son 5 kayıt": "Last 5 records",
+ "İşletmenin durumunu tek bakışta gör.": "See your farm at a glance.",
+ "🗂 Arşiv": "🗂 Archive",
+ "Genel": "Overview",
+ "Finans Detayı": "Finance Details",
+ "Sürü Detayı": "Flock Details",
+ "Arşiv": "Archive",
+ "Bu Ay": "This Month",
+ "Bu Yıl": "This Year",
+ "Bu ay": "This month",
+ "Bu yıl": "This year",
+ "NET SONUÇ": "NET RESULT",
+ "Önceki döneme göre": "Compared with the previous period",
+ "Satışa hazır kuzu": "Lambs ready for sale",
+ "Yeni doğan kuzu": "Newborn lambs",
+ "Dönem özeti hazırlanıyor…": "Preparing period summary…",
+ "Kayıtlar analiz ediliyor.": "Analysing records.",
+ "İşletme Özeti": "Farm Overview",
+ "Hayvan satış geliri": "Animal sale income",
+ "Kuzu gelişim / satış": "Lamb growth / sales",
+ "Doğuran anaç": "Ewes that lambed",
+ "Kayıp / ölüm": "Losses / deaths",
+ "📊 İşletme Nabzı": "📊 Farm Status",
+ "🔒 İşletme Nabzı · PRO": "🔒 Farm Status · PRO",
+ "Finans, doğum, gelişim, satış ve sağlık durumunu tek ekranda analiz eder.": "Analyse finance, births, growth, sales and health on one screen.",
+ "Her alan kendi gerçek verisine göre değerlendirilir; renklerin nedeni satıra dokununca görünür.": "Each area uses its own records. Tap a row to see the reason for its status.",
+ "CANLI": "LIVE",
+ "💰 Finans": "💰 Finance",
+ "🐑 Doğum": "🐑 Births",
+ "⚖️ Gelişim": "⚖️ Growth",
+ "🐏 Satış": "🐏 Sales",
+ "🩺 Sağlık": "🩺 Health",
+ "Veri yok": "No data",
+ "Seçili dönem finans sonucu": "Financial result for the selected period",
+ "Son doğum dönemi": "Latest lambing period",
+ "Yaşa göre günlük artış": "Daily gain by age",
+ "50 kg / 5,5 ay hedefi": "50 kg / 5.5 month target",
+ "Kayıp ve takip durumu": "Losses and follow-up status",
+ "Düzgün": "Good",
+ "Takip": "Monitor",
+ "Sıkıntı": "Needs attention",
+ "Yetersiz / nötr veri": "Insufficient / neutral data",
+ "Bugün dikkat isteyenler": "Needs attention today",
+ "Kontrol ediliyor…": "Checking…",
+ "Doğum Performansı": "Lambing Performance",
+ "Doğum performansı": "Lambing performance",
+ "Detay ›": "Details ›",
+ "Kuzu verimi": "Lambs per lambing (%)",
+ "Anaç sürü doğum oranı": "Ewe lambing rate",
+ "Kayıtlara Git": "View Records",
+ "📈 Finans Akışı": "📈 Cash Flow",
+ "Son 6 ay gelir ve gider": "Income and expenses over the last 6 months",
+ "💰 Sürü Değeri ve Satış Potansiyeli": "💰 Flock Value and Sales Potential",
+ "Aktif erkek kuzular · güncel kg fiyatı": "Active male lambs · current price per kg",
+ "Bugün tüm aktif erkek kuzuları mevcut kilolarıyla satsan tahmini toplam değer": "Estimated value of all active male lambs at their current weights",
+ "SATIŞA HAZIR": "READY FOR SALE",
+ "50 KG HEDEF": "50 KG TARGET",
+ "POTANSİYEL FARK": "POTENTIAL GAIN",
+ "Bugün → hedef": "Today → target",
+ "🐏 Satış Senaryosu": "🐏 Sales Scenario",
+ "Tek bakışta üç seçenek": "Three options at a glance",
+ "Bugün hepsi": "Sell all today",
+ "Sadece satışa hazır": "Ready for sale only",
+ "50 kg hedefinde": "At the 50 kg target",
+ "Gider Yapısı": "Expense Breakdown",
+ "Seçili dönemde paranın nereye gittiği": "Where money went in the selected period",
+ "Yem gideri": "Feed expenses",
+ "İlaç / Veteriner": "Medicine / Vet",
+ "Tarla gideri": "Field expenses",
+ "Gelir Dağılımı": "Income Breakdown",
+ "Gider Dağılımı": "Expense Breakdown",
+ "Tüm finans kırılımı": "Full financial breakdown",
+ "Sürü ve Performans": "Flock and Performance",
+ "Erkek kuzu": "Male lambs",
+ "Dişi kuzu": "Female lambs",
+ "Cinsiyeti bilinmeyen": "Unknown sex",
+ "Satışa hazır": "Ready for sale",
+ "🐏 Satışa Hazırlık": "🐏 Sale Readiness",
+ "Erkek kuzuların mevcut sürü durumu": "Current status of male lambs",
+ "Yaklaşıyor": "Nearly ready",
+ "Gelişimde": "Growing",
+ "⚖️ Kuzu Gelişim Durumu": "⚖️ Lamb Growth Status",
+ "Yaşa göre gelişim ve takip durumu": "Growth and monitoring by age",
+ "🐑 Doğum Performansı": "🐑 Lambing Performance",
+ "Son doğum döneminin sürü sonucu": "Flock results for the latest lambing period",
+ "Mevcut Sürü": "Current Flock",
+ "Aktif hayvan": "Active animals",
+ "Koyun": "Ewe",
+ "Koç": "Ram",
+ "Kuzu": "Lamb",
+ "Doğuranların kuzu verimi": "Lamb yield of ewes that lambed",
+ "Doğurmayan anaç": "Ewes that have not lambed",
+ "Doğurmayan anaçlar": "Ewes that have not lambed",
+ "Hesap:": "Calculation:",
+ "Kuzu verimi = doğan kuzu ÷ doğuran anaç × 100. Anaç sürü doğum oranı = doğuran farklı anaç ÷ aktif anaç × 100.": "Lamb yield = lambs born ÷ ewes that lambed × 100. Ewe lambing rate = distinct ewes that lambed ÷ active ewes × 100.",
+ "Kayıplar / Ölüm": "Losses / Deaths",
+ "Ölen koyun": "Ewe deaths",
+ "Ölen kuzu": "Lamb deaths",
+ "Kayıt ve operasyon özeti": "Records and Operations",
+ "Sağlık kaydı": "Health records",
+ "Tartım kaydı": "Weight records",
+ "Satış kaydı": "Sale records",
+ "Stok alımı": "Stock purchases",
+ "Hasat / ürün": "Harvest / produce",
+ "Not kaydı": "Note records",
+ "Hayvan ekleme": "Animals added",
+ "Sürü statü değişimi": "Flock status changes",
+ "Anaç performans listesi": "Ewe performance list",
+ "Sağlık özeti": "Health summary",
+ "Satış özeti": "Sales summary",
+ "Stok durumu": "Stock status",
+ "Geçmiş Raporlar": "Historical Reports",
+ "Yıl ve ay seçerek geçmiş döneme in.": "Select a year and month to view past records.",
+ "Tüm yıl": "Full year",
+ "Ocak": "January",
+ "Şubat": "February",
+ "Mart": "March",
+ "Nisan": "April",
+ "Mayıs": "May",
+ "Haziran": "June",
+ "Temmuz": "July",
+ "Ağustos": "August",
+ "Eylül": "September",
+ "Ekim": "October",
+ "Kasım": "November",
+ "Aralık": "December",
+ "Dönemi Göster": "Show Period",
+ "Tüm Zamanlar": "All Time",
+ "Tüm zamanlar": "All time",
+ "Doğum Dönemini Göster": "Show Lambing Period",
+ "Özel Tarih Aralığı": "Custom Date Range",
+ "Uygula": "Apply",
+ "Temizle": "Clear",
+ "PDF / Yazdır": "PDF / Print",
+ "Rapor kapsamı": "Report scope",
+ "Finans, doğum, satış, sağlık, tartım, ölüm/kayıp, stok, hasat, hayvan ekleme ve statü değişimleri seçili döneme göre raporlanır. Kuzu gelişiminin ayrıntısı kendi ekranında tutulur.": "Finance, births, sales, health, weights, losses, stock, harvests, added animals and status changes are reported for the selected period. Detailed lamb growth is shown on its own screen.",
+ "🌾 Üretim Dönemleri": "🌾 Production Periods",
+ "Hasat Ekle": "Add Harvest",
+ "📈 Kuzu Gelişim": "📈 Lamb Growth",
+ "Yaş, son kilo ve kilo alma hızını birlikte takip et.": "Track age, latest weight and daily weight gain together.",
+ "Tartım Yap": "Record Weight",
+ "Aktif kuzu": "Active lambs",
+ "Takip gereken": "Needs monitoring",
+ "Ort. günlük artış": "Average daily gain",
+ "Kuzu fiyatı": "Lamb price",
+ "Hazırların değeri": "Value of ready lambs",
+ "50 kg hedef": "50 kg target",
+ "Küpe": "Ear tag",
+ "Yaş": "Age",
+ "Son kg": "Latest kg",
+ "Artış": "Gain",
+ "g/gün": "g/day",
+ "Durum": "Status",
+ "Satıra dokun: uyarının nedeni, yaş grubu karşılaştırması, hedef ve tartım geçmişi açılsın.": "Tap a row for alerts, age-group comparison, targets and weight history.",
+ "Normal · Takip · Kontrol · Satış. ⏱ = tartım zamanı. Kontrol yalnız kilo kaybı veya iki dönem üst üste düşük gelişimde çıkar.": "Normal · Monitor · Check · Sale. ⏱ = weighing due. Check appears for weight loss or low growth in two consecutive periods.",
+ "ChatGPT ile Yönetim": "Assistant",
+ "Konuşarak yönet": "Manage by voice",
+ "Mikrofona bas, komutunu söyle. Tanınan cümle aşağıya gelir ve yerel sürü komutları işlenir.": "Tap the microphone and speak. The recognised text appears below. Supported local flock commands are processed.",
+ "Hazırım. Örneğin “245 numaralı koyun iki kuzu doğurdu” diyebilirsin.": "Ready. Try “Ewe 245 gave birth to two lambs”.",
+ "🎙️ Bas ve Konuş": "🎙️ Tap to Speak",
+ "Mikrofon hazır": "Microphone ready",
+ "Komut yaz veya mikrofona bas…": "Type a command or tap the microphone…",
+ "Gönder": "Send",
+ "Geri": "Back",
+ "Doğum-Kuzulama": "Births / Lambing",
+ "Anaç Performansı": "Ewe Performance",
+ "Koç & Takvim": "Ram & Calendar",
+ "Stok": "Stock",
+ "Gelir-Gider": "Income / Expenses",
+ "Sürü Hareketleri": "Flock Changes",
+ "Bugün Yapılacaklar": "Today's Tasks",
+ "Yedekleme / Geri Yükleme": "Backup / Restore",
+ "📲 Sürü Takip’i Telefona Kur": "📲 Install Flock Tracker",
+ "Ana ekranından uygulama olarak aç.": "Open the app from your home screen.",
+ "Uygulamayı Kur": "Install App",
+ "☁️ Bulut Senkronizasyonu": "☁️ Cloud Sync",
+ "Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.": "Local records are enabled. Sign in with Google to sync your phone and computer.",
+ "Hazır": "Ready",
+ "Google ile Giriş Yap": "Sign In with Google",
+ "Şimdi Eşitle": "Sync Now",
+ "Çıkış": "Sign Out",
+ "🐑 İlk Sürünü Oluştur": "🐑 Create Your First Flock",
+ "Bu hesap boş başladı. Kendi koyun, koç ve kuzularını ekleyerek sürünü kur.": "This account is empty. Add your own ewes, rams and lambs to build your flock.",
+ "Sürümü Kur": "Set Up My Flock",
+ "Tek Hayvan Ekle": "Add One Animal",
+ "Bölüm": "Section",
+ "Kayıt": "Record",
+ "Kapat": "Close",
+ "Düzenle": "Edit",
+ "Kaydet": "Save",
+ "Sil": "Delete",
+ "İptal": "Cancel",
+ "Tamam": "OK",
+ "Ekle": "Add",
+ "+ Ekle": "+ Add",
+ "Hayvan Ekle": "Add Animal",
+ "Hayvan Türü": "Animal Type",
+ "Hayvan türü": "Animal type",
+ "Cinsiyet": "Sex",
+ "Erkek": "Male",
+ "Dişi": "Female",
+ "Bilinmiyor": "Unknown",
+ "Aktif": "Active",
+ "Takipte": "Monitoring",
+ "Satılacak": "For sale",
+ "Satıldı": "Sold",
+ "Öldü": "Died",
+ "Kesildi": "Slaughtered",
+ "Anaç": "Breeding ewe",
+ "Anaç Adayı": "Replacement ewe",
+ "Küpe No": "Ear Tag Number",
+ "Küpe no": "Ear tag number",
+ "Küpe numarası": "Ear tag number",
+ "Doğum Tarihi": "Birth Date",
+ "Doğum tarihi": "Birth date",
+ "Tarih": "Date",
+ "Kilo (kg)": "Weight (kg)",
+ "Kilo": "Weight",
+ "Anne": "Mother",
+ "Anne koyun": "Mother ewe",
+ "Hayvan": "Animal",
+ "Tutar (TL)": "Amount (TL)",
+ "Tutar": "Amount",
+ "Kategori": "Category",
+ "Açıklama": "Description",
+ "Miktar": "Quantity",
+ "Birim": "Unit",
+ "Yem": "Feed",
+ "Arpa": "Barley",
+ "Saman": "Straw",
+ "Balya": "Bale",
+ "İlaç": "Medicine",
+ "Veteriner": "Vet",
+ "Diğer": "Other",
+ "Hepsi": "All",
+ "Tümü": "All",
+ "Koyunlar": "Ewes",
+ "Koçlar": "Rams",
+ "Kuzular": "Lambs",
+ "Erkek Kuzular": "Male Lambs",
+ "Dişi Kuzular": "Female Lambs",
+ "Henüz kayıt yok.": "No records yet.",
+ "Henüz hareket yok.": "No changes yet.",
+ "Bu filtrede kuzu yok.": "No lambs match this filter.",
+ "Bugün için kayıtlı iş yok.": "No tasks recorded for today.",
+ "Örnek komutlar": "Example commands",
+ "“Bugün yapılacak ne var?”": "“What tasks are due today?”",
+ "“Bu ay ne kadar yem masrafı yaptım?”": "“How much did I spend on feed this month?”",
+ "“245 numaralı koyun ikiz doğurdu; biri erkek biri dişi.”": "“Ewe 245 had twins; one male and one female.”",
+ "Yapıldı": "Done",
+ "Koçu kattım": "Ram introduced",
+ "Koçu çıkardım": "Ram removed",
+ "Hazırlanıyorum": "Preparing",
+ "Gördüm": "Seen",
+ "Başlangıç": "Starting",
+ "Gelişim düşük": "Low growth",
+ "Güncel": "Up to date",
+ "Bulut ve cihaz kayıtları eşit": "Cloud and device records match",
+ "Bu hesap yalnızca görüntüleme yetkisine sahip.": "This account has view-only access.",
+ "Bir komut söyle gardaş.": "Say a command.",
+ "Doğum kaydı için 1 ile 3 arasında kuzu sayısı söyle.": "Specify between 1 and 3 lambs for a birth record.",
+ "Doğum için anaç veya anaç adayı seç.": "Select a breeding or replacement ewe for a birth record.",
+ "FREE paketindeki 20 aktif hayvan sınırı bu doğumla aşılır. PRO üyeliği gerekir.": "This birth exceeds the FREE limit of 20 active animals. PRO is required.",
+ "Bu koyuna bugün doğum zaten kaydedilmiş; mevcut doğumu düzenle.": "A birth is already recorded for this ewe today. Edit the existing record.",
+ "Mikrofon tanıma desteklenmiyor": "Speech recognition is not supported",
+ "⏹️ Dinliyorum… Bitir": "⏹️ Listening… Stop",
+ "Konuşabilirsin…": "You can speak now…",
+ "Ses algılanmadı; tekrar basabilirsin.": "No speech detected. Tap to try again.",
+ "Bu tarayıcı sesli tanımayı desteklemiyor. Dosyayı Chrome ile açmayı dene.": "This browser does not support speech recognition. Try Chrome.",
+ "Mikrofon başlatılamadı. Dosyayı Chrome ile açmayı dene.": "Could not start the microphone. Try Chrome.",
+ "Mikrofon izni verilmedi. Dosyayı Chrome ile aç ve mikrofon izni ver.": "Microphone access denied. Open in Chrome and allow microphone access.",
+ "Mikrofon izni alınamadı. ChatGPT içindeki dosya görüntüleyici yerine dosyayı Chrome ile açıp mikrofon izni ver.": "Microphone permission unavailable. Open the app in Chrome and allow microphone access.",
+ "Yıllık PRO": "Yearly PRO",
+ "Aylık PRO": "Monthly PRO",
+ "Paketlere Dön": "Back to Plans",
+ "PRO Satın Alma": "Buy PRO",
+ "Satın alma henüz kullanılamıyor": "Purchases are not available yet",
+ "Yaş bilinmiyor": "Age unknown"
+};
+Object.assign(UI_EN,{"İsteğe bağlı": "Optional", "Hayvanı Ekle": "Add Animal", "Gelir Ekle": "Add Income", "Gelir türü": "Income type", "Devlet desteği": "Government support", "Hayvan satışı": "Animal sales", "Kuzu satışı dışı gelir": "Income other than lamb sales", "Diğer gelir": "Other income", "Satılan hayvanları seç": "Select sold animals", "Geliri Kaydet": "Save Income", "Gider Ekle": "Add Expense", "Gider türü": "Expense type", "Tarla · Tohum": "Field · Seed", "Tarla · Libazma/Sürüm": "Field · Tillage", "Tarla · Mazot": "Field · Diesel", "Tarla · Gübre": "Field · Fertiliser", "Tarla · İlaçlama": "Field · Spraying", "Tarla · Biçim/Balya": "Field · Mowing/Baling", "Tarla · İşçilik": "Field · Labour", "Tarla · Diğer": "Field · Other", "Diğer gider": "Other expense", "Üretim dönemi": "Production period", "Tarla tarla dağıtım yok; bu gider doğrudan seçilen sezona yazılır.": "This expense is assigned directly to the selected season.", "Gideri Kaydet": "Save Expense", "Doğum Kaydı": "Birth Record", "Kuzu sayısı": "Number of lambs", "Doğumu Kaydet ve Kuzuları Sürüye Ekle": "Save Birth and Add Lambs", "Sağlık Kaydı": "Health Record", "İşlem / durum": "Treatment / condition", "İlaç, aşı, takip...": "Medicine, vaccination, follow-up...", "Tekrar / hatırlatma": "Repeat / reminder", "Hatırlatma yok": "No reminder", "7 gün sonra": "In 7 days", "15 gün sonra": "In 15 days", "30 gün sonra": "In 30 days", "Tarih seç": "Choose date", "İstersen boş bırak; sadece gereken işlemlerde kullan.": "Optional; use only when a reminder is needed.", "Kuzu Tartımı": "Lamb Weighing", "Toplu tartım": "Bulk weighing", "Birden fazla kuzuyu tek ekranda tart, kaydet ve gelişim analizini gör.": "Weigh several lambs on one screen, save and view growth analysis.", "Toplu Tartımı Aç": "Open Bulk Weighing", "Satış Kaydı": "Sale Record", "Toplam satış tutarı (TL)": "Total sale amount (TL)", "Satışı Kaydet": "Save Sale", "Kalem": "Item", "Toplam maliyet (TL)": "Total cost (TL)", "Stok ve Gider Olarak Kaydet": "Save Stock and Expense", "Hasat / Ürün Girişi": "Harvest / Produce Entry", "Ürün": "Produce", "Örn. Arpa, Balya": "e.g. Barley, Bales", "Hasat tarihi": "Harvest date", "Hasadı Kaydet ve Stoğa Ekle": "Save Harvest and Add to Stock", "Not Ekle": "Add Note", "adet": "units", "balya": "bales", "Google hesabı": "Google account", "Google hesabı bağlı değil": "No Google account connected", "Çiftlik / İşletme adı": "Farm / Business name", "Örn. Karpaz Küçükbaş": "e.g. Karpaz Sheep Farm", "Toplam kayıt": "Total records", "Üyelik": "Membership", "Temel kayıt paketi": "Basic record plan", "PRO üyeliğin aktif.": "Your PRO membership is active.", "Finans kayıtları ve gelişmiş analizler açık.": "Financial records and advanced analysis enabled.", "İşletme Bilgisini Kaydet": "Save Farm Details", "Verilerin ve gizlilik": "Your data and privacy", "Hesap silme bilgileri": "Account deletion information", "Hesabımı Sil": "Delete My Account", "Hayvanı Düzenle": "Edit Animal", "Küpe Ekle/Düzenle": "Add / Edit Ear Tag", "Tüm Kayıt Geçmişi": "Full Record History", "Kayıt yok.": "No records.", "Damızlığa Ayır": "Keep for Breeding", "Anaç Yap": "Promote to Breeding Ewe", "🐑 Kuzulama Özeti": "🐑 Lambing Summary", "Kuzulama": "Lambings", "Toplam kuzu": "Total lambs", "Doğum oranı": "Lamb yield", "💉 Sağlık": "💉 Health", "⚖️ Tartım": "⚖️ Weighing", "💰 Satış": "💰 Sale", "Kuzu Cinsiyetlerini Düzenle": "Edit Lamb Sexes", "Eksik Hayvan Bilgileri": "Missing Animal Details", "Aktif hayvanlarda temel bilgi eksiği yok.": "No basic details are missing for active animals.", "Kartı Aç": "Open Card", "Yıl": "Year", "Ay": "Month", "Ek ay": "Additional months", "Kaydedildi": "Saved", "Hayvan sürüye eklendi": "Animal added to flock", "Bu küpe numarası zaten kullanılıyor": "This ear tag is already in use", "Sıfırdan büyük kilo gir": "Enter a weight greater than zero", "Geçerli, gelecekte olmayan doğum tarihi gir": "Enter a valid birth date that is not in the future", "Geçerli bir tarih ve sıfırdan büyük tutar gir": "Enter a valid date and an amount greater than zero", "Sağlık kaydı kaydedildi": "Health record saved", "Not kaydedildi": "Note saved", "Tarih ve not gir": "Enter a date and note", "Bu kaydı silmek istediğine emin misin? Bağlı sürü/stok bilgileri de geri alınacak.": "Delete this record? Linked flock and stock changes will also be reversed.", "Yapılacak işi yaz": "Enter a task", "İş tamamlandı": "Task completed", "Süt": "Milk", "Süt Geliri": "Milk Income", "Yedek İndir": "Download Backup", "Yedekleme": "Backup", "Yedek Geri Yükle": "Restore Backup"});
+const uiTextSources=new WeakMap(),uiAttributeSources=new WeakMap();
+function uiTranslate(text){
+ if(appLanguage!=='en')return text;
+ const raw=String(text),key=raw.trim();
+ if(UI_EN[key])return raw.replace(key,UI_EN[key]);
+ const rules=[
+ [/^(\d+) hayvan$/, '$1 animals'],[/^(\d+) koyun · (\d+) koç · (\d+) kuzu$/, '$1 ewes · $2 rams · $3 lambs'],
+ [/^(\d+) kuzu \/ (\d+) doğuran koyun · tüm kayıtlar$/, '$1 lambs / $2 ewes that lambed · all records'],
+ [/^(\d+) kuzu$/, '$1 lambs'],[/^(\d+) aylık$/, '$1 months old'],[/^(\d+) yaş (\d+) ay$/, '$1 years $2 months'],
+ [/^(\d+) ay (\d+) gün$/, '$1 months $2 days'],[/^Kuzu (\d+) cinsiyeti$/, 'Lamb $1 sex'],
+ [/^Bu ay kayıtlı yem ve arpa masrafı (.+)\.$/, 'Recorded feed and barley spending this month: $1.'],
+ [/^(\d+) küpe numaralı aktif dişi bulunamadı\. Önce bu koyuna küpe numarasını ekle\.$/, 'No active female with ear tag $1. Add her ear tag first.'],
+ [/^Bugün yapılacak (\d+) iş var: /, '$1 tasks due today: '],
+ [/^(\d+) numaralı koyuna (\d+) kuzu doğum kaydı ekledim; kuzular sürüye eklendi(.*)\.$/, 'Recorded $2 lambs for ewe $1; lambs added to the flock$3.'],
+ [/^Duydum: /, 'Heard: '],[/^Mikrofon hatası: /, 'Microphone error: ']
+ ];
+ for(const [pattern,replacement] of rules)if(pattern.test(key))return raw.replace(key,key.replace(pattern,replacement));
+ if(key.includes(' · ')&&key.split(' · ').every(part=>UI_EN[part]||/^[0-9#.,% kgTL/–—-]+$/.test(part)))return raw.replace(key,key.split(' · ').map(part=>UI_EN[part]||part).join(' · '));
+ if(key.includes('✓ Güncel – Bulut ve cihaz kayıtları eşit'))return raw.replace('✓ Güncel – Bulut ve cihaz kayıtları eşit','✓ Up to date – Cloud and device records match');
+ return raw;
+}
+function refreshLanguage(root=document.body){
+ function visit(node){
+  if(node.nodeType===3){const previous=uiTextSources.get(node);let source=previous&&node.nodeValue===previous.shown?previous.source:node.nodeValue;let shown=uiTranslate(source);if(node.nodeValue!==shown)node.nodeValue=shown;uiTextSources.set(node,{source,shown});return}
+  if(node.nodeType!==1||['SCRIPT','STYLE','TEXTAREA'].includes(node.tagName)||node.hasAttribute('data-no-i18n'))return;
+  // An option without value uses its label as its value. Freeze it before translating.
+  if(node.tagName==='OPTION'&&!node.hasAttribute('value'))node.setAttribute('value',node.textContent);
+  for(const attr of ['placeholder','title','aria-label'])if(node.hasAttribute(attr)){const all=uiAttributeSources.get(node)||{},old=all[attr],value=node.getAttribute(attr),source=old&&old.shown===value?old.source:value,shown=uiTranslate(source);if(value!==shown)node.setAttribute(attr,shown);all[attr]={source,shown};uiAttributeSources.set(node,all)}
+  for(const child of [...node.childNodes])visit(child);
+ }
+ visit(root);document.documentElement.lang=appLanguage;document.title=appLanguage==='en'?'Flock Tracker':'Sürü Takip';
+ const selector=document.getElementById('appLanguage');if(selector&&selector.value!==appLanguage)selector.value=appLanguage;
+}
+function setAppLanguage(value){
+ if(!['tr','en'].includes(value))return;
+ try{if(speechRec){speechRec.onend=null;speechRec.abort();voiceListening=false;const talk=document.getElementById('talkBtn');if(talk){talk.classList.remove('listening');talk.textContent='🎙️ Bas ve Konuş'}};if(window.speechSynthesis)window.speechSynthesis.cancel()}catch(e){}
+ appLanguage=value;try{localStorage.setItem('suru-language',value)}catch(e){}
+ renderAll();refreshLanguage();
+}
+function englishLocalCommand(raw){
+ if(appLanguage!=='en')return raw;
+ let low=raw.toLowerCase();
+ if(/today/.test(low)&&/task|due|to do/.test(low))return 'bugün yapılacak ne var';
+ if(/feed|barley/.test(low)&&/spend|spent|cost|expense/.test(low)&&!/last|year|week|yesterday/.test(low))return 'bu ay yem masraf';
+ if(/gave birth|had (?:twins|triplets|\d|one|two|three)|lambed|delivered/.test(low)){
+  const tag=low.match(/\b\d{1,12}\b/);if(!tag)return raw;
+  let count=/triplets/.test(low)?3:/twins/.test(low)?2:0;
+  if(!count){let rest=low.slice(low.indexOf(tag[0])+tag[0].length),m=rest.match(/\b([1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten)\b/);if(m)count=({one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10}[m[1]]||+m[1])}
+  if(!count)return raw;
+  let sex=/male/.test(low.replace(/female/g,''))&&/female/.test(low)?'biri erkek biri dişi':/female/.test(low)?'dişi':/male/.test(low)?'erkek':'';
+  return tag[0]+' '+count+' kuzu doğurdu '+sex;
+ }
+ return raw;
+}
 const KEY='suru_takip_v5';
 const SUPABASE_URL='https://nqbfyahiijdkrroojlct.supabase.co';
 let SUPABASE_PUBLISHABLE_KEY='sb_publishable_OnTZGx8h0RwxDV7X6DhXQQ_-jJbxfRN';
@@ -611,12 +994,12 @@ function save(){
  renderAll();
  if(!cloudApplying)queueCloudSync();
 }
-function money(n){return new Intl.NumberFormat('tr-TR',{maximumFractionDigits:0}).format(+n||0)+' TL'}
-function toast(s){let t=document.getElementById('toast');t.textContent=s;t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
+function money(n){return new Intl.NumberFormat(appLocale(),{maximumFractionDigits:0}).format(+n||0)+' TL'}
+function toast(s){let t=document.getElementById('toast');t.textContent=uiTranslate(s);t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
 function go(id){if(!isPro()&&(id==='growth'||id==='chat'))return showProRequired(id==='growth'?'Kuzu Gelişim Analizi':'ChatGPT ile Yönetim');document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===id));window.scrollTo(0,0);renderAll()}
 let modalReturnFocus=null;
 function closeModal(){modal.classList.remove('show');if(modalReturnFocus?.isConnected)modalReturnFocus.focus?.();modalReturnFocus=null}
-function showModal(title,body){if(!modal.classList.contains('show'))modalReturnFocus=document.activeElement;modalTitle.textContent=title;modalBody.innerHTML=body;modal.classList.add('show');linkFormLabels(modalBody);modal.querySelector('.sheet')?.focus?.()}
+function showModal(title,body){if(!modal.classList.contains('show'))modalReturnFocus=document.activeElement;modalTitle.textContent=title;modalBody.innerHTML=body;modal.classList.add('show');linkFormLabels(modalBody);refreshLanguage(modal);modal.querySelector('.sheet')?.focus?.()}
 function linkFormLabels(root){root.querySelectorAll('label').forEach(label=>{const field=label.nextElementSibling;if(field?.matches('input,select,textarea')&&field.id)label.setAttribute('for',field.id)})}
 document.addEventListener('keydown',e=>{
  if(!modal.classList.contains('show'))return;
@@ -673,7 +1056,7 @@ function setProBilling(choice){
  selectedProBilling=choice==='monthly'?'monthly':'yearly';
  document.querySelectorAll('[data-price-plan]').forEach(x=>x.classList.toggle('selected',x.dataset.pricePlan===selectedProBilling));
  let btn=document.getElementById('proPurchaseBtn');
- if(btn)btn.textContent=selectedProBilling==='yearly'?'Yıllık PRO · '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık PRO · '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL';
+ if(btn)btn.textContent=selectedProBilling==='yearly'?'Yıllık PRO · '+PRO_YEARLY_PRICE.toLocaleString(appLocale())+' TL':'Aylık PRO · '+PRO_MONTHLY_PRICE.toLocaleString(appLocale())+' TL';
 }
 function storePlatform(){
  if('getDigitalGoodsService' in window)return 'android';
@@ -717,7 +1100,7 @@ async function startProPurchase(){
   }catch(e){if(response)try{await response.complete('fail')}catch(ignore){}return toast(e?.name==='AbortError'?'Satın alma iptal edildi':'Google Play: '+(e?.message||'satın alma başlatılamadı'))}finally{purchaseBusy=false}
  }
  if(platform==='ios'){try{window.webkit.messageHandlers.suruBilling.postMessage({action:'purchase',productId:product});return}catch(e){return toast('App Store satın alma başlatılamadı')}}
- showModal('PRO Satın Alma','<div class="card"><b>Satın alma henüz kullanılamıyor</b><div class="muted" style="margin-top:6px">Seçimin: '+(selectedProBilling==='yearly'?'Yıllık '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL')+'. Bu platformda henüz satın alma yapılamıyor. Ücret alınmadı.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
+ showModal('PRO Satın Alma','<div class="card"><b>Satın alma henüz kullanılamıyor</b><div class="muted" style="margin-top:6px">Seçimin: '+(selectedProBilling==='yearly'?'Yıllık '+PRO_YEARLY_PRICE.toLocaleString(appLocale())+' TL':'Aylık '+PRO_MONTHLY_PRICE.toLocaleString(appLocale())+' TL')+'. Bu platformda henüz satın alma yapılamıyor. Ücret alınmadı.</div></div><button class="primary" onclick="openPlans()">Paketlere Dön</button>');
 }
 async function restoreProPurchase(){
  const platform=storePlatform();
@@ -753,7 +1136,7 @@ function openPlans(){
    <div class="planCheck"><i>✓</i><span>CSV / PDF dışa aktarma ve ChatGPT ile yönetim</span></div>
    <div class="planCheck"><i>✓</i><span>Android, iPhone ve bilgisayarda aynı hesap</span></div>
   </div>
-  <button id="proPurchaseBtn" class="primary" style="width:100%;font-size:16px;padding:14px" onclick="startProPurchase()">${selectedProBilling==='yearly'?'Yıllık PRO · '+PRO_YEARLY_PRICE.toLocaleString('tr-TR')+' TL':'Aylık PRO · '+PRO_MONTHLY_PRICE.toLocaleString('tr-TR')+' TL'}</button>
+  <button id="proPurchaseBtn" class="primary" style="width:100%;font-size:16px;padding:14px" onclick="startProPurchase()">${selectedProBilling==='yearly'?'Yıllık PRO · '+PRO_YEARLY_PRICE.toLocaleString(appLocale())+' TL':'Aylık PRO · '+PRO_MONTHLY_PRICE.toLocaleString(appLocale())+' TL'}</button>
   <button class="small" style="width:100%;margin-top:7px" onclick="restoreProPurchase()">Satın Almayı Geri Yükle</button>
   <div class="purchaseFine">${trialActive()?'Deneme süren boyunca ücret alınmaz. '+trialDaysLeft()+' gün sonra ödeme yapılmazsa hesabın FREE pakete düşer.':'Yeni hesaplar ilk 30 gün PRO kullanır. Abonelik başlamazsa kayıtlar silinmez; hesap FREE olarak devam eder.'}</div>
  `);
@@ -1306,11 +1689,11 @@ function renderAll(){
  let A=db.animals.filter(a=>!['Satıldı','Öldü','Kesildi'].includes(a.status)), e=A.filter(a=>a.type==='Koyun').length,r=A.filter(a=>a.type==='Koç').length,l=A.filter(a=>a.type==='Kuzu').length,f=A.filter(a=>a.status==='Takipte').length;
  let setupCard=document.getElementById('firstSetupCard');if(setupCard)setupCard.style.display=(db.animals.length===0&&!db.setupDone)?'block':'none';
  heroTotal.textContent=A.length+' hayvan';heroSub.textContent=`${e} koyun · ${r} koç · ${l} kuzu`;sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
- let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
+ let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span data-no-i18n>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
  renderHomeUpcoming();
  let fin=calcFinance('all'),net=fin.income-fin.expense;homeNet.textContent=money(net);homeNet.className=net<0?'money minus':'money plus';
  let births=db.records.filter(x=>x.kind==='birth'&&x.motherId&&Number.isFinite(+x.count)&&+x.count>0),mothers=new Set(births.map(x=>x.motherId)),born=births.reduce((n,x)=>n+(+x.count),0);
- homeBirthRate.textContent=mothers.size?new Intl.NumberFormat('tr-TR',{minimumFractionDigits:1,maximumFractionDigits:1}).format(born/mothers.size):'—';
+ homeBirthRate.textContent=mothers.size?new Intl.NumberFormat(appLocale(),{minimumFractionDigits:1,maximumFractionDigits:1}).format(born/mothers.size):'—';
  homeBirthHint.textContent=mothers.size?`${born} kuzu / ${mothers.size} doğuran koyun · tüm kayıtlar`:'Henüz doğum kaydı yok';
  homeSaleReady.textContent=A.filter(isSaleCandidate).length;
  let missing=missingAnimalData(),dq=document.getElementById('homeDataQuality'),dqText=document.getElementById('homeDataQualityText');
@@ -1326,13 +1709,14 @@ function renderAll(){
  renderHerd();renderGrowth();renderReports();setupReportFolds();setupDetailedReportControls();
  if(currentSub&&document.getElementById('sub').classList.contains('active'))openSub(currentSub,true);
  if(typeof chatHints!=='undefined'&&chatHints)chatHints.innerHTML='<b>Örnek komutlar</b><div class="listitem">“Bugün yapılacak ne var?”</div><div class="listitem">“Bu ay ne kadar yem masrafı yaptım?”</div><div class="listitem">“245 numaralı koyun ikiz doğurdu; biri erkek biri dişi.”</div>';
+ refreshLanguage();
 }
 function recordHtml(x){
  let sign=x.kind==='income'||x.kind==='sale'?'+':x.kind==='expense'||x.kind==='stock'?'-':'';
  let cls=sign==='+'?'plus':sign==='-'?'minus':'';
  let sold=x.animalNames?.length?' · '+x.animalNames.join(', '):'';
  let period=x.productionPeriod?' · Dönem '+x.productionPeriod:'';
- return `<div class="listitem row"><div><b>${escHtml(x.label)}</b><div class="muted">${escHtml(x.date||'')}${escHtml(period)}${x.note?' · '+escHtml(x.note):''}${escHtml(sold)}</div></div><div class="recordActions">${x.amount?`<b class="money ${cls}">${sign}${money(x.amount)}</b>`:''}<button class="small" onclick="editRecord('${x.id}')">Düzenle</button></div></div>`
+ return `<div class="listitem row"><div><b data-no-i18n>${escHtml(x.label)}</b><div class="muted">${escHtml(x.date||'')}${escHtml(period)}${x.note?' · <span data-no-i18n>'+escHtml(x.note)+'</span>':''}${escHtml(sold)}</div></div><div class="recordActions">${x.amount?`<b class="money ${cls}">${sign}${money(x.amount)}</b>`:''}<button class="small" onclick="editRecord('${x.id}')">Düzenle</button></div></div>`
 }
 function saleCandidateAge(a){
  if(!a||a.type!=='Kuzu'||a.sex!=='Erkek'||!a.birth||!isActiveAnimal(a))return false;
@@ -2084,7 +2468,7 @@ function clearCustomReport(){customReportStart='';customReportEnd='';if(reportSt
 function reportDateLabel(mode){
  if(customReportStart||customReportEnd)return 'Özel dönem · '+(customReportStart||'Başlangıç')+' - '+(customReportEnd||'Bugün');
  let range=mode==='birthperiod'?latestBirthPeriodRange():null;
- return mode==='monthly'?'Bu ay':mode==='yearly'?'Bu yıl':mode==='all'?'Tüm zamanlar':range?`Doğum dönemi · ${range.start.toLocaleDateString('tr-TR')} - ${range.end.toLocaleDateString('tr-TR')}`:'Doğum dönemi · kayıt yok'
+ return mode==='monthly'?'Bu ay':mode==='yearly'?'Bu yıl':mode==='all'?'Tüm zamanlar':range?`Doğum dönemi · ${range.start.toLocaleDateString(appLocale())} - ${range.end.toLocaleDateString(appLocale())}`:'Doğum dönemi · kayıt yok'
 }
 function previousPeriodRecords(){
  let rows=reportRecords(db.report||'monthly'), dates=rows.map(r=>r.date).filter(Boolean).sort();
@@ -2212,7 +2596,7 @@ function saveRecordEdit(id,mode){if(!canEditData())return;
 }
 function deleteRecord(id){if(!canEditData())return;
  let r=db.records.find(x=>x.id===id);if(!r)return;
- if(!confirm('Bu kaydı silmek istediğine emin misin? Bağlı sürü/stok bilgileri de geri alınacak.'))return;
+ if(!confirm(uiTranslate('Bu kaydı silmek istediğine emin misin? Bağlı sürü/stok bilgileri de geri alınacak.')))return;
  if(r.kind==='sale'){
   (r.animalIds||[]).forEach(aid=>{let a=db.animals.find(x=>x.id===aid);if(a)a.status=(r.previousStatuses&&r.previousStatuses[aid])||'Aktif'})
  }
@@ -2275,7 +2659,7 @@ function ewePerformanceHtml(mode){
  const rows=d.rows.map(r=>`<div class="card">
   <div class="row"><b>${escHtml(animalName(r.a))}</b>${db.animals.some(a=>a.id===r.a.id)?`<button class="small" onclick="animalCard('${r.a.id}')">Kartı Aç</button>`:'<span class="muted">Anaç kartı eksik</span>'}</div>
   <div class="muted">${escHtml(r.a.status||'Aktif')} · ${r.history.length} doğum · ${r.born} kuzu</div>
-  <div class="listitem"><b>Doğum verimi: ${r.history.length?pct(r.born/r.history.length*100):'—'}</b><div class="muted">${r.history.length?(r.born/r.history.length).toLocaleString('tr-TR',{maximumFractionDigits:2})+' kuzu / doğum':'Henüz doğum kaydı yok'}</div></div>
+  <div class="listitem"><b>Doğum verimi: ${r.history.length?pct(r.born/r.history.length*100):'—'}</b><div class="muted">${r.history.length?(r.born/r.history.length).toLocaleString(appLocale(),{maximumFractionDigits:2})+' kuzu / doğum':'Henüz doğum kaydı yok'}</div></div>
   <div class="listitem"><b>Kuzu yaşatma: ${survivalText(r)}</b><div class="muted">${r.dead} kayıtlı ölüm · ${r.known-r.dead} ölüm kaydı olmayan kuzu${r.unknown?' · '+r.unknown+' sonucu doğrulanamayan kuzu':''}</div></div>
   <details><summary>Doğum geçmişi (${r.history.length})</summary>${r.history.length?r.history.map(b=>`<div class="listitem row"><span>${escHtml(b.date||'Tarih yok')} · <b>${+b.count||0} kuzu</b>${b.note?'<div class="muted">'+escHtml(b.note)+'</div>':''}</span><button class="small" onclick="editRecord('${b.id}')">Düzenle</button></div>`).join(''):'<div class="muted">Bu dönemde doğum yok.</div>'}</details>
  </div>`).join('');
@@ -2298,7 +2682,7 @@ function birthMetrics(mode){
  let lambedSet=new Set(lambedIds), nonLambing=ewes.filter(a=>!lambedSet.has(a.id));
  return {ewes,births,lambs,lambedIds,prolificacy,lambingRate,nonLambing}
 }
-function pct(n){return new Intl.NumberFormat('tr-TR',{maximumFractionDigits:1}).format(n||0)+'%'}
+function pct(n){return new Intl.NumberFormat(appLocale(),{maximumFractionDigits:1}).format(n||0)+'%'}
 function showReportPlusRequired(){
  showModal('Sürü Takip PRO',`
   <div class="card"><b>Gelişmiş raporlar PRO'ya özel</b>
@@ -2370,7 +2754,7 @@ function monthNetSeries(count=6){
   let rows=db.records.filter(r=>{if(!r.date)return false;let x=new Date(r.date+'T00:00:00');return x.getFullYear()===y&&x.getMonth()===m});
   let inc=rows.filter(r=>['income','sale'].includes(r.kind)).reduce((s,r)=>s+(+r.amount||0),0);
   let exp=rows.filter(r=>['expense','stock'].includes(r.kind)).reduce((s,r)=>s+(+r.amount||0),0);
-  out.push({label:d.toLocaleDateString('tr-TR',{month:'short'}),net:inc-exp});
+  out.push({label:d.toLocaleDateString(appLocale(),{month:'short'}),net:inc-exp});
  }
  return out;
 }
@@ -2462,7 +2846,7 @@ function financeSixMonthData(){
   let rows=db.records.filter(r=>{if(!r.date)return false;let x=new Date(r.date+'T00:00:00');return x.getFullYear()===y&&x.getMonth()===m});
   let income=rows.filter(r=>['income','sale'].includes(r.kind)).reduce((s,r)=>s+(+r.amount||0),0);
   let expense=rows.filter(r=>['expense','stock'].includes(r.kind)).reduce((s,r)=>s+(+r.amount||0),0);
-  out.push({label:d.toLocaleDateString('tr-TR',{month:'short'}),income,expense});
+  out.push({label:d.toLocaleDateString(appLocale(),{month:'short'}),income,expense});
  }
  return out;
 }
@@ -2476,7 +2860,7 @@ function financeOpportunityData(){
 }
 function renderFinanceOpportunity(){
  let d=financeOpportunityData(),set=(id,v)=>{let e=document.getElementById(id);if(e)e.textContent=v};
- set('herdMoneyPrice',d.price.toLocaleString('tr-TR')+' TL/kg');set('herdMoneyCurrent',money(d.current));
+ set('herdMoneyPrice',d.price.toLocaleString(appLocale())+' TL/kg');set('herdMoneyCurrent',money(d.current));
  set('herdReadyValue',money(d.readyVal));set('herdReadyCount',d.ready.length+' kuzu');
  set('herdMoneyTargetValue',money(d.target));set('herdTargetCount',d.males.length+' erkek kuzu');
  set('herdMoneyGap',money(Math.max(0,d.target-d.current)));
@@ -2544,7 +2928,7 @@ function renderHerdViz(){
   if(flow)flow.innerHTML='<div class="muted" style="grid-column:1/-1;text-align:center">Doğum kaydı oluşunca dönem performansı burada görünür.</div>';
  }else{
   let start=new Date(last.start+'T00:00:00'),end=new Date(last.end+'T00:00:00'),periodKids=db.animals.filter(a=>a.type==='Kuzu'&&a.birth&&a.birth>=last.start&&a.birth<=last.end),activeMale=periodKids.filter(a=>a.sex==='Erkek'&&isActiveAnimal(a));
-  set('herdBirthPeriodLabel',start.toLocaleDateString('tr-TR',{day:'numeric',month:'short'})+'–'+end.toLocaleDateString('tr-TR',{day:'numeric',month:'short'}));
+  set('herdBirthPeriodLabel',start.toLocaleDateString(appLocale(),{day:'numeric',month:'short'})+'–'+end.toLocaleDateString(appLocale(),{day:'numeric',month:'short'}));
   set('herdBirthYield','Kuzu verimi %'+Math.round(last.prolificacy));set('herdBirthActiveMale','Aktif erkek '+activeMale.length);
   if(flow)flow.innerHTML=`<div class="birthMoneyNode"><b>${last.mothers.length}</b><span>Doğuran anaç</span></div><span class="birthMoneyArrow">›</span><div class="birthMoneyNode"><b>${last.born}</b><span>Doğan kuzu</span></div><span class="birthMoneyArrow">›</span><div class="birthMoneyNode"><b>${activeMale.length}</b><span>Aktif erkek kuzu</span></div>`;
  }
@@ -2590,7 +2974,7 @@ function renderReports(){
  if(document.getElementById('rActiveAnimals'))rActiveAnimals.textContent=active.length;
  if(document.getElementById('rSoldAnimals'))rSoldAnimals.textContent=db.animals.filter(a=>a.status==='Satıldı').length;
  if(document.getElementById('rTrackedAnimals'))rTrackedAnimals.textContent=active.filter(a=>a.status==='Takipte').length;
- if(document.getElementById('rAvgWeight'))rAvgWeight.textContent=weighted.length?avgWeight.toLocaleString('tr-TR',{maximumFractionDigits:1})+' kg':'-';
+ if(document.getElementById('rAvgWeight'))rAvgWeight.textContent=weighted.length?avgWeight.toLocaleString(appLocale(),{maximumFractionDigits:1})+' kg':'-';
  if(document.getElementById('rMaleLambs'))rMaleLambs.textContent=lambsActive.filter(a=>a.sex==='Erkek').length;
  if(document.getElementById('rFemaleLambs'))rFemaleLambs.textContent=lambsActive.filter(a=>a.sex==='Dişi').length;
  if(document.getElementById('rUnknownLambs'))rUnknownLambs.textContent=lambsActive.filter(a=>!a.sex||a.sex==='Bilinmiyor').length;
@@ -2679,7 +3063,7 @@ function renderReports(){
   let gain=null;if(wr.length>1){let d=Math.max(1,(new Date(wr.at(-1).date)-new Date(wr[0].date))/864e5);gain=(wval(wr.at(-1))-wval(wr[0]))/d}
   return {a,gain,last:a.weight||0}
  }).sort((x,y)=>(y.gain??-999)-(x.gain??-999));
- if(document.getElementById('lambPerformanceList'))lambPerformanceList.innerHTML=lambRows.length?lambRows.map(x=>`<div class="listitem row clickcard" onclick="animalCard('${x.a.id}')" title="Hayvan kartını aç"><div><b>${escHtml(animalName(x.a))}</b><div class="muted">${age(x.a.birth)} · ${x.a.status}</div></div><div style="text-align:right"><b>${x.last?x.last+' kg':'-'}</b><div class="muted">${x.gain==null?'Kilo artışı için 2 tartım gerekir':(x.gain*1000).toLocaleString('tr-TR',{maximumFractionDigits:0})+' g/gün'} · Kartı aç ›</div></div></div>`).join(''):'<div class="muted">Aktif kuzu yok.</div>';
+ if(document.getElementById('lambPerformanceList'))lambPerformanceList.innerHTML=lambRows.length?lambRows.map(x=>`<div class="listitem row clickcard" onclick="animalCard('${x.a.id}')" title="Hayvan kartını aç"><div><b>${escHtml(animalName(x.a))}</b><div class="muted">${age(x.a.birth)} · ${x.a.status}</div></div><div style="text-align:right"><b>${x.last?x.last+' kg':'-'}</b><div class="muted">${x.gain==null?'Kilo artışı için 2 tartım gerekir':(x.gain*1000).toLocaleString(appLocale(),{maximumFractionDigits:0})+' g/gün'} · Kartı aç ›</div></div></div>`).join(''):'<div class="muted">Aktif kuzu yok.</div>';
 
  let healthRows=periodRows.filter(r=>r.kind==='health');
  if(document.getElementById('healthReportList'))healthReportList.innerHTML=healthRows.length?healthRows.slice().reverse().map(r=>{let a=db.animals.find(x=>x.id===r.animalId);return `<div class="listitem"><b>${escHtml(a?animalName(a):r.label)}</b><div class="muted">${r.date||''} · ${escHtml(r.note||r.label||'')}</div></div>`}).join(''):'<div class="muted">Bu dönemde sağlık kaydı yok.</div>';
@@ -2702,7 +3086,7 @@ function openSub(k,refresh=false){if(!isPro()&&k==='performance')return showProR
  else if(k==='births')body=`<button class="primary" onclick="openAdd('birth')">Yeni Doğum</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='birth').slice().reverse().map(recordHtml).join('');
  else if(k==='health')body=`<button class="primary" onclick="openAdd('health')">Sağlık Kaydı Ekle</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='health').slice().reverse().map(recordHtml).join('');
  else if(k==='weights')body=`<button class="primary" onclick="openAdd('weight')">Tartım Ekle</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='weight').slice().reverse().map(recordHtml).join('');
- else if(k==='today'){let rem=reminderItems();body=`<button class="primary" onclick="addTask()">İş Ekle</button><div style="height:8px"></div>`+(rem.map(x=>`<div class="card row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}');openSub('today')">Yapıldı</button></div>`).join('')+db.tasks.map((x,i)=>`<div class="card row"><span>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i});openSub('today')">Yapıldı</button></div>`).join('')||'<div class="card muted">Yaklaşan iş yok.</div>')}
+ else if(k==='today'){let rem=reminderItems();body=`<button class="primary" onclick="addTask()">İş Ekle</button><div style="height:8px"></div>`+(rem.map(x=>`<div class="card row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}');openSub('today')">Yapıldı</button></div>`).join('')+db.tasks.map((x,i)=>`<div class="card row"><span data-no-i18n>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i});openSub('today')">Yapıldı</button></div>`).join('')||'<div class="card muted">Yaklaşan iş yok.</div>')}
  else if(k==='calendar'){if(!db.ramCalendar)db.ramCalendar=[];body='<div class="card"><b>Koç & üreme takvimi</b><p class="muted">Koç katım ve çıkarma tarihini planla. Gerçek tarih, sen onay verdiğin gün kaydedilir; doğum başlangıç ve bitiş tarihleri buna göre otomatik hesaplanır.</p><button class="primary" onclick="openRamMating()">Üreme Dönemi Ekle</button></div>'+((db.ramCalendar||[]).length?(db.ramCalendar||[]).slice().reverse().map(x=>{
  let actualIn=x.actualMatingDate||'',actualOut=x.actualRemovalDate||'';
  let birthStart=actualIn?addDaysISO(actualIn,147):'Koç katımı onaylanınca hesaplanır';
@@ -2745,11 +3129,11 @@ function saveRamCalendarEdit(id){if(!canEditData())return;
  x.matingDate=d;x.removalDate=rd||'';
  save();closeModal();toast('Üreme takvimi güncellendi')
 }
-function addTask(){if(!canEditData())return;let t=prompt('Yapılacak işi yaz');if(t){db.tasks.push({text:t});save();openSub('today')}}
+function addTask(){if(!canEditData())return;let t=prompt(uiTranslate('Yapılacak işi yaz'));if(t){db.tasks.push({text:t});save();openSub('today')}}
 function doneTask(i){if(!canEditData())return;db.tasks.splice(i,1);save();toast('İş tamamlandı')}
 let speechRec=null, voiceListening=false;
-function addChat(text,who){let log=document.getElementById('chatLog');if(!log)return;let d=document.createElement('div');d.className='chatMsg '+(who==='user'?'userMsg':'botMsg');d.textContent=text;log.appendChild(d);log.scrollTop=log.scrollHeight}
-function speakReply(text){try{if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(text);u.lang='tr-TR';u.rate=1;window.speechSynthesis.speak(u)}catch(e){}}
+function addChat(text,who){let log=document.getElementById('chatLog');if(!log)return;let d=document.createElement('div');d.className='chatMsg '+(who==='user'?'userMsg':'botMsg');d.textContent=who==='user'?text:uiTranslate(text);if(who==='user')d.setAttribute('data-no-i18n','');log.appendChild(d);log.scrollTop=log.scrollHeight}
+function speakReply(text){try{if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(uiTranslate(text));u.lang=appLocale();u.rate=1;window.speechSynthesis.speak(u)}catch(e){}}
 function replyChat(text){addChat(text,'bot');speakReply(text)}
 function parseNumberWord(x){
  let m={'bir':1,'iki':2,'üç':3,'uc':3,'dört':4,'dort':4,'beş':5,'bes':5,'altı':6,'alti':6};
@@ -2764,7 +3148,7 @@ function normalizeCommand(s){
 }
 function handleLocalCommand(raw){
  if(!canEditData())return 'Bu hesap yalnızca görüntüleme yetkisine sahip.';
- let t=(raw||'').trim(), low=normalizeCommand(t);
+ let t=englishLocalCommand((raw||'').trim()), low=normalizeCommand(t);
  if(!t)return 'Bir komut söyle gardaş.';
  if(low.includes('bugün')&&(low.includes('ne var')||low.includes('yapılacak'))){
   let rr=reminderItems().filter(x=>x.days<=0),items=[...rr.map(x=>x.text),...db.tasks.map(x=>x.text)];
@@ -2821,9 +3205,9 @@ function handleLocalCommand(raw){
   save();
   return tag+' numaralı koyuna '+n+' kuzu doğum kaydı ekledim; kuzular sürüye eklendi'+(sexes.length?' ('+sexes.join(', ')+')':'')+'.'
  }
- return 'Seni duydum: “'+t+'”. Bu komutu henüz otomatik işleyemiyorum; doğum, bugün yapılacaklar veya yem masrafı komutlarından birini söyle.'
+ return appLanguage==='en'?'I heard: “'+raw+'”. This local assistant supports births, today’s tasks and monthly feed costs. The full AI connection is not active yet.':'Seni duydum: “'+t+'”. Bu komutu henüz otomatik işleyemiyorum; doğum, bugün yapılacaklar veya yem masrafı komutlarından birini söyle.'
 }
-function sendChatCommand(text){let inp=document.getElementById('chatInput');let t=(typeof text==='string'?text:(inp?.value||'')).trim();if(!t)return;if(inp)inp.value='';addChat(t,'user');replyChat(handleLocalCommand(t))}
+function sendChatCommand(text){let inp=document.getElementById('chatInput');let t=(typeof text==='string'?text:(inp?.value||'')).trim();if(!t)return;if(inp)inp.value='';addChat(t,'user');const command=englishLocalCommand(t);if(/doğurdu|dogurdu|doğum yaptı|dogum yapti|kuzu yaptı|kuzu yapti|yavruladı|yavruladi/.test(normalizeCommand(command))&&!confirm((appLanguage==='en'?'Save this birth record?\n':'Bu doğum kaydı kaydedilsin mi?\n')+t)){replyChat(appLanguage==='en'?'Cancelled. No record saved.':'İptal edildi. Kayıt yapılmadı.');return}replyChat(handleLocalCommand(t))}
 function voiceSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition)}
 async function requestMicPermission(){
  try{
@@ -2845,14 +3229,15 @@ async function toggleVoice(){
   voiceStatus.textContent='Mikrofon izni alınamadı. ChatGPT içindeki dosya görüntüleyici yerine dosyayı Chrome ile açıp mikrofon izni ver.';
  }
  let R=window.SpeechRecognition||window.webkitSpeechRecognition;
- speechRec=new R();speechRec.lang='tr-TR';speechRec.interimResults=true;speechRec.continuous=false;
+ speechRec=new R();speechRec.lang=appLocale();speechRec.interimResults=true;speechRec.continuous=false;
  let finalText='';
  speechRec.onstart=()=>{voiceListening=true;talkBtn.classList.add('listening');talkBtn.textContent='⏹️ Dinliyorum… Bitir';voiceStatus.textContent='Konuşabilirsin…'};
  speechRec.onresult=e=>{let live='';for(let i=e.resultIndex;i<e.results.length;i++){let part=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=part;else live+=part}chatInput.value=(finalText||live).trim();voiceStatus.textContent='Duydum: '+chatInput.value};
  speechRec.onerror=e=>{voiceStatus.textContent=e.error==='not-allowed'?'Mikrofon izni verilmedi. Dosyayı Chrome ile aç ve mikrofon izni ver.':'Mikrofon hatası: '+e.error};
- speechRec.onend=()=>{voiceListening=false;talkBtn.classList.remove('listening');talkBtn.textContent='🎙️ Bas ve Konuş';if(finalText.trim()){chatInput.value=finalText.trim();sendChatCommand(finalText.trim())}else if(voiceStatus.textContent==='Konuşabilirsin…')voiceStatus.textContent='Ses algılanmadı; tekrar basabilirsin.'};
+ speechRec.onend=()=>{voiceListening=false;talkBtn.classList.remove('listening');talkBtn.textContent='🎙️ Bas ve Konuş';if(finalText.trim()){chatInput.value=finalText.trim();sendChatCommand(finalText.trim())}else if(voiceStatus.textContent===uiTranslate('Konuşabilirsin…'))voiceStatus.textContent='Ses algılanmadı; tekrar basabilirsin.'};
  try{speechRec.start()}catch(e){voiceStatus.textContent='Mikrofon başlatılamadı. Dosyayı Chrome ile açmayı dene.'}
 }
+if(typeof MutationObserver!=='undefined'){let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;observer.disconnect();refreshLanguage();observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})})});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})}
 if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
 restoreDeviceContext();
 renderAll();
