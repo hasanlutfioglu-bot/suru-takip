@@ -11,7 +11,7 @@ const {chromium}=require('playwright');
   assert(await page.evaluate(()=>nativeBackEnabled),'CloseWatcher must be exercised in Chromium');
   await page.evaluate(()=>{currentPlan='pro';subscriptionStatus='active';currentPeriodEnd=addDaysISO(today(),365)+'T23:59:59Z';
    for(const [id,action] of [['testFinance',()=>openSub('finance')],['testModal',()=>showModal('Test','<p>Details</p>')]]){
-    const b=document.createElement('button');b.id=id;b.textContent=id;b.onclick=action;document.body.append(b);
+    const b=document.createElement('button');b.id=id;b.textContent=id;b.onclick=action;b.style.cssText='position:fixed;right:0;z-index:100;top:'+(id==='testFinance'?0:55)+'px';document.body.append(b);
    }
   });
   const screen=()=>page.locator('.screen.active').getAttribute('id');
