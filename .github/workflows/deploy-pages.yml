@@ -25,6 +25,11 @@ jobs:
           node-version: '24'
       - run: npm ci
       - run: npm test
+      - name: Verify real browser Back close requests
+        run: |
+          npm install --no-save --package-lock=false playwright@1.58.2
+          npx playwright install --with-deps chromium
+          node tests/native-back-browser.cjs
   deploy:
     needs: test
     environment:
