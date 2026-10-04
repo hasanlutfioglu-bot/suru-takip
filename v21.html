@@ -190,7 +190,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 
 <section id="add" class="screen"><h3>Kayıt Ekle</h3><div class="menuGrid">
  <button class="menuBtn" onclick="openAdd('birth')">🐑<br><b>Doğum</b></button><button class="menuBtn" onclick="openAdd('health')">💉<br><b>Sağlık</b></button>
- <button class="menuBtn" onclick="openAdd('weight')">⚖️<br><b>Tartım</b></button><button class="menuBtn" onclick="openAdd('sale')">💰<br><b>Satış</b></button>
+ <button class="menuBtn" onclick="openBulkWeight()">⚖️<br><b>Hızlı Tartım</b></button><button class="menuBtn" onclick="openAdd('sale')">💰<br><b>Satış</b></button>
  <button class="menuBtn" onclick="openAdd('stock')">📦<br><b>Stok Alımı</b></button><button class="menuBtn" onclick="openAdd('income')">＋₺<br><b>Gelir</b></button>
  <button class="menuBtn" onclick="openAdd('expense')">−₺<br><b>Gider</b></button><button class="menuBtn" onclick="openAdd('harvest')">🌾<br><b>Hasat / Ürün</b></button><button class="menuBtn" onclick="openAdd('note')">📝<br><b>Not</b></button>
  </div><h3>Son 5 kayıt</h3><div class="card" id="last5"></div>
@@ -2371,26 +2371,27 @@ function weightStatus(adg,band,herdAvg){
  if(adg>band.max)return {key:'excellent',label:'Çok iyi',cls:'weightExcellent'};
  return {key:'good',label:'Normal',cls:'weightGood'};
 }
+function renderBulkWeightRow(a){
+ let prev=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id).slice().sort((x,y)=>String(y.date||'').localeCompare(String(x.date||'')))[0];
+ let pw=prev?weightValueFromRecord(prev):(+a.weight||0);
+ return '<div class="weightRow"><div class="weightRowTop"><div><div class="weightRowName">'+escHtml(animalName(a))+'</div><div class="weightRowMeta">'+escHtml(a.sex||'')+' · '+age(a.birth)+(pw?' · Son '+pw+' kg':'')+'</div></div><span class="tag">Kuzu</span></div><div class="weightInputWrap"><div class="muted">Yeni kilo (kg)</div><input class="bulkWeightInput" data-id="'+a.id+'" type="number" step=".1" min="0" inputmode="decimal" placeholder="kg"></div></div>';
+}
 function openBulkWeight(){
  let lambs=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a)).slice().sort((a,b)=>String(a.tag||'').localeCompare(String(b.tag||''),'tr',{numeric:true}));
- if(!lambs.length)return showModal('Kuzu Tartımı','<div class="empty">Aktif kuzu yok.</div>');
- let rows=lambs.map(a=>{
-  let prev=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id).slice().sort((x,y)=>String(y.date||'').localeCompare(String(x.date||'')))[0];
-  let pw=prev?weightValueFromRecord(prev):(+a.weight||0);
-  return `<div class="weightRow">
-   <div class="weightRowTop"><div><div class="weightRowName">${escHtml(animalName(a))}</div><div class="weightRowMeta">${a.sex} · ${age(a.birth)}${pw?' · Son '+pw+' kg':''}</div></div><span class="tag">Kuzu</span></div>
-   <div class="weightInputWrap"><div class="muted">Yeni kilo</div><input class="bulkWeightInput" data-id="${a.id}" type="number" step=".1" min="0" inputmode="decimal" placeholder="kg"></div>
-  </div>`;
- }).join('');
- showModal('Kuzu Tartımı',`
-  <div class="weightIntro"><b>⚖️ Toplu tartım</b><div class="muted" style="margin-top:4px">Tarihi bir kez seç, tarttığın kuzuların kilosunu gir. Boş bıraktıkların kaydedilmez.</div></div>
-  <label>Tartım tarihi</label><input id="bulkWeightDate" type="date" value="${today()}">
-  <div class="weightBatch">${rows}</div>
-  <button class="primary" onclick="submitBulkWeight()">Tartımı Kaydet ve Analiz Et</button>`)
+ if(!lambs.length)return showModal('Hızlı kuzu tartımı','<div class="empty">Aktif kuzu yok.</div>');
+ let saleLambs=lambs.filter(a=>/^sat/i.test(String(a.status||'').trim()));
+ let monthly=lambs.filter(a=>!saleLambs.includes(a)).reduce((groups,a)=>{let m=Math.max(0,Math.floor(lambAgeDaysAt(a,today())/30.44));(groups[m]||(groups[m]=[])).push(a);return groups;},{});
+ let html='<div class="weightIntro"><b>⚖️ Hızlı kuzu tartımı</b><div class="muted" style="margin-top:4px">Kiloları gir; boş bıraktıkların kaydedilmez. Tarih bugüne otomatik kaydolur.</div></div>';
+ html+='<div class="card" style="padding:12px;margin:10px 0">📅 Tartım tarihi: <b>'+today()+'</b></div>';
+ if(saleLambs.length)html+='<div class="card" style="padding:12px;margin:10px 0 6px"><b>🔴 Satılacak kuzular · '+saleLambs.length+'</b></div><div class="weightBatch">'+saleLambs.map(renderBulkWeightRow).join('')+'</div>';
+ let months=Object.keys(monthly).map(Number).sort((a,b)=>a-b);
+ months.forEach(m=>{let title=m>=12?'12 aylık ve üzeri':m+' aylık';html+='<div class="card" style="padding:12px;margin:10px 0 6px"><b>🐑 '+title+' · '+monthly[m].length+'</b></div><div class="weightBatch">'+monthly[m].map(renderBulkWeightRow).join('')+'</div>';});
+ if(!saleLambs.length&&!months.length)return showModal('Hızlı kuzu tartımı','<div class="empty">Tartılacak kuzu bulunamadı.</div>');
+ html+='<button class="primary" style="width:100%;margin-top:12px" onclick="submitBulkWeight()">Tartımları Kaydet</button>';
+ showModal('Hızlı kuzu tartımı',html);
 }
 function submitBulkWeight(){if(!canEditData())return;
- let date=document.getElementById('bulkWeightDate')?.value;
- if(!date)return toast('Tartım tarihini seç');
+ let date=today();
  let inputs=[...document.querySelectorAll('.bulkWeightInput')].filter(x=>x.value.trim()!=='');
  if(inputs.some(x=>!Number.isFinite(+x.value)||+x.value<=0))return toast('Her girilen kilo sıfırdan büyük olmalı');
  let entered=inputs.map(x=>({id:x.dataset.id,weight:+x.value}));
