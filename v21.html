@@ -1020,11 +1020,20 @@ function handleAppBack(){
 }
 function installBackNavigation(){
  if(!window.history||!window.history.pushState)return;
- window.history.replaceState({suruBack:'boundary'},'',location.href);
- window.history.pushState({suruBack:'guard'},'',location.href);
- window.addEventListener('popstate',()=>{
-  if(handleAppBack()){window.history.back();return}
+ // Reuse the guard after a reload. Creating entries during popstate makes
+ // Chromium mark this document's entire history as skippable on Android.
+ if(window.history.state?.suruBack!=='guard'){
+  window.history.replaceState({suruBack:'boundary'},'',location.href);
   window.history.pushState({suruBack:'guard'},'',location.href);
+ }
+ let restoringGuard=false,leaving=false;
+ window.addEventListener('popstate',event=>{
+  if(leaving)return;
+  if(restoringGuard&&event.state?.suruBack==='guard'){restoringGuard=false;return}
+  if(event.state?.suruBack!=='boundary')return;
+  if(handleAppBack()){leaving=true;window.history.back();return}
+  restoringGuard=true;
+  window.history.forward();
  });
 }
 let modalReturnFocus=null;
