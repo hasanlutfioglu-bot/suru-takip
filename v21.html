@@ -45,7 +45,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .homeDataQuality button{margin-top:10px;width:100%;background:#f2f6f3}
 .animalQuickActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 14px}.animalQuickActions button{width:100%}
 .animalSnapshot{margin-top:10px;padding-top:10px;border-top:1px solid #edf1ee}.animalSnapshot .muted{margin-top:3px}
-.saleSoonTag{display:inline-block;margin-top:6px;padding:5px 9px;border-radius:999px;background:#fff5d9;color:#835d00;font-size:12px;font-weight:700}
+.saleSoonTag{display:inline-block;margin-top:6px;padding:5px 9px;border-radius:999px;background:#fff5d9;color:#835d00;font-size:12px;font-weight:700}.animalDisposition{display:inline-block;margin-top:6px;padding:6px 10px;border-radius:999px;background:#e3f2e8;color:#17623a;font-size:12px;font-weight:800}.animalDisposition.out{background:#f1e9e9;color:#7f3434}.animalDisposition.sale{background:#fff0c7;color:#815a00}
 .herdHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px}.herdHead h3{margin:0}.herdToolbar{display:flex;gap:8px;flex-wrap:wrap}.herdToolsPanel{display:none;background:white;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.herdToolsPanel.show{display:block}.herdToolsPanel .small{margin:3px}
 .herdSearchCard{background:white;border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin-bottom:10px}.herdSearchCard input{margin:8px 0 0}.herdSearchTitle{display:flex;align-items:center;justify-content:space-between;gap:8px}.herdSearchTitle b{font-size:15px}.herdSearchTitle span{font-size:12px;color:var(--muted)}
 .herdControls{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:8px;margin:10px 0 12px}.herdControls input,.herdControls select{margin:0}
@@ -1104,6 +1104,13 @@ function promoteAgedBreederLambs(){
  return changed;
 }
 function isActiveAnimal(a){return !['Satıldı','Öldü','Kesildi'].includes(a.status)}
+function animalDisposition(a){
+ if(a.status==='Satıldı'){let r=db.records.find(x=>x.kind==='sale'&&(x.animalIds||[]).includes(a.id));return {label:'SATILDI',date:r?.date||''}}
+ if(a.status==='Kesildi')return {label:'KESİLDİ',date:a.slaughterDate||''}
+ if(a.status==='Öldü')return {label:'ÖLDÜ',date:a.deathDate||''}
+ return {label:'SÜRÜDE · '+(a.status||'Aktif'),date:''}
+}
+function animalDispositionHtml(a){let d=animalDisposition(a),cls=d.label==='SÜRÜDE · Aktif'||d.label.startsWith('SÜRÜDE ·')?'':'out';if(d.label==='SATILDI')cls='sale';return `<div class="animalDisposition ${cls}">${escHtml(d.label)}${d.date?' · '+escHtml(d.date):''}</div>`}
 function activeAnimalCount(){return db.animals.filter(isActiveAnimal).length}
 function trialDaysLeft(){
  if(!trialEndsAt)return 0;
@@ -1875,7 +1882,8 @@ function renderHerd(){
    <div class="herdAnimalTop">
     <div>
      <div class="herdAnimalName">${escHtml(animalName(a))}</div>
-     <div class="herdAnimalMeta">${a.sex} · ${age(a.birth)}${a.type==='Kuzu'&&a.weight?' · '+a.weight+' kg':''} · ${a.status}${extra}</div>
+     <div class="herdAnimalMeta">${a.sex} · ${age(a.birth)}${a.type==='Kuzu'&&a.weight?' · '+a.weight+' kg':''}${extra}</div>
+     ${animalDispositionHtml(a)}
      ${saleSoon?'<span class="saleSoonTag">Satışa yaklaşıyor</span>':''}
     </div>
     <span class="tag">${a.type}</span>
@@ -2105,7 +2113,8 @@ function animalCard(id){
  showModal(animalName(a),`
   <div class="card">
    <b>${a.type} · ${a.sex}</b>
-   <div class="muted">Küpe: ${escHtml(a.tag||'Yok')} · ${age(a.birth)} · Durum: ${a.status}${a.breedingStatus?' · '+a.breedingStatus:''}</div>
+   <div class="muted">Küpe: ${escHtml(a.tag||'Yok')} · ${age(a.birth)}${a.breedingStatus?' · '+a.breedingStatus:''}</div>
+   ${animalDispositionHtml(a)}
    <div class="muted" style="margin-top:5px">Doğum tarihi: ${a.birth||'Bilinmiyor'}${a.type==='Kuzu'?' · Son kilo: '+(a.weight?a.weight+' kg':'Yok'):''}${mother?' · Anne: '+escHtml(animalName(mother)):''}</div>
    ${saleSoon?'<span class="saleSoonTag">Satışa yaklaşıyor · 5+ aylık</span>':''}
    ${animalSnapshotHtml(a)}
@@ -2178,9 +2187,12 @@ function editAnimal(id){
     <label>Ölüm Tarihi</label><input id="editDeathDate" type="date" value="${a.deathDate||today()}">
     <label>Ölüm Nedeni</label><input id="editDeathReason" value="${escHtml(a.deathReason||'')}" placeholder="Örn. hastalık, kaza...">
   </div>
+  <div id="slaughterFields" style="display:${a.status==='Kesildi'?'block':'none'}">
+    <label>Kesim Tarihi</label><input id="editSlaughterDate" type="date" value="${a.slaughterDate||today()}">
+  </div>
   <button class="primary" onclick="saveAnimalEdit('${id}')">Kaydet</button>
  `);
- editAnimalStatus.onchange=()=>{deathFields.style.display=editAnimalStatus.value==='Öldü'?'block':'none'}
+ editAnimalStatus.onchange=()=>{deathFields.style.display=editAnimalStatus.value==='Öldü'?'block':'none';slaughterFields.style.display=editAnimalStatus.value==='Kesildi'?'block':'none'}
 }
 function approximateBirthFromAge(years,months){
  let y=Math.max(0,+years||0),m=Math.max(0,Math.min(11,+months||0));
@@ -2204,7 +2216,10 @@ function saveAnimalEdit(id){if(!canEditData())return;
  if(sale&&newStatus!=='Satıldı'||!sale&&newStatus==='Satıldı')return toast('Satış durumunu bağlı satış kaydından değiştir');
  if(!isActiveAnimal(a)&&isActiveAnimal({status:newStatus})&&!canAddAnimals(1))return showPlusRequired(1);
  if(newStatus==='Öldü'&&!validRecordDate(editDeathDate.value||today(),birthValue))return toast('Geçerli ölüm tarihi gir');
+ const slaughterDate=document.getElementById('editSlaughterDate')?.value||today();
+ if(newStatus==='Kesildi'&&!validRecordDate(slaughterDate,birthValue))return toast('Geçerli kesim tarihi gir');
  a.tag=newTag;a.sex=editAnimalSex.value;a.status=newStatus;a.birth=birthValue;
+ if(newStatus==='Kesildi')a.slaughterDate=slaughterDate;else if(oldStatus==='Kesildi')a.slaughterDate='';
  if(a.status==='Öldü'){
   a.deathDate=editDeathDate.value||today();
   a.deathReason=editDeathReason.value.trim();
