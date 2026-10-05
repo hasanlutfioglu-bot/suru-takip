@@ -23,6 +23,8 @@ RLS and the explicit membership/role check both apply. No service role is used. 
 
 ## Current limitations
 
+Live check on 6 October 2026: `flock-mcp` is ACTIVE (version 2), protected-resource metadata responds, and Supabase Auth returns `feature_disabled` / `OAuth server is disabled`. The pilot is restricted to Hasan's verified user ID. All current `npm test` suites pass locally. Turkish activation instructions and live-account acceptance checks are in `chatgpt-yarin-kurulum-tr.md`.
+
 OAuth configuration and real ChatGPT connection have not been verified. No new button falsely implying active connection was added. Record editing/deletion, stock changes, task mutation, voice recording and automatic notifications are not implemented in this slice. Existing stock/tasks can be read. Preview/confirmation is an interaction requirement and not a separate server-stored approval token. Supabase consent authorizes access to all of this user's member farms under their existing roles; per-farm grant narrowing can be added before broader distribution.
 
 ## Sources
