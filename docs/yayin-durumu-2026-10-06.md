@@ -9,10 +9,13 @@
 - Tüm npm test paketi geçti: menüler, kayıtlar, tartım, satış ve geri alma, doğum bağlantıları, yedek dönüşü, çevrimdışı kayıtlar, hesap izolasyonu, dil ve geri gezinme.
 - Canlı tarayıcıda yerel DEMO-001 kuzu kaydı açıldı; 42 kg başlangıç ve 45,5 kg tartım kaydı tarih ile doğrulandı. Hayvan kartı ve yedekleme ekranları açıldı.
 - Kullanıcının açıklamasıyla toplam doğrulandı: 38 hayvanın biri satıldı, 37 hayvan kaldı; bu konuda açık hata yok.
+- GitHub Android build kontrol edildi: 2 Ekim tarihli run 36969873808 başarılı; build/lint, Android 16 emulator açılış testleri ve geçici anahtarla imzalama kontrolü geçti. O tarihten beri Android kaynaklarında yeni değişiklik yok.
+- Bu run'ın `suru-takip-android-test` artifact'i indirildi: debug APK, imzasız release AAB ve test raporları mevcut. ZIP bütünlüğü ve GitHub SHA-256 özeti eşleşti. Debug APK ve imzasız AAB üretim mağaza paketi değildir.
+- ChatGPT pilot bağlantı servisi yayında; OAuth sunucusu kapalı. Yarın kurulum adımları `docs/chatgpt-yarin-kurulum-tr.md` içinde.
 
 ## Tamamlanmış sayılmayan kontroller
 
-- Android SDK ve Gradle bu çalışma ortamında bulunmadığından yeni APK/AAB derlenmedi. İmzalı yayın paketi üretilmiş değildir.
+- Bu oturumda yeni Android derlemesi yapılmadı; mevcut başarılı CI çıktıları alındı. Kalıcı upload key ile imzalı yayın paketi üretilmiş değildir.
 - Gerçek Android telefon, küçük ekran dokunma alanları, Play ödeme ve satın alma geri yükleme testleri tamamlanmadı. Video tarayıcı ekranlarından hazırlanmıştır.
 - Play Console geliştirici doğrulaması ve üretim erişimi bu oturumda görülmedi.
 - Kök alan adı doğrulama dosyası ve Play uygulama imza sertifikası tamamlanmadı.
