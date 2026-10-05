@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.3</title>
+<title>Sürü Takip V21.4</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -119,11 +119,33 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .homeMenu{width:100%;margin:18px 0;padding:16px;font-size:16px;background:var(--green);color:white}
 .screen>h3,.screen>.row>h3{font-size:22px;margin:18px 0}.card{padding:18px;border-radius:20px}.stat span,.muted,.rateHelp,label{font-size:14px;line-height:1.5}.menuGrid{gap:12px;margin-bottom:18px}.menuBtn{font-size:22px;border-radius:18px;padding:20px 16px;box-shadow:var(--shadow)}.menuBtn b{font-size:16px;line-height:1.5}.tabs{gap:8px;padding-bottom:12px}.tab{font-size:14px}.listitem{padding:16px 0}.row{flex-wrap:wrap}.row>div{min-width:0}.recordActions{margin-left:auto}input,select,textarea{font-size:16px;min-height:46px}.small{font-size:14px}.nav{font-size:12px;min-height:54px}.sheet{padding:20px}.sheet h3{font-size:20px}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #bc871c;outline-offset:3px}
 .pricingHero{background:linear-gradient(145deg,#123e30,#1f694c);color:#fff;border-radius:22px;padding:16px;margin-bottom:10px}.pricingHero b{font-size:22px}.pricingHero .muted{color:#d6e6dc}.priceGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}.priceCard{border:1px solid var(--line);background:#fff;border-radius:18px;padding:14px;text-align:left}.priceCard.selected{border:2px solid var(--green);background:#f4fbf6}.priceCard small{display:block;color:var(--muted);margin-top:3px}.priceCard strong{display:block;font-size:24px;margin-top:6px}.priceSave{display:inline-block;font-size:10px;font-weight:800;color:#815a00;background:#fff0c7;border-radius:99px;padding:4px 7px;margin-top:6px}.planCheck{display:flex;gap:8px;align-items:flex-start;padding:7px 0;font-size:13px}.planCheck i{font-style:normal;color:var(--green);font-weight:900}.purchaseFine{font-size:10px;color:var(--muted);line-height:1.45;text-align:center;margin-top:8px}@media(max-width:360px){.homeSummary{grid-template-columns:1fr}.hero h2{font-size:32px}.summaryCard b{font-size:28px}}
+
+/* Compact, task-first layout; shared across all screens. */
+:root{--bg:#f5f7f6;--line:#dce5df;--muted:#55655c;--shadow:0 2px 8px #173d2908}
+body{line-height:1.5}header{padding:12px 16px 10px;background:#f5f7f6f5;border-bottom:1px solid var(--line)}
+.brand{gap:12px}.brand h1{font-size:21px;letter-spacing:-.4px}.brand .pill{min-height:44px;min-width:64px;border:1px solid var(--line);font-weight:700}
+.headerMeta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:2px}
+main{padding:16px 14px}.screen>h3,.reportHead h3{font-size:23px;margin:0 0 16px;letter-spacing:-.3px}
+h3.sectionLabel{font-size:14px;color:var(--muted);margin:24px 0 10px;letter-spacing:0}
+button,.btn{font:inherit;font-size:14px;font-weight:650;min-height:48px;border-radius:12px;touch-action:manipulation}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #39835f;outline-offset:3px}
+.small{font-size:13px;padding:10px 12px}label{font-size:14px}input,select,textarea{font-size:16px;min-height:48px}
+.card,.homeUpcoming,.homeDataQuality{border-radius:16px;box-shadow:none}.hero{border-radius:18px;padding:20px;margin-bottom:12px;background:#175c42;box-shadow:none}.hero h2{font-size:34px}.hero small{letter-spacing:.6px;font-size:12px}
+.homeSummary{gap:10px}.summaryCard{padding:16px;border-radius:16px;box-shadow:none}.summaryCard b{font-size:28px;margin:8px 0}.summaryCard span{font-size:14px;font-weight:650}.summaryCard small{font-size:13px}
+.saleSummary{position:relative;padding-right:76px}.saleSummary b{position:absolute;right:18px;top:10px}.saleSummary small{font-size:12px}
+.menuGrid{gap:10px}.menuBtn{border-radius:14px;box-shadow:none;line-height:1.5}.dailyActions{grid-template-columns:repeat(2,minmax(0,1fr))}.dailyActions .menuBtn{display:flex;align-items:center;gap:12px;min-height:88px;padding:16px}.dailyActions span{display:grid;place-items:center;background:#edf4ef;border-radius:12px;width:40px;height:40px;font-size:23px;flex-shrink:0}.dailyActions b{font-size:15px}.secondaryActions{grid-template-columns:repeat(2,minmax(0,1fr))}.secondaryActions .menuBtn{min-height:52px;padding:12px 16px}
+#all>.menuGrid{margin-bottom:20px}#all .menuBtn{min-height:84px}.languageSettings{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px}.languageSettings select{width:auto;max-width:60%;margin:0}
+.nav{position:relative;font-size:12px;padding:6px 2px;min-height:62px;border-radius:12px;line-height:1.3}.nav.active{background:#e8f1eb;font-weight:750}.nav b{font-size:22px;margin-bottom:3px}.bottomin{gap:3px;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+.proAccessBadge{display:inline-block;font-size:10px;font-weight:750;line-height:1.2;background:#eef0f2;color:#4e5961;border-radius:4px;padding:2px 4px;margin-left:5px;vertical-align:middle}.proAccessBadge[hidden]{display:none}.nav .proAccessBadge{position:absolute;top:0;right:1px;margin:0}
+.reportHead{margin-top:0}.reportHead h3{margin-bottom:3px}.reportNav button{min-height:64px;font-size:12px}.reportNav .proAccessBadge{display:block;width:max-content;margin:4px auto 0}.reportNav .proAccessBadge[hidden]{display:none}
+.sheet{padding:18px 16px calc(20px + env(safe-area-inset-bottom))}.sheet>.row{margin-bottom:14px}.sheet>.row h3{margin:0;font-size:20px}.muted{line-height:1.5}
+@media(max-width:360px){main{padding:12px 10px}.dailyActions .menuBtn{padding:12px;gap:8px}.dailyActions b{font-size:14px}.dailyActions span{width:32px;height:36px}.nav{font-size:11px}.summaryCard b{font-size:25px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip <span style="font-size:12px;color:#b77716">V21.3</span></h1><div style="display:flex;gap:6px;align-items:center"><button class="pill" id="planStatus" onclick="openPlans()" style="border:0;font-weight:800">FREE</button><span class="pill" id="cloudStatus">Yerel mod</span></div></div><button id="planStrip" onclick="openPlans()" style="width:100%;margin-top:9px;border:1px solid #dfe7df;background:#fff;border-radius:13px;padding:9px 11px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px"><span><b id="planStripTitle">FREE</b><small id="planStripText" style="display:block;color:#68736a;margin-top:2px">Temel paket</small></span><span style="font-weight:800;color:#245c3b">Üyelik ›</span></button><div style="display:flex;justify-content:flex-end;margin-top:8px"><label for="appLanguage" data-no-i18n style="margin:0 8px 0 0;align-self:center;font-size:14px">Dil / Language</label><select id="appLanguage" data-no-i18n onchange="setAppLanguage(this.value)" style="width:auto;margin:0;padding:6px 10px;font-size:14px"><option value="tr">Türkçe</option><option value="en">English</option></select></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -188,19 +210,26 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
  <div id="herdList"></div>
 </section>
 
-<section id="add" class="screen"><h3>Kayıt Ekle</h3><div class="menuGrid">
- <button class="menuBtn" onclick="openAdd('birth')">🐑<br><b>Doğum</b></button><button class="menuBtn" onclick="openAdd('health')">💉<br><b>Sağlık</b></button>
- <button class="menuBtn" onclick="openBulkWeight()">⚖️<br><b>Hızlı Tartım</b></button><button class="menuBtn" onclick="openAdd('sale')">💰<br><b>Satış</b></button>
- <button class="menuBtn" onclick="openAdd('stock')">📦<br><b>Stok Alımı</b></button><button class="menuBtn" onclick="openAdd('income')">＋₺<br><b>Gelir</b></button>
- <button class="menuBtn" onclick="openAdd('expense')">−₺<br><b>Gider</b></button><button class="menuBtn" onclick="openAdd('harvest')">🌾<br><b>Hasat / Ürün</b></button><button class="menuBtn" onclick="openAdd('note')">📝<br><b>Not</b></button>
- </div><h3>Son 5 kayıt</h3><div class="card" id="last5"></div>
+<section id="add" class="screen"><h3>Kayıt Ekle</h3>
+ <div class="menuGrid dailyActions">
+  <button class="menuBtn" onclick="openBulkWeight()"><span aria-hidden="true">⚖️</span><b>Hızlı Tartım</b></button>
+  <button class="menuBtn" onclick="openAdd('birth')"><span aria-hidden="true">🐑</span><b>Doğum</b></button>
+  <button class="menuBtn" onclick="openAdd('health')"><span aria-hidden="true">💉</span><b>Sağlık</b></button>
+  <button class="menuBtn" onclick="openAdd('sale')"><span aria-hidden="true">💰</span><b>Satış</b></button>
+ </div>
+ <h3 class="sectionLabel">Diğer Kayıtlar</h3><div class="menuGrid secondaryActions">
+  <button class="menuBtn" onclick="openAdd('income')"><b>Gelir</b></button>
+  <button class="menuBtn" onclick="openAdd('expense')"><b>Gider</b></button>
+  <button class="menuBtn" onclick="openAdd('stock')"><b>Stok Alımı</b></button>
+  <button class="menuBtn" onclick="openAdd('harvest')"><b>Hasat / Ürün</b></button>
+  <button class="menuBtn" onclick="openAdd('note')"><b>Not</b></button>
+ </div><h3 class="sectionLabel">Son 5 kayıt</h3><div class="card" id="last5"></div>
 </section>
 
 <section id="reports" class="screen" data-report-context="overview">
  <div class="reportHead">
   <div><h3>Raporlar</h3><div class="muted">İşletmenin durumunu tek bakışta gör.</div></div>
-  <button class="small" onclick="switchReportView('archive')">🗂 Arşiv</button>
- </div>
+  </div>
 
  <div class="reportNav">
   <button class="active" data-report-view="overview" onclick="switchReportView('overview',this)"><b>▦</b>Genel</button>
@@ -482,7 +511,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
  <div class="growthTapHint">Satıra dokun: uyarının nedeni, yaş grubu karşılaştırması, hedef ve tartım geçmişi açılsın.</div><div class="weightLegend" style="margin:8px 2px">Normal · Takip · Kontrol · Satış. ⏱ = tartım zamanı. Kontrol yalnız kilo kaybı veya iki dönem üst üste düşük gelişimde çıkar.</div>
 </section>
 
-<section id="chat" class="screen"><h3>ChatGPT ile Yönetim</h3>
+<section id="chat" class="screen"><h3>Sesli Komutlar</h3>
  <div class="card"><b>Konuşarak yönet</b><p class="muted">Mikrofona bas, komutunu söyle. Tanınan cümle aşağıya gelir ve yerel sürü komutları işlenir.</p></div>
  <div class="card chatBox" id="chatLog"><div class="chatMsg botMsg">Hazırım. Örneğin “245 numaralı koyun iki kuzu doğurdu” diyebilirsin.</div></div>
  <button id="talkBtn" class="talkBtn" type="button" onclick="toggleVoice()">🎙️ Bas ve Konuş</button>
@@ -499,8 +528,9 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
  <button class="menuBtn" onclick="openSub('today')">✓<br><b>Bugün Yapılacaklar</b></button>
  <button class="menuBtn" onclick="openBackup()">💾<br><b>Yedekleme / Geri Yükleme</b></button>
  <button class="menuBtn" onclick="openAccount()">👤<br><b>Hesabım / İşletmem</b></button>
- <button class="menuBtn" onclick="go('chat')">◉<br><b>ChatGPT ile Yönetim</b></button>
+ <button class="menuBtn" onclick="go('chat')">◉<br><b>Sesli Komutlar</b></button>
  </div>
+ <div class="card languageSettings"><label for="appLanguage" data-no-i18n>Dil / Language</label><select id="appLanguage" data-no-i18n onchange="setAppLanguage(this.value)"><option value="tr">Türkçe</option><option value="en">English</option></select></div>
  <div class="card" id="installCard" hidden><b>📲 Sürü Takip’i Telefona Kur</b><p class="muted">Ana ekranından uygulama olarak aç.</p><button class="primary" id="installAppBtn" type="button" onclick="installApp()">Uygulamayı Kur</button></div>
  <div class="card" id="cloudCard">
   <div class="row"><div><b>☁️ Bulut Senkronizasyonu</b><div class="muted" id="cloudText">Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.</div></div><span class="tag" id="netBadge">Hazır</span></div>
@@ -738,7 +768,7 @@ const UI_EN={
  "Durum": "Status",
  "Satıra dokun: uyarının nedeni, yaş grubu karşılaştırması, hedef ve tartım geçmişi açılsın.": "Tap a row for alerts, age-group comparison, targets and weight history.",
  "Normal · Takip · Kontrol · Satış. ⏱ = tartım zamanı. Kontrol yalnız kilo kaybı veya iki dönem üst üste düşük gelişimde çıkar.": "Normal · Monitor · Check · Sale. ⏱ = weighing due. Check appears for weight loss or low growth in two consecutive periods.",
- "ChatGPT ile Yönetim": "Assistant",
+ "Sesli Komutlar": "Voice Commands",
  "Konuşarak yönet": "Manage by voice",
  "Mikrofona bas, komutunu söyle. Tanınan cümle aşağıya gelir ve yerel sürü komutları işlenir.": "Tap the microphone and speak. The recognised text appears below. Supported local flock commands are processed.",
  "Hazırım. Örneğin “245 numaralı koyun iki kuzu doğurdu” diyebilirsin.": "Ready. Try “Ewe 245 gave birth to two lambs”.",
@@ -862,7 +892,7 @@ const UI_EN={
  "Satın alma henüz kullanılamıyor": "Purchases are not available yet",
  "Yaş bilinmiyor": "Age unknown"
 };
-Object.assign(UI_EN,{"İsteğe bağlı": "Optional", "Hayvanı Ekle": "Add Animal", "Gelir Ekle": "Add Income", "Gelir türü": "Income type", "Devlet desteği": "Government support", "Hayvan satışı": "Animal sales", "Kuzu satışı dışı gelir": "Income other than lamb sales", "Diğer gelir": "Other income", "Satılan hayvanları seç": "Select sold animals", "Geliri Kaydet": "Save Income", "Gider Ekle": "Add Expense", "Gider türü": "Expense type", "Tarla · Tohum": "Field · Seed", "Tarla · Libazma/Sürüm": "Field · Tillage", "Tarla · Mazot": "Field · Diesel", "Tarla · Gübre": "Field · Fertiliser", "Tarla · İlaçlama": "Field · Spraying", "Tarla · Biçim/Balya": "Field · Mowing/Baling", "Tarla · İşçilik": "Field · Labour", "Tarla · Diğer": "Field · Other", "Diğer gider": "Other expense", "Üretim dönemi": "Production period", "Tarla tarla dağıtım yok; bu gider doğrudan seçilen sezona yazılır.": "This expense is assigned directly to the selected season.", "Gideri Kaydet": "Save Expense", "Doğum Kaydı": "Birth Record", "Kuzu sayısı": "Number of lambs", "Doğumu Kaydet ve Kuzuları Sürüye Ekle": "Save Birth and Add Lambs", "Sağlık Kaydı": "Health Record", "İşlem / durum": "Treatment / condition", "İlaç, aşı, takip...": "Medicine, vaccination, follow-up...", "Tekrar / hatırlatma": "Repeat / reminder", "Hatırlatma yok": "No reminder", "7 gün sonra": "In 7 days", "15 gün sonra": "In 15 days", "30 gün sonra": "In 30 days", "Tarih seç": "Choose date", "İstersen boş bırak; sadece gereken işlemlerde kullan.": "Optional; use only when a reminder is needed.", "Kuzu Tartımı": "Lamb Weighing", "Toplu tartım": "Bulk weighing", "Birden fazla kuzuyu tek ekranda tart, kaydet ve gelişim analizini gör.": "Weigh several lambs on one screen, save and view growth analysis.", "Toplu Tartımı Aç": "Open Bulk Weighing", "Satış Kaydı": "Sale Record", "Toplam satış tutarı (TL)": "Total sale amount (TL)", "Satışı Kaydet": "Save Sale", "Kalem": "Item", "Toplam maliyet (TL)": "Total cost (TL)", "Stok ve Gider Olarak Kaydet": "Save Stock and Expense", "Hasat / Ürün Girişi": "Harvest / Produce Entry", "Ürün": "Produce", "Örn. Arpa, Balya": "e.g. Barley, Bales", "Hasat tarihi": "Harvest date", "Hasadı Kaydet ve Stoğa Ekle": "Save Harvest and Add to Stock", "Not Ekle": "Add Note", "adet": "units", "balya": "bales", "Google hesabı": "Google account", "Google hesabı bağlı değil": "No Google account connected", "Çiftlik / İşletme adı": "Farm / Business name", "Örn. Karpaz Küçükbaş": "e.g. Karpaz Sheep Farm", "Toplam kayıt": "Total records", "Üyelik": "Membership", "Temel kayıt paketi": "Basic record plan", "PRO üyeliğin aktif.": "Your PRO membership is active.", "Finans kayıtları ve gelişmiş analizler açık.": "Financial records and advanced analysis enabled.", "İşletme Bilgisini Kaydet": "Save Farm Details", "Verilerin ve gizlilik": "Your data and privacy", "Hesap silme bilgileri": "Account deletion information", "Hesabımı Sil": "Delete My Account", "Hayvanı Düzenle": "Edit Animal", "Küpe Ekle/Düzenle": "Add / Edit Ear Tag", "Tüm Kayıt Geçmişi": "Full Record History", "Kayıt yok.": "No records.", "Damızlığa Ayır": "Keep for Breeding", "Anaç Yap": "Promote to Breeding Ewe", "🐑 Kuzulama Özeti": "🐑 Lambing Summary", "Kuzulama": "Lambings", "Toplam kuzu": "Total lambs", "Doğum oranı": "Lamb yield", "💉 Sağlık": "💉 Health", "⚖️ Tartım": "⚖️ Weighing", "💰 Satış": "💰 Sale", "Kuzu Cinsiyetlerini Düzenle": "Edit Lamb Sexes", "Eksik Hayvan Bilgileri": "Missing Animal Details", "Aktif hayvanlarda temel bilgi eksiği yok.": "No basic details are missing for active animals.", "Kartı Aç": "Open Card", "Yıl": "Year", "Ay": "Month", "Ek ay": "Additional months", "Kaydedildi": "Saved", "Hayvan sürüye eklendi": "Animal added to flock", "Bu küpe numarası zaten kullanılıyor": "This ear tag is already in use", "Sıfırdan büyük kilo gir": "Enter a weight greater than zero", "Geçerli, gelecekte olmayan doğum tarihi gir": "Enter a valid birth date that is not in the future", "Geçerli bir tarih ve sıfırdan büyük tutar gir": "Enter a valid date and an amount greater than zero", "Sağlık kaydı kaydedildi": "Health record saved", "Not kaydedildi": "Note saved", "Tarih ve not gir": "Enter a date and note", "Bu kaydı silmek istediğine emin misin? Bağlı sürü/stok bilgileri de geri alınacak.": "Delete this record? Linked flock and stock changes will also be reversed.", "Yapılacak işi yaz": "Enter a task", "İş tamamlandı": "Task completed", "Süt": "Milk", "Süt Geliri": "Milk Income", "Yedek İndir": "Download Backup", "Yedekleme": "Backup", "Yedek Geri Yükle": "Restore Backup"});
+Object.assign(UI_EN,{"Diğer Kayıtlar":"Other Records","İsteğe bağlı": "Optional", "Hayvanı Ekle": "Add Animal", "Gelir Ekle": "Add Income", "Gelir türü": "Income type", "Devlet desteği": "Government support", "Hayvan satışı": "Animal sales", "Kuzu satışı dışı gelir": "Income other than lamb sales", "Diğer gelir": "Other income", "Satılan hayvanları seç": "Select sold animals", "Geliri Kaydet": "Save Income", "Gider Ekle": "Add Expense", "Gider türü": "Expense type", "Tarla · Tohum": "Field · Seed", "Tarla · Libazma/Sürüm": "Field · Tillage", "Tarla · Mazot": "Field · Diesel", "Tarla · Gübre": "Field · Fertiliser", "Tarla · İlaçlama": "Field · Spraying", "Tarla · Biçim/Balya": "Field · Mowing/Baling", "Tarla · İşçilik": "Field · Labour", "Tarla · Diğer": "Field · Other", "Diğer gider": "Other expense", "Üretim dönemi": "Production period", "Tarla tarla dağıtım yok; bu gider doğrudan seçilen sezona yazılır.": "This expense is assigned directly to the selected season.", "Gideri Kaydet": "Save Expense", "Doğum Kaydı": "Birth Record", "Kuzu sayısı": "Number of lambs", "Doğumu Kaydet ve Kuzuları Sürüye Ekle": "Save Birth and Add Lambs", "Sağlık Kaydı": "Health Record", "İşlem / durum": "Treatment / condition", "İlaç, aşı, takip...": "Medicine, vaccination, follow-up...", "Tekrar / hatırlatma": "Repeat / reminder", "Hatırlatma yok": "No reminder", "7 gün sonra": "In 7 days", "15 gün sonra": "In 15 days", "30 gün sonra": "In 30 days", "Tarih seç": "Choose date", "İstersen boş bırak; sadece gereken işlemlerde kullan.": "Optional; use only when a reminder is needed.", "Kuzu Tartımı": "Lamb Weighing", "Toplu tartım": "Bulk weighing", "Birden fazla kuzuyu tek ekranda tart, kaydet ve gelişim analizini gör.": "Weigh several lambs on one screen, save and view growth analysis.", "Toplu Tartımı Aç": "Open Bulk Weighing", "Satış Kaydı": "Sale Record", "Toplam satış tutarı (TL)": "Total sale amount (TL)", "Satışı Kaydet": "Save Sale", "Kalem": "Item", "Toplam maliyet (TL)": "Total cost (TL)", "Stok ve Gider Olarak Kaydet": "Save Stock and Expense", "Hasat / Ürün Girişi": "Harvest / Produce Entry", "Ürün": "Produce", "Örn. Arpa, Balya": "e.g. Barley, Bales", "Hasat tarihi": "Harvest date", "Hasadı Kaydet ve Stoğa Ekle": "Save Harvest and Add to Stock", "Not Ekle": "Add Note", "adet": "units", "balya": "bales", "Google hesabı": "Google account", "Google hesabı bağlı değil": "No Google account connected", "Çiftlik / İşletme adı": "Farm / Business name", "Örn. Karpaz Küçükbaş": "e.g. Karpaz Sheep Farm", "Toplam kayıt": "Total records", "Üyelik": "Membership", "Temel kayıt paketi": "Basic record plan", "PRO üyeliğin aktif.": "Your PRO membership is active.", "Finans kayıtları ve gelişmiş analizler açık.": "Financial records and advanced analysis enabled.", "İşletme Bilgisini Kaydet": "Save Farm Details", "Verilerin ve gizlilik": "Your data and privacy", "Hesap silme bilgileri": "Account deletion information", "Hesabımı Sil": "Delete My Account", "Hayvanı Düzenle": "Edit Animal", "Küpe Ekle/Düzenle": "Add / Edit Ear Tag", "Tüm Kayıt Geçmişi": "Full Record History", "Kayıt yok.": "No records.", "Damızlığa Ayır": "Keep for Breeding", "Anaç Yap": "Promote to Breeding Ewe", "🐑 Kuzulama Özeti": "🐑 Lambing Summary", "Kuzulama": "Lambings", "Toplam kuzu": "Total lambs", "Doğum oranı": "Lamb yield", "💉 Sağlık": "💉 Health", "⚖️ Tartım": "⚖️ Weighing", "💰 Satış": "💰 Sale", "Kuzu Cinsiyetlerini Düzenle": "Edit Lamb Sexes", "Eksik Hayvan Bilgileri": "Missing Animal Details", "Aktif hayvanlarda temel bilgi eksiği yok.": "No basic details are missing for active animals.", "Kartı Aç": "Open Card", "Yıl": "Year", "Ay": "Month", "Ek ay": "Additional months", "Kaydedildi": "Saved", "Hayvan sürüye eklendi": "Animal added to flock", "Bu küpe numarası zaten kullanılıyor": "This ear tag is already in use", "Sıfırdan büyük kilo gir": "Enter a weight greater than zero", "Geçerli, gelecekte olmayan doğum tarihi gir": "Enter a valid birth date that is not in the future", "Geçerli bir tarih ve sıfırdan büyük tutar gir": "Enter a valid date and an amount greater than zero", "Sağlık kaydı kaydedildi": "Health record saved", "Not kaydedildi": "Note saved", "Tarih ve not gir": "Enter a date and note", "Bu kaydı silmek istediğine emin misin? Bağlı sürü/stok bilgileri de geri alınacak.": "Delete this record? Linked flock and stock changes will also be reversed.", "Yapılacak işi yaz": "Enter a task", "İş tamamlandı": "Task completed", "Süt": "Milk", "Süt Geliri": "Milk Income", "Yedek İndir": "Download Backup", "Yedekleme": "Backup", "Yedek Geri Yükle": "Restore Backup"});
 const uiTextSources=new WeakMap(),uiAttributeSources=new WeakMap();
 function uiTranslate(text){
  if(appLanguage!=='en')return text;
@@ -996,7 +1026,7 @@ function save(){
 }
 function money(n){return new Intl.NumberFormat(appLocale(),{maximumFractionDigits:0}).format(+n||0)+' TL'}
 function toast(s){let t=document.getElementById('toast');t.textContent=uiTranslate(s);t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
-function go(id,remember=true){if(!isPro()&&(id==='growth'||id==='chat'))return showProRequired(id==='growth'?'Kuzu Gelişim Analizi':'ChatGPT ile Yönetim');if(remember){rememberNavigation(id);if(!nativeBackEnabled&&window.history?.pushState)window.history.pushState({suruBack:'screen',screen:id,sub:id==='sub'?currentSub:''},'',location.href)}document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===id));window.scrollTo(0,0);renderAll()}
+function go(id,remember=true){if(!isPro()&&(id==='growth'||id==='chat'))return showProRequired(id==='growth'?'Kuzu Gelişim Analizi':'Sesli Komutlar');if(remember){rememberNavigation(id);if(!nativeBackEnabled&&window.history?.pushState)window.history.pushState({suruBack:'screen',screen:id,sub:id==='sub'?currentSub:''},'',location.href)}document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===id));window.scrollTo(0,0);renderAll()}
 /* Android/PWA Back: dismiss a sheet, return through screens, then confirm exit. */
 let navigationTrail=[], navigationCurrent={screen:'home',sub:''}, exitBackAt=0;
 let nativeBackEnabled=false,rootBackWatcher=null,modalBackWatcher=null,screenBackWatchers=[];
@@ -1122,6 +1152,11 @@ function isPro(){return trialActive()||((subscriptionStatus==='active'||subscrip
 function isPlus(){return isPro()}
 function planBadge(){return trialActive()?'PRO DENEME':isPro()?'PRO':'FREE'}
 function renderPlanStatus(){
+ document.querySelectorAll('[data-go="growth"],#all button[onclick="go(\'chat\')"],.reportNav [data-report-view]:not([data-report-view="overview"])').forEach(button=>{
+  let badge=button.querySelector('.proAccessBadge');
+  if(!badge){badge=document.createElement('span');badge.className='proAccessBadge';badge.textContent='PRO';button.appendChild(badge)}
+  badge.hidden=isPro();
+ });
  let el=document.getElementById('planStatus'),strip=document.getElementById('planStrip'),title=document.getElementById('planStripTitle'),txt=document.getElementById('planStripText');
  if(el){
   if(trialActive()){el.textContent='PRO · '+trialDaysLeft()+' gün';el.style.background='#fff0c7';el.style.color='#815a00'}
@@ -1215,7 +1250,7 @@ function openPlans(){
    <div class="planCheck"><i>✓</i><span>Kuzu gelişim analizi ve satışa hazır takibi</span></div>
    <div class="planCheck"><i>✓</i><span>İşletme Nabzı, gelişmiş sürü ve finans raporları</span></div>
    <div class="planCheck"><i>✓</i><span>Yıllık / özel dönem / arşiv raporları</span></div>
-   <div class="planCheck"><i>✓</i><span>CSV / PDF dışa aktarma ve ChatGPT ile yönetim</span></div>
+   <div class="planCheck"><i>✓</i><span>CSV / PDF dışa aktarma ve sesli komutlar</span></div>
    <div class="planCheck"><i>✓</i><span>Android, iPhone ve bilgisayarda aynı hesap</span></div>
   </div>
   <button id="proPurchaseBtn" class="primary" style="width:100%;font-size:16px;padding:14px" onclick="startProPurchase()">${selectedProBilling==='yearly'?'Yıllık PRO · '+PRO_YEARLY_PRICE.toLocaleString(appLocale())+' TL':'Aylık PRO · '+PRO_MONTHLY_PRICE.toLocaleString(appLocale())+' TL'}</button>
@@ -1784,7 +1819,7 @@ function renderAll(){
  let herdIntegrity=document.getElementById('herdIntegrity'),idCounts=new Map(),tagCounts=new Map();
  A.forEach(a=>{let id=String(a.id||'');idCounts.set(id,(idCounts.get(id)||0)+1);let tag=String(a.tag||'').trim();if(tag){let key=tag.toLocaleLowerCase('tr-TR');if(!tagCounts.has(key))tagCounts.set(key,{tag,count:0});tagCounts.get(key).count++}});
  let duplicateIds=[...idCounts.values()].filter(n=>n>1).length,duplicateTags=[...tagCounts.values()].filter(x=>x.count>1).map(x=>x.tag).slice(0,3);
- if(herdIntegrity){let issue=A.length!==e+r+l?'type':duplicateIds?'id':duplicateTags.length?'tag':'';herdIntegrity.textContent=issue==='type'?(appLanguage==='en'?'⚠ Type counts do not match the total':'⚠ Tür sayıları toplamla uyuşmuyor'):issue==='id'?(appLanguage==='en'?'⚠ Duplicate animal record':'⚠ Tekrarlı hayvan kaydı'):issue==='tag'?(appLanguage==='en'?'⚠ Repeated ear tag: ':'⚠ Tekrarlı küpe: ')+duplicateTags.join(', '):(appLanguage==='en'?'✓ Flock count matches':'✓ Sürü sayımı tutarlı');herdIntegrity.style.color=issue?'#b42318':'#cce6d2'}
+ if(herdIntegrity){let issue=A.length!==e+r+l?'type':duplicateIds?'id':duplicateTags.length?'tag':'';herdIntegrity.hidden=!issue;herdIntegrity.textContent=issue==='type'?(appLanguage==='en'?'⚠ Type counts do not match the total':'⚠ Tür sayıları toplamla uyuşmuyor'):issue==='id'?(appLanguage==='en'?'⚠ Duplicate animal record':'⚠ Tekrarlı hayvan kaydı'):issue==='tag'?(appLanguage==='en'?'⚠ Repeated ear tag: ':'⚠ Tekrarlı küpe: ')+duplicateTags.join(', '):(appLanguage==='en'?'✓ Flock count matches':'✓ Sürü sayımı tutarlı');herdIntegrity.style.color=issue?'#ffe2b4':'#cce6d2'}
  sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
  let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span data-no-i18n>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
  renderHomeUpcoming();
