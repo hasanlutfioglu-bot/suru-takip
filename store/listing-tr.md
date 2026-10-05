@@ -1,6 +1,6 @@
-# Play Store Türkçe metin taslağı
+# Play Store Türkçe metinleri — V21.4
 
-**Yayımlama için Hasan'ın geliştirici iletişimi, son fiyatları ve gerçek cihaz ekran görüntüleriyle onaylanacak. Henüz mağazaya gönderilmedi.**
+**İçerik 6 Ekim 2026 tarihinde güncellendi. Play Console’a gönderilmedi. Fiyat ve paket beyanları gerçek mağaza ürünleriyle eşleştirilmelidir.**
 
 ## Uygulama adı
 Sürü Takip
@@ -13,7 +13,9 @@ Sürü Takip, küçükbaş işletmendeki günlük kayıtları bir arada tutmanı
 
 Hayvanlarını küpe numarasıyla kaydet; anaç, koç ve kuzuları ayrı takip et. Her anaç kartında doğum geçmişini, kuzu sayısını ve kayıtlarına dayalı doğum verimini gör.
 
-Tartımları tek tek veya toplu gir. Kuzuların kilo değişimini ve aynı yaş grubuna göre gelişimini incele. Satışa hazır işaretlediğin hayvanları ve uygulamanın yaş/kilo ölçütlerine uyan erkek kuzuları listele.
+Hızlı Tartım ekranında kuzuların kilosunu tek ekranda gir; tartım tarihi otomatik kaydolur. Küpesiz kuzulara aynı ekrandan küpe numarası ekle. Kuzuların kilo değişimini ve aynı yaş grubuna göre gelişimini incele. Satışa hazır işaretlediğin hayvanları ve uygulamanın yaş/kilo ölçütlerine uyan erkek kuzuları listele.
+
+Koçluk için ayırdığın kuzuları satış hesabından çıkar; 12 aylık olduklarında koç olarak sürüde takip et. Hayvan kartında sürüde, satıldı, kesildi ve öldü durumlarını ve mevcut işlem tarihlerini gör.
 
 Sağlık işlemleri, tekrar tarihleri ve yapılacaklar için kayıt tut. Koç katım/çıkarma takvimini, hasadı ve stoğu yönet. Gelir, gider ve hayvan satışlarını raporla; satış kaydını ilgili hayvanlarla ilişkilendir.
 
@@ -29,6 +31,8 @@ Raporlar girdiğin kayıtların doğruluğuna bağlıdır. Eksik doğum/yavru ba
 
 - 512×512 ikon: `icons/app-512.png`.
 - Gerçek Android ekran görüntüleri: Play test sürümünden çekilecek; masaüstü veya temsili görüntüler gerçek telefon testi gibi sunulmayacak.
-- Feature graphic: 1024×500 hazırlanabilir; görsel ve son uygulama adı Hasan tarafından onaylanmalı.
+- Feature graphic: `store/graphics/feature-graphic-tr.png` (1024×500).
+- İkon: `store/graphics/app-icon-512.png` (512×512).
+- Kullanım videosu: ayrı teslim edilen 90 saniyelik, sessiz ve Türkçe açıklamalı MP4; tarayıcı ekranlarıdır, Android cihaz testi değildir.
 - Hesap silme URL'si: `/suru-takip/delete-account.html`.
 - Gizlilik URL'si: resmî iletişim/saklama bilgileriyle tamamlanacak. `data-info.html` bilgi sayfasıdır, nihai politika değildir.

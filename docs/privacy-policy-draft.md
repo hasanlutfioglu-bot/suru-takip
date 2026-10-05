@@ -13,7 +13,7 @@ Veri sorumlusu/geliştirici: Hasan Lutfioğlu. Destek ve gizlilik iletişimi: **
 - Supabase Auth ve Postgres üzerinden hesap/veri barındırma.
 - Google Play satın alma kodu doğrulaması; sunucuda tek çiftliğe bağlanan SHA-256 satın alma özeti. Ham kod kalıcı veri alanına yazılmıyor.
 - Tarayıcının ses tanıma hizmeti isteğe bağlı kullanılıyor; uygulama kendi ses kaydını depolamıyor. Tarayıcı sağlayıcısının işleme biçimi ayrıca açıklanmalı.
-- Bu sürümde OpenAI API entegrasyonu yok. “ChatGPT ile yönetim” uygulama içi komut yorumlayıcısıdır.
+- Bu sürümde OpenAI API entegrasyonu yok. “Sesli Komutlar” uygulama içi komut yorumlayıcısıdır.
 - Reklam/analitik SDK'sı mevcut kaynakta görülmedi. Yeni SDK eklenirse beyan güncellenmeli.
 
 ## Amaçlar
@@ -24,7 +24,7 @@ Hesap oluşturma, hesabın çiftliğine erişim, cihazlar arasında eşitleme, �
 
 Hesap silme aktif veritabanında hesabı ve yalnız kullanıcıya ait çiftlikleri FK zinciriyle atomik siler. Paylaşılan çiftlikler için sahiplik devri/üyelik çözümü gereklidir. Bu cihazdaki hesaba ait önbellek/kurtarma kayıtları temizlenir; diğer cihazlar ve kullanıcı tarafından indirilen yedekler ayrıca temizlenir. Google/Play hesabı ve Play ödeme kayıtları ayrı hizmetlerdir.
 
-**Sabah kesinleştirilecek:** Supabase proje bölgesi, yedek/sistem logları saklama süresi, silinmiş aktif verilerin yedeklerden temizlenme takvimi, iletişim ve hak talebi kanalı, yasal muhasebe kaydı yükümlülüğü, uluslararası aktarımlar ve çocuklara yönelik kullanım yaklaşımı. Bu süre ve hukuki dayanakları uydurarak politika yayımlamıyoruz.
+**Yayın öncesi doğrulanacak:** Supabase proje bölgesi, yedek/sistem logları saklama süresi, silinmiş aktif verilerin yedeklerden temizlenme takvimi, iletişim ve hak talebi kanalı, yasal muhasebe kaydı yükümlülüğü, uluslararası aktarımlar ve çocuklara yönelik kullanım yaklaşımı. Bu süre ve hukuki dayanakları uydurarak politika yayımlamıyoruz.
 
 ## Play Data Safety için başlangıç eşlemesi
 
