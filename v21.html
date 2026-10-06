@@ -24,7 +24,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 .listitem{padding:12px 0;border-bottom:1px solid #edf0ed}.listitem:last-child{border:0}.recordActions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.tag{display:inline-block;font-size:11px;border-radius:99px;padding:4px 7px;background:#eef3ef;color:#45604d}
 .bottom{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#ffffffed;backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center}
 .bottomin{width:min(760px,100%);display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px calc(7px + env(safe-area-inset-bottom))}
-.nav{background:transparent;color:#667068;padding:7px 2px;font-size:11px}.nav b{display:block;font-size:20px}.nav.active{color:var(--green)}
+.nav{background:transparent;color:#667068;padding:7px 2px;font-size:11px}.nav b{display:block;font-size:20px}.nav.active{color:var(--green)}.nav.aiNav{position:relative;margin-top:-22px}.nav.aiNav b{width:54px;height:54px;margin:0 auto 2px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--green);color:#fff;font-size:25px;box-shadow:0 8px 20px #245c3b55;border:4px solid #fff}
 .menuGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.menuBtn{text-align:left;background:white;border:1px solid var(--line);padding:16px;min-height:72px}
 .modal{position:fixed;inset:0;background:#0008;z-index:30;display:none;align-items:flex-end;justify-content:center}.modal.show{display:flex}.sheet{background:var(--bg);width:min(760px,100%);max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#172018;color:white;padding:11px 15px;border-radius:99px;display:none;z-index:50}
@@ -511,9 +511,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
  <div class="growthTapHint">Satıra dokun: uyarının nedeni, yaş grubu karşılaştırması, hedef ve tartım geçmişi açılsın.</div><div class="weightLegend" style="margin:8px 2px">Normal · Takip · Kontrol · Satış. ⏱ = tartım zamanı. Kontrol yalnız kilo kaybı veya iki dönem üst üste düşük gelişimde çıkar.</div>
 </section>
 
-<section id="chat" class="screen"><h3>Sesli Komutlar</h3>
- <div class="card"><b>Konuşarak yönet</b><p class="muted">Mikrofona bas, komutunu söyle. Tanınan cümle aşağıya gelir ve yerel sürü komutları işlenir.</p></div>
- <div class="card chatBox" id="chatLog"><div class="chatMsg botMsg">Hazırım. Örneğin “245 numaralı koyun iki kuzu doğurdu” diyebilirsin.</div></div>
+<section id="chat" class="screen"><h3>Sürü Yapay Zekâsı</h3>
+ <div class="card"><b>Konuşarak yönet</b><p class="muted">Mikrofona bas ve normal konuş. Yapay zekâ canlı sürü verilerini okuyup cevap verir.</p></div>
+ <div class="card chatBox" id="chatLog"><div class="chatMsg botMsg">Hazırım gardaş. Sürün hakkında istediğin gibi sorabilirsin. Şimdilik sadece okuma modundayım.</div></div>
  <button id="talkBtn" class="talkBtn" type="button" onclick="toggleVoice()">🎙️ Bas ve Konuş</button>
  <div id="voiceStatus" class="voiceStatus">Mikrofon hazır</div>
  <div class="chatComposer"><input id="chatInput" type="text" placeholder="Komut yaz veya mikrofona bas…" onkeydown="if(event.key==='Enter')sendChatCommand()"><button class="primary" type="button" onclick="sendChatCommand()">Gönder</button></div>
@@ -555,9 +555,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <nav class="bottom"><div class="bottomin">
 <button class="nav active" data-go="home" onclick="go('home')"><b>⌂</b>Ana Sayfa</button>
 <button class="nav" data-go="herd" onclick="go('herd')"><b>🐑</b>Sürü</button>
+<button class="nav aiNav" data-go="chat" onclick="go('chat')"><b>✦</b>Yapay Zekâ</button>
 <button class="nav" data-go="add" onclick="go('add')"><b>＋</b>Kayıt Ekle</button>
 <button class="nav" data-go="reports" onclick="go('reports')"><b>▥</b>Raporlar</button>
-<button class="nav" data-go="growth" onclick="go('growth')"><b>📈</b>Kuzu Gelişim</button>
 </div></nav>
 </div>
 
@@ -3363,7 +3363,7 @@ function handleLocalCommand(raw){
  }
  return appLanguage==='en'?'I heard: “'+raw+'”. This local assistant supports births, today’s tasks and monthly feed costs. The full AI connection is not active yet.':'Seni duydum: “'+t+'”. Bu komutu henüz otomatik işleyemiyorum; doğum, bugün yapılacaklar veya yem masrafı komutlarından birini söyle.'
 }
-function sendChatCommand(text){let inp=document.getElementById('chatInput');let t=(typeof text==='string'?text:(inp?.value||'')).trim();if(!t)return;if(inp)inp.value='';addChat(t,'user');const command=englishLocalCommand(t);if(/doğurdu|dogurdu|doğum yaptı|dogum yapti|kuzu yaptı|kuzu yapti|yavruladı|yavruladi/.test(normalizeCommand(command))&&!confirm((appLanguage==='en'?'Save this birth record?\n':'Bu doğum kaydı kaydedilsin mi?\n')+t)){replyChat(appLanguage==='en'?'Cancelled. No record saved.':'İptal edildi. Kayıt yapılmadı.');return}replyChat(handleLocalCommand(t))}
+async function sendChatCommand(text){let inp=document.getElementById('chatInput');let t=(typeof text==='string'?text:(inp?.value||'')).trim();if(!t)return;if(inp)inp.value='';addChat(t,'user');if(!sb||!cloudSession||!cloudFarmId){replyChat(appLanguage==='en'?'Sign in to cloud first.':'Yapay zekâyı kullanmak için önce buluta giriş yap gardaş.');return}let vs=document.getElementById('voiceStatus');if(vs)vs.textContent=appLanguage==='en'?'AI is thinking…':'Yapay zekâ düşünüyor…';try{let result=await sb.functions.invoke('suru-ai',{body:{farm_id:cloudFarmId,message:t}});if(result.error)throw result.error;let out=result.data||{};replyChat(out.answer||'Cevap alınamadı.');if(vs)vs.textContent=appLanguage==='en'?'AI ready · read only':'Yapay zekâ hazır · salt okuma'}catch(e){replyChat((appLanguage==='en'?'Connection failed: ':'Bağlantı kurulamadı: ')+(e.message||'Bilinmeyen hata'));if(vs)vs.textContent=appLanguage==='en'?'AI connection error':'Yapay zekâ bağlantı hatası'}}
 function voiceSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition)}
 async function requestMicPermission(){
  try{
