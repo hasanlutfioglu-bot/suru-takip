@@ -1123,7 +1123,7 @@ function isPro(){return trialActive()||((subscriptionStatus==='active'||subscrip
 function isPlus(){return isPro()}
 function planBadge(){return trialActive()?'PRO DENEME':isPro()?'PRO':'FREE'}
 function renderPlanStatus(){
- document.querySelectorAll('[data-go="growth"].reportNav [data-report-view]:not([data-report-view="overview"])').forEach(button=>{
+ document.querySelectorAll('[data-go="growth"],.reportNav [data-report-view]:not([data-report-view="overview"])').forEach(button=>{
   let badge=button.querySelector('.proAccessBadge');
   if(!badge){badge=document.createElement('span');badge.className='proAccessBadge';badge.textContent='PRO';button.appendChild(badge)}
   badge.hidden=isPro();
