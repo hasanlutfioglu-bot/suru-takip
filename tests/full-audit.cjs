@@ -5,8 +5,7 @@ let checks=0;function eq(a,b){assert.equal(a,b);checks++}function ok(v){assert(v
  run("db=seed();db.animals=[{id:'e1',type:'Koyun',sex:'Dişi',status:'Aktif',tag:'245',birth:'2022-01-01',breedingStatus:'Anaç'},{id:'l1',type:'Kuzu',sex:'Erkek',status:'Aktif',tag:'100',birth:addDaysISO(today(),-180),weight:30}];save()");
  // Every static onclick must parse, and its referenced functions must exist.
  for(const el of document.querySelectorAll('[onclick]')){new (require('node:vm').Script)(el.getAttribute('onclick'));checks++}
- for(const screen of ['home','herd','add','reports','growth','all']){run(`go('${screen}')`);ok(document.getElementById(screen).classList.contains('active'))}
- eq(document.getElementById('chat'),null);eq(document.querySelector('.aiNav'),null);eq(document.querySelector('#all button[onclick*=\"chat\"]'),null);
+ for(const screen of ['home','herd','add','reports','growth','chat','all']){run(`go('${screen}')`);ok(document.getElementById(screen).classList.contains('active'))}
  for(const sub of ['health','births','performance','calendar','weights','stock','finance','moves','today']){run(`openSub('${sub}')`);ok(document.getElementById('sub').classList.contains('active'))}
  // Invalid additions are atomic.
  run('openAddAnimal()');fill('newAnimalWeight','-10');run('saveNewAnimal()');eq(run('db.animals.length'),2);

@@ -13,8 +13,7 @@ const assert=require('node:assert/strict');
  await page.evaluate(()=>{currentPlan='pro';subscriptionStatus='active';db=seed();db.animals=[{id:'e1',type:'Koyun',sex:'Dişi',status:'Aktif',tag:'245',breedingStatus:'Anaç'},{id:'e2',type:'Koyun',sex:'Dişi',status:'Aktif',tag:'246',breedingStatus:'Anaç'}];save()});
  const run=s=>page.evaluate(s),fill=(id,v)=>page.locator('#'+id).fill(v),select=(id,v)=>page.locator('#'+id).selectOption(v);
  assert.equal(await page.locator('#heroTotal').textContent(),'2 hayvan');assert.equal(await page.locator('#homeBirthRate').textContent(),'—');
- for(const screen of ['home','herd','add','reports','all']){await run(`go('${screen}')`);assert(await page.locator('#'+screen).isVisible())}
- assert.equal(document.getElementById('chat'),null,'paid AI screen is removed');assert.equal(document.querySelector('.aiNav'),null,'paid AI button is removed');assert.equal(document.querySelector('#all button[onclick*=\"chat\"]'),null,'paid AI menu entry is removed');assert.equal(html.includes("functions.invoke('suru-ai'"),false,'paid AI API is not called');
+ for(const screen of ['home','herd','add','reports','chat','all']){await run(`go('${screen}')`);assert(await page.locator('#'+screen).isVisible())}
  for(const sub of ['health','births','performance','calendar','weights','stock','finance','moves','today']){await run(`openSub('${sub}')`);assert(await page.locator('#sub').isVisible())}
  for(const kind of ['birth','health','weight','sale','stock','income','expense','harvest','note']){await run(`openAdd('${kind}')`);assert(await page.locator('#modal').isVisible());await run('closeModal()')}
  for(const form of ['openBackup()','openAccount()','openInitialSetup()','openBulkTags()','openBulkSex()']){await run(form);assert(await page.locator('#modal').isVisible());await run('closeModal()')}

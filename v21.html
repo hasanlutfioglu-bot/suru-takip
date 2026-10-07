@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.5.1</title>
+<title>Sürü Takip V21.4</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -31,7 +31,25 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 .empty{padding:24px;text-align:center;color:var(--muted)}.money.plus{color:#277044}.money.minus{color:#a44747}.clickcard{cursor:pointer}.clickcard:active{transform:scale(.99)}.reportList{margin-top:10px}.reportList .card{box-shadow:none;background:#fafcf9}.rateHelp{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}.reportFold{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between}.reportFold:after{content:'▾';font-size:13px;color:var(--muted);transition:transform .15s}.reportFold.closed:after{transform:rotate(-90deg)}.quickResults{margin-top:6px}.quickResult{padding:10px 0;border-top:1px solid var(--line)}.quickActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 @media(min-width:620px){.grid{grid-template-columns:repeat(4,1fr)}.menuGrid{grid-template-columns:repeat(3,1fr)}}
 
+.chatBox{min-height:180px;max-height:320px;overflow:auto}.chatMsg{padding:10px 12px;border-radius:14px;margin:8px 0;line-height:1.35}.botMsg{background:#eef4ef;margin-right:12%}.userMsg{background:#dfeee3;margin-left:12%;text-align:right}.talkBtn{width:100%;border:0;border-radius:18px;padding:16px;margin:10px 0 6px;background:var(--green);color:white;font-size:17px;font-weight:800;box-shadow:var(--shadow)}.talkBtn.listening{background:var(--bad);animation:pulse 1s infinite}.voiceStatus{text-align:center;color:var(--muted);font-size:12px;margin-bottom:10px}.chatComposer{display:flex;gap:8px;margin-bottom:10px}.chatComposer input{flex:1;min-width:0;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}@keyframes pulse{50%{opacity:.72}}
 
+/* Shared mobile workspace theme. */
+:root{--bg:#edf3f0;--green:#175c42;--green2:#287d5d;--line:#d8e5de;--shadow:0 6px 22px #17442d0c}
+header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
+.hero{background:linear-gradient(120deg,#123c2e,#227653);padding:26px;border-radius:24px;margin-bottom:16px}.hero h2{font-size:38px;letter-spacing:-1px}.hero small{font-size:14px;font-weight:700;letter-spacing:1px}.hero #heroSub{margin-top:10px;font-size:15px;opacity:.9}
+.homeSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.summaryCard{background:white;text-align:left;border:1px solid var(--line);border-radius:20px;padding:20px 16px;color:var(--ink);box-shadow:var(--shadow);min-width:0}.summaryCard span{display:block;font-size:15px;line-height:1.4}.summaryCard b{display:block;font-size:32px;line-height:1.25;margin:12px 0;overflow-wrap:anywhere}.summaryCard small{display:block;font-size:14px;line-height:1.5;color:var(--muted);font-weight:400}.saleSummary{grid-column:1/-1}
+.homeUpcoming{margin-top:16px;background:white;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
+.homeUpcomingHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}.homeUpcomingHead b{font-size:16px}.homeUpcomingCount{min-width:28px;height:28px;border-radius:99px;background:#e5efe8;color:var(--green);display:grid;place-items:center;font-size:12px;font-weight:800}
+.upcomingItem{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #edf1ee}.upcomingItem:first-of-type{border-top:0}.upcomingIcon{width:38px;height:38px;border-radius:12px;background:#eef4ef;display:grid;place-items:center;font-size:18px;flex:0 0 auto}.upcomingText{flex:1;min-width:0}.upcomingText b{display:block;font-size:14px;line-height:1.35}.upcomingMeta{font-size:12px;color:var(--muted);margin-top:3px}.upcomingLate{color:var(--bad);font-weight:700}.upcomingToday{color:var(--green);font-weight:700}.upcomingMore{width:100%;margin-top:8px;background:#f2f6f3}
+.homeDataQuality{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px 18px;box-shadow:var(--shadow);display:none}
+.homeDataQuality button{margin-top:10px;width:100%;background:#f2f6f3}
+.animalQuickActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 14px}.animalQuickActions button{width:100%}
+.animalSnapshot{margin-top:10px;padding-top:10px;border-top:1px solid #edf1ee}.animalSnapshot .muted{margin-top:3px}
+.saleSoonTag{display:inline-block;margin-top:6px;padding:5px 9px;border-radius:999px;background:#fff5d9;color:#835d00;font-size:12px;font-weight:700}.animalDisposition{display:inline-block;margin-top:6px;padding:6px 10px;border-radius:999px;background:#e3f2e8;color:#17623a;font-size:12px;font-weight:800}.animalDisposition.out{background:#f1e9e9;color:#7f3434}.animalDisposition.sale{background:#fff0c7;color:#815a00}
+.herdHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px}.herdHead h3{margin:0}.herdToolbar{display:flex;gap:8px;flex-wrap:wrap}.herdToolsPanel{display:none;background:white;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.herdToolsPanel.show{display:block}.herdToolsPanel .small{margin:3px}
+.herdSearchCard{background:white;border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin-bottom:10px}.herdSearchCard input{margin:8px 0 0}.herdSearchTitle{display:flex;align-items:center;justify-content:space-between;gap:8px}.herdSearchTitle b{font-size:15px}.herdSearchTitle span{font-size:12px;color:var(--muted)}
+.herdControls{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:8px;margin:10px 0 12px}.herdControls input,.herdControls select{margin:0}
+.herdCount{font-size:12px;color:var(--muted);margin:0 2px 8px}.herdAnimal{padding:15px 16px}.herdAnimalTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.herdAnimalName{font-size:16px;font-weight:800}.herdAnimalMeta{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}.herdAnimalActions{display:flex;gap:7px;margin-top:12px}.herdAnimalActions .openCard{flex:1;background:#eef4ef}.herdAnimalActions .small{white-space:nowrap}
 @media(max-width:420px){.herdControls{grid-template-columns:1fr}.herdToolbar .small{flex:1}}
 .herdSimpleHead{display:flex;align-items:center;justify-content:space-between;margin:14px 0 10px}.herdSimpleHead h3{margin:0;font-size:24px}.herdTopActions{display:flex;gap:7px}
 .herdMainSearch{position:relative;margin-bottom:10px}.herdMainSearch input{margin:0;padding:14px 14px 14px 42px;border-radius:18px;box-shadow:var(--shadow)}.herdMainSearch:before{content:'🔎';position:absolute;left:14px;top:12px;z-index:1}
@@ -127,7 +145,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.5.1</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -493,7 +511,14 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
  <div class="growthTapHint">Satıra dokun: uyarının nedeni, yaş grubu karşılaştırması, hedef ve tartım geçmişi açılsın.</div><div class="weightLegend" style="margin:8px 2px">Normal · Takip · Kontrol · Satış. ⏱ = tartım zamanı. Kontrol yalnız kilo kaybı veya iki dönem üst üste düşük gelişimde çıkar.</div>
 </section>
 
-
+<section id="chat" class="screen"><h3>Sesli Komutlar</h3>
+ <div class="card"><b>Konuşarak yönet</b><p class="muted">Mikrofona bas, komutunu söyle. Tanınan cümle aşağıya gelir ve yerel sürü komutları işlenir.</p></div>
+ <div class="card chatBox" id="chatLog"><div class="chatMsg botMsg">Hazırım. Örneğin “245 numaralı koyun iki kuzu doğurdu” diyebilirsin.</div></div>
+ <button id="talkBtn" class="talkBtn" type="button" onclick="toggleVoice()">🎙️ Bas ve Konuş</button>
+ <div id="voiceStatus" class="voiceStatus">Mikrofon hazır</div>
+ <div class="chatComposer"><input id="chatInput" type="text" placeholder="Komut yaz veya mikrofona bas…" onkeydown="if(event.key==='Enter')sendChatCommand()"><button class="primary" type="button" onclick="sendChatCommand()">Gönder</button></div>
+ <div class="card" id="chatHints"></div>
+</section>
 
 <section id="all" class="screen"><div class="row"><h3>Tüm Menüler</h3><button class="small" onclick="go('home')">Geri</button></div><div class="menuGrid">
  <button class="menuBtn" onclick="openSub('health')">💉<br><b>Sağlık</b></button><button class="menuBtn" onclick="openSub('births')">🐑<br><b>Doğum-Kuzulama</b></button>
@@ -503,7 +528,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
  <button class="menuBtn" onclick="openSub('today')">✓<br><b>Bugün Yapılacaklar</b></button>
  <button class="menuBtn" onclick="openBackup()">💾<br><b>Yedekleme / Geri Yükleme</b></button>
  <button class="menuBtn" onclick="openAccount()">👤<br><b>Hesabım / İşletmem</b></button>
- 
+ <button class="menuBtn" onclick="go('chat')">◉<br><b>Sesli Komutlar</b></button>
  </div>
  <div class="card languageSettings"><label for="appLanguage" data-no-i18n>Dil / Language</label><select id="appLanguage" data-no-i18n onchange="setAppLanguage(this.value)"><option value="tr">Türkçe</option><option value="en">English</option></select></div>
  <div class="card" id="installCard" hidden><b>📲 Sürü Takip’i Telefona Kur</b><p class="muted">Ana ekranından uygulama olarak aç.</p><button class="primary" id="installAppBtn" type="button" onclick="installApp()">Uygulamayı Kur</button></div>
@@ -530,10 +555,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <nav class="bottom"><div class="bottomin">
 <button class="nav active" data-go="home" onclick="go('home')"><b>⌂</b>Ana Sayfa</button>
 <button class="nav" data-go="herd" onclick="go('herd')"><b>🐑</b>Sürü</button>
-<button class="nav" data-go="growth" onclick="go('growth')"><b>📈</b>Analiz</button>
-
 <button class="nav" data-go="add" onclick="go('add')"><b>＋</b>Kayıt Ekle</button>
 <button class="nav" data-go="reports" onclick="go('reports')"><b>▥</b>Raporlar</button>
+<button class="nav" data-go="growth" onclick="go('growth')"><b>📈</b>Kuzu Gelişim</button>
 </div></nav>
 </div>
 
@@ -550,7 +574,6 @@ const UI_EN={
  "Kayıt Ekle": "Add Record",
  "Raporlar": "Reports",
  "Kuzu Gelişim": "Lamb Growth",
- "Analiz": "Analysis",
  "Yerel mod": "Local mode",
  "Bulut bağlı": "Cloud connected",
  "Temel paket": "Basic plan",
@@ -745,6 +768,10 @@ const UI_EN={
  "Durum": "Status",
  "Satıra dokun: uyarının nedeni, yaş grubu karşılaştırması, hedef ve tartım geçmişi açılsın.": "Tap a row for alerts, age-group comparison, targets and weight history.",
  "Normal · Takip · Kontrol · Satış. ⏱ = tartım zamanı. Kontrol yalnız kilo kaybı veya iki dönem üst üste düşük gelişimde çıkar.": "Normal · Monitor · Check · Sale. ⏱ = weighing due. Check appears for weight loss or low growth in two consecutive periods.",
+ "Sesli Komutlar": "Voice Commands",
+ "Konuşarak yönet": "Manage by voice",
+ "Mikrofona bas, komutunu söyle. Tanınan cümle aşağıya gelir ve yerel sürü komutları işlenir.": "Tap the microphone and speak. The recognised text appears below. Supported local flock commands are processed.",
+ "Hazırım. Örneğin “245 numaralı koyun iki kuzu doğurdu” diyebilirsin.": "Ready. Try “Ewe 245 gave birth to two lambs”.",
  "🎙️ Bas ve Konuş": "🎙️ Tap to Speak",
  "Mikrofon hazır": "Microphone ready",
  "Komut yaz veya mikrofona bas…": "Type a command or tap the microphone…",
@@ -901,7 +928,7 @@ function refreshLanguage(root=document.body){
 }
 function setAppLanguage(value){
  if(!['tr','en'].includes(value))return;
-
+ try{if(speechRec){speechRec.onend=null;speechRec.abort();voiceListening=false;const talk=document.getElementById('talkBtn');if(talk){talk.classList.remove('listening');talk.textContent='🎙️ Bas ve Konuş'}};if(window.speechSynthesis)window.speechSynthesis.cancel()}catch(e){}
  appLanguage=value;try{localStorage.setItem('suru-language',value)}catch(e){}
  renderAll();refreshLanguage();
 }
@@ -999,7 +1026,7 @@ function save(){
 }
 function money(n){return new Intl.NumberFormat(appLocale(),{maximumFractionDigits:0}).format(+n||0)+' TL'}
 function toast(s){let t=document.getElementById('toast');t.textContent=uiTranslate(s);t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
-function go(id,remember=true){if(!isPro()&&id==='growth')return showProRequired('Kuzu Gelişim Analizi');if(remember){rememberNavigation(id);if(!nativeBackEnabled&&window.history?.pushState)window.history.pushState({suruBack:'screen',screen:id,sub:id==='sub'?currentSub:''},'',location.href)}document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===id));window.scrollTo(0,0);renderAll()}
+function go(id,remember=true){if(!isPro()&&(id==='growth'||id==='chat'))return showProRequired(id==='growth'?'Kuzu Gelişim Analizi':'Sesli Komutlar');if(remember){rememberNavigation(id);if(!nativeBackEnabled&&window.history?.pushState)window.history.pushState({suruBack:'screen',screen:id,sub:id==='sub'?currentSub:''},'',location.href)}document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav').forEach(x=>x.classList.toggle('active',x.dataset.go===id));window.scrollTo(0,0);renderAll()}
 /* Android/PWA Back: dismiss a sheet, return through screens, then confirm exit. */
 let navigationTrail=[], navigationCurrent={screen:'home',sub:''}, exitBackAt=0;
 let nativeBackEnabled=false,rootBackWatcher=null,modalBackWatcher=null,screenBackWatchers=[];
@@ -1125,7 +1152,7 @@ function isPro(){return trialActive()||((subscriptionStatus==='active'||subscrip
 function isPlus(){return isPro()}
 function planBadge(){return trialActive()?'PRO DENEME':isPro()?'PRO':'FREE'}
 function renderPlanStatus(){
- document.querySelectorAll('[data-go="growth"],.reportNav [data-report-view]:not([data-report-view="overview"])').forEach(button=>{
+ document.querySelectorAll('[data-go="growth"],#all button[onclick="go(\'chat\')"],.reportNav [data-report-view]:not([data-report-view="overview"])').forEach(button=>{
   let badge=button.querySelector('.proAccessBadge');
   if(!badge){badge=document.createElement('span');badge.className='proAccessBadge';badge.textContent='PRO';button.appendChild(badge)}
   badge.hidden=isPro();
@@ -1813,7 +1840,7 @@ function renderAll(){
  last5.innerHTML=db.records.length?db.records.slice(-5).reverse().map(recordHtml).join(''):'<div class="muted">Henüz kayıt yok.</div>';
  renderHerd();renderGrowth();renderReports();setupReportFolds();setupDetailedReportControls();
  if(currentSub&&document.getElementById('sub').classList.contains('active'))openSub(currentSub,true);
-
+ if(typeof chatHints!=='undefined'&&chatHints)chatHints.innerHTML='<b>Örnek komutlar</b><div class="listitem">“Bugün yapılacak ne var?”</div><div class="listitem">“Bu ay ne kadar yem masrafı yaptım?”</div><div class="listitem">“245 numaralı koyun ikiz doğurdu; biri erkek biri dişi.”</div>';
  refreshLanguage();
 }
 function recordHtml(x){
@@ -3260,6 +3287,10 @@ function saveRamCalendarEdit(id){if(!canEditData())return;
 }
 function addTask(){if(!canEditData())return;let t=prompt(uiTranslate('Yapılacak işi yaz'));if(t){db.tasks.push({text:t});save();openSub('today')}}
 function doneTask(i){if(!canEditData())return;db.tasks.splice(i,1);save();toast('İş tamamlandı')}
+let speechRec=null, voiceListening=false;
+function addChat(text,who){let log=document.getElementById('chatLog');if(!log)return;let d=document.createElement('div');d.className='chatMsg '+(who==='user'?'userMsg':'botMsg');d.textContent=who==='user'?text:uiTranslate(text);if(who==='user')d.setAttribute('data-no-i18n','');log.appendChild(d);log.scrollTop=log.scrollHeight}
+function speakReply(text){try{if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(uiTranslate(text));u.lang=appLocale();u.rate=1;window.speechSynthesis.speak(u)}catch(e){}}
+function replyChat(text){addChat(text,'bot');speakReply(text)}
 function parseNumberWord(x){
  let m={'bir':1,'iki':2,'üç':3,'uc':3,'dört':4,'dort':4,'beş':5,'bes':5,'altı':6,'alti':6};
  return m[(x||'').toLocaleLowerCase('tr-TR')]||(+x||0)
@@ -3332,6 +3363,36 @@ function handleLocalCommand(raw){
  }
  return appLanguage==='en'?'I heard: “'+raw+'”. This local assistant supports births, today’s tasks and monthly feed costs. The full AI connection is not active yet.':'Seni duydum: “'+t+'”. Bu komutu henüz otomatik işleyemiyorum; doğum, bugün yapılacaklar veya yem masrafı komutlarından birini söyle.'
 }
+function sendChatCommand(text){let inp=document.getElementById('chatInput');let t=(typeof text==='string'?text:(inp?.value||'')).trim();if(!t)return;if(inp)inp.value='';addChat(t,'user');const command=englishLocalCommand(t);if(/doğurdu|dogurdu|doğum yaptı|dogum yapti|kuzu yaptı|kuzu yapti|yavruladı|yavruladi/.test(normalizeCommand(command))&&!confirm((appLanguage==='en'?'Save this birth record?\n':'Bu doğum kaydı kaydedilsin mi?\n')+t)){replyChat(appLanguage==='en'?'Cancelled. No record saved.':'İptal edildi. Kayıt yapılmadı.');return}replyChat(handleLocalCommand(t))}
+function voiceSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition)}
+async function requestMicPermission(){
+ try{
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+   let stream=await navigator.mediaDevices.getUserMedia({audio:true});
+   stream.getTracks().forEach(t=>t.stop());
+  }
+  return true
+ }catch(e){return false}
+}
+async function toggleVoice(){
+ if(voiceListening){try{speechRec&&speechRec.stop()}catch(e){}return}
+ if(!voiceSupported()){
+  voiceStatus.textContent='Bu tarayıcı sesli tanımayı desteklemiyor. Dosyayı Chrome ile açmayı dene.';
+  toast('Mikrofon tanıma desteklenmiyor');return
+ }
+ let permissionOk=await requestMicPermission();
+ if(!permissionOk){
+  voiceStatus.textContent='Mikrofon izni alınamadı. ChatGPT içindeki dosya görüntüleyici yerine dosyayı Chrome ile açıp mikrofon izni ver.';
+ }
+ let R=window.SpeechRecognition||window.webkitSpeechRecognition;
+ speechRec=new R();speechRec.lang=appLocale();speechRec.interimResults=true;speechRec.continuous=false;
+ let finalText='';
+ speechRec.onstart=()=>{voiceListening=true;talkBtn.classList.add('listening');talkBtn.textContent='⏹️ Dinliyorum… Bitir';voiceStatus.textContent='Konuşabilirsin…'};
+ speechRec.onresult=e=>{let live='';for(let i=e.resultIndex;i<e.results.length;i++){let part=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=part;else live+=part}chatInput.value=(finalText||live).trim();voiceStatus.textContent='Duydum: '+chatInput.value};
+ speechRec.onerror=e=>{voiceStatus.textContent=e.error==='not-allowed'?'Mikrofon izni verilmedi. Dosyayı Chrome ile aç ve mikrofon izni ver.':'Mikrofon hatası: '+e.error};
+ speechRec.onend=()=>{voiceListening=false;talkBtn.classList.remove('listening');talkBtn.textContent='🎙️ Bas ve Konuş';if(finalText.trim()){chatInput.value=finalText.trim();sendChatCommand(finalText.trim())}else if(voiceStatus.textContent===uiTranslate('Konuşabilirsin…'))voiceStatus.textContent='Ses algılanmadı; tekrar basabilirsin.'};
+ try{speechRec.start()}catch(e){voiceStatus.textContent='Mikrofon başlatılamadı. Dosyayı Chrome ile açmayı dene.'}
+}
 if(typeof MutationObserver!=='undefined'){let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;observer.disconnect();refreshLanguage();observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})})});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})}
 if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
 restoreDeviceContext();
@@ -3343,5 +3404,5 @@ window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();def
 window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;document.getElementById('installCard').hidden=true});
 async function installApp(){const prompt=deferredInstallPrompt;if(!prompt)return;deferredInstallPrompt=null;document.getElementById('installCard').hidden=true;try{await prompt.prompt();await prompt.userChoice;}catch(e){toast('Tarayıcı menüsünden Ana ekrana ekle seçeneğini kullan.')}}
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
-</script><!-- deploy-refresh-20261007-analysis-v2151 -->
+</script><!-- deploy-refresh-20261001 -->
 </body></html>

@@ -1,4 +1,4 @@
-const CACHE='suru-v21-20261007-analysis-restored-v2151';
+const CACHE='suru-v21-20261007-restored-pre-ai-v214';
 const APP=new URL('./v21.html',self.location.href).href;
 const ASSETS=['./manifest.webmanifest','./icons/app.svg','./icons/app-192.png','./icons/app-512.png'].map(path=>new URL(path,self.location.href).href);
 const SDK='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2';
