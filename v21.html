@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.4.1</title>
+<title>Sürü Takip V21.4.2</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -145,7 +145,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.1</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.2</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -156,6 +156,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   <div id="farmChoiceBox" hidden style="margin-top:10px"><label for="farmChoice">Kullanılacak sürü</label><select id="farmChoice" onchange="switchFarm(this.value)"></select></div>
  </div>
  <div class="hero"><small>SÜRÜ SAYISI</small><h2 id="heroTotal">0 hayvan</h2><div id="heroSub"></div><div id="herdIntegrity" style="margin-top:7px;font-size:12px;font-weight:700"></div></div>
+ <div id="homeRamStatus"></div>
  <div class="homeSummary">
   <button class="summaryCard" onclick="openSub('performance')"><span>Sürünün doğum oranı</span><b id="homeBirthRate">—</b><small id="homeBirthHint">Henüz doğum kaydı yok</small></button>
   <button class="summaryCard" onclick="go('reports')"><span>Kâr / Zarar</span><b id="homeNet">0 TL</b><small>Tüm kayıtlar · gelir − gider</small></button>
@@ -1609,6 +1610,15 @@ function markReminderDone(type,id){if(!canEditData())return;
  toast(msg)
 }
 
+function renderRamStatus(){
+ const box=document.getElementById('homeRamStatus');if(!box)return;
+ const periods=(db.ramCalendar||[]).filter(x=>x.matingDone&&x.actualMatingDate).slice().sort((a,b)=>b.actualMatingDate.localeCompare(a.actualMatingDate));
+ const visible=periods.filter(x=>!x.removalDone||!x.actualRemovalDate||dateDiffDays(today(),addDaysISO(x.actualRemovalDate,147))>=0);
+ box.innerHTML=visible.map(x=>{
+  const inside=!x.removalDone,start=addDaysISO(x.actualMatingDate,147),end=x.removalDone&&x.actualRemovalDate?addDaysISO(x.actualRemovalDate,147):'',days=dateDiffDays(today(),start);
+  return '<div class="card" style="border-color:#b9d5c2"><div class="row"><b>'+(inside?'🐏 Koç sürüde':'🐏 Koç çıkarıldı')+'</b><button class="small" onclick="openSub(\'calendar\')">Takvimi Aç</button></div><div class="muted" style="margin-top:8px">Gerçek katım: '+x.actualMatingDate+'</div><div style="margin-top:6px"><b>Tahmini doğum başlangıcı: '+start+'</b></div><div class="muted">'+(days>0?days+' gün kaldı':'Tahmini doğum dönemi başladı')+(end?' · Tahmini bitiş: '+end:' · Bitiş, koç çıkarılınca hesaplanır')+'</div></div>';
+ }).join('');
+}
 function renderHomeUpcoming(){
  let box=document.getElementById('homeUpcomingList'),countEl=document.getElementById('homeUpcomingCount');
  if(!box||!countEl)return;
@@ -1831,7 +1841,7 @@ function renderAll(){
  if(herdIntegrity){let issue=A.length!==e+r+l?'type':duplicateIds?'id':duplicateTags.length?'tag':'';herdIntegrity.hidden=!issue;herdIntegrity.textContent=issue==='type'?(appLanguage==='en'?'⚠ Type counts do not match the total':'⚠ Tür sayıları toplamla uyuşmuyor'):issue==='id'?(appLanguage==='en'?'⚠ Duplicate animal record':'⚠ Tekrarlı hayvan kaydı'):issue==='tag'?(appLanguage==='en'?'⚠ Repeated ear tag: ':'⚠ Tekrarlı küpe: ')+duplicateTags.join(', '):(appLanguage==='en'?'✓ Flock count matches':'✓ Sürü sayımı tutarlı');herdIntegrity.style.color=issue?'#ffe2b4':'#cce6d2'}
  sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
  let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span data-no-i18n>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
- renderHomeUpcoming();
+ renderHomeUpcoming();renderRamStatus();
  let fin=calcFinance('all'),net=fin.income-fin.expense;homeNet.textContent=money(net);homeNet.className=net<0?'money minus':'money plus';
  let births=db.records.filter(x=>x.kind==='birth'&&x.motherId&&Number.isFinite(+x.count)&&+x.count>0),mothers=new Set(births.map(x=>x.motherId)),born=births.reduce((n,x)=>n+(+x.count),0);
  homeBirthRate.textContent=mothers.size?new Intl.NumberFormat(appLocale(),{minimumFractionDigits:1,maximumFractionDigits:1}).format(born/mothers.size):'—';
@@ -3260,7 +3270,7 @@ function openSub(k,refresh=false){if(!isPro()&&k==='performance')return showProR
  let birthStart=actualIn?addDaysISO(actualIn,147):'Koç katımı onaylanınca hesaplanır';
  let birthEnd=actualOut?addDaysISO(actualOut,147):'Koç çıkarma onaylanınca hesaplanır';
  let birthEnded=actualOut&&dateDiffDays(today(),birthEnd)<=0;
- return `<div class="card"><div class="row"><b>🐏 Üreme dönemi</b><button class="small" onclick="editRamCalendar('${x.id}')">Düzenle</button></div><div class="muted" style="margin-top:6px">Planlanan koç katımı: ${x.matingDate||'—'}${x.matingDone?' · Onay: '+actualIn:' · Onay bekliyor'}</div><div class="muted">Planlanan koç çıkarma: ${x.removalDate||'Belirtilmedi'}${x.removalDone?' · Onay: '+actualOut:(x.removalDate?' · Onay bekliyor':'')}</div><div class="muted">Flushing başlangıcı: ${x.matingDate?addDaysISO(x.matingDate,-30):'—'}</div><div style="margin-top:10px"><b>Tahmini doğum dönemi</b><div class="muted">${birthStart} → ${birthEnd}</div>${actualIn?'<div class="muted">Hazırlık hatırlatması: '+addDaysISO(birthStart,-7)+'</div>':''}${birthEnded?'<div class="muted"><b>✓ Tahmini doğum dönemi sona erdi</b></div>':''}</div></div>`;
+ return `<div class="card"><div class="row"><b>🐏 Üreme dönemi</b><span class="tag">${x.matingDone?(x.removalDone?'Koç çıkarıldı':'Koç sürüde'):'Katım bekleniyor'}</span><button class="small" onclick="editRamCalendar('${x.id}')">Düzenle</button></div><div class="muted" style="margin-top:6px">Planlanan koç katımı: ${x.matingDate||'—'}${x.matingDone?' · Onay: '+actualIn:' · Onay bekliyor'}</div><div class="muted">Planlanan koç çıkarma: ${x.removalDate||'Belirtilmedi'}${x.removalDone?' · Onay: '+actualOut:(x.removalDate?' · Onay bekliyor':'')}</div><div class="muted">Flushing başlangıcı: ${x.matingDate?addDaysISO(x.matingDate,-30):'—'}</div><div style="margin-top:10px"><b>Tahmini doğum dönemi</b><div class="muted">${birthStart} → ${birthEnd}</div>${actualIn?'<div class="muted">Hazırlık hatırlatması: '+addDaysISO(birthStart,-7)+'</div>':''}${birthEnded?'<div class="muted"><b>✓ Tahmini doğum dönemi sona erdi</b></div>':''}</div></div>`;
  }).join(''):'<div class="card muted">Henüz üreme dönemi yok.</div>')}
  else if(k==='performance')body=ewePerformanceHtml('history');
  else body=db.records.slice().reverse().map(recordHtml).join('')||'<div class="card muted">Henüz kayıt yok.</div>';
