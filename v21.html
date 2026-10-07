@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.4</title>
+<title>Sürü Takip V21.4.1</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -145,7 +145,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.1</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -325,9 +325,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
     <div class="vizLegend"><span><i class="inc"></i>Gelir</span><span><i class="exp"></i>Gider</span></div>
    </div>
    <div class="moneyViz">
-    <div class="moneyVizHead"><div><b>💰 Sürü Değeri ve Satış Potansiyeli</b><div class="muted">Aktif erkek kuzular · güncel kg fiyatı</div></div><span id="herdMoneyPrice" class="pulseBadge">— TL/kg</span></div>
+    <div class="moneyVizHead"><div><b>💰 Sürü Değeri ve Satış Potansiyeli</b><div class="muted">30 kg üzeri veya 4 aydan büyük erkek kuzular</div></div><span id="herdMoneyPrice" class="pulseBadge">— TL/kg</span></div>
     <div class="moneyBig" id="herdMoneyCurrent">—</div>
-    <div class="moneySub">Bugün tüm aktif erkek kuzuları mevcut kilolarıyla satsan tahmini toplam değer</div>
+    <div class="moneySub">Koçluk için ayrılanlar hariç · mevcut kilo × güncel kg fiyatı</div>
     <div class="moneySegments">
      <button class="moneySegment" onclick="openSaleCandidates()"><span>SATIŞA HAZIR</span><b id="herdReadyValue">—</b><small id="herdReadyCount">0 kuzu</small></button>
      <div class="moneySegment"><span>50 KG HEDEF</span><b id="herdMoneyTargetValue">—</b><small id="herdTargetCount">0 kuzu</small></div>
@@ -501,6 +501,11 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   <div class="growthPriceBox"><label>Kuzu fiyatı</label><div class="growthPriceEdit"><input id="growthPriceInput" type="number" min="0" step="1" inputmode="decimal" onchange="saveLambPrice(this.value)"><small>TL/kg</small></div></div>
   <div class="growthMoneyBox"><span>Hazırların değeri</span><b id="growthReadyValue">0 TL</b></div>
   <div class="growthMoneyBox"><span>50 kg hedef</span><b id="growthTargetValue">0 TL</b></div>
+ </div>
+ <div class="moneyViz">
+  <div class="moneyVizHead"><b>💰 Mevcut Tahmini Satış Geliri</b><span id="growthCurrentPrice" class="pulseBadge">— TL/kg</span></div>
+  <div class="moneyBig" id="growthCurrentValue">0 TL</div>
+  <div class="moneySub" id="growthCurrentHint">30 kg üzeri veya 4 aydan büyük erkek kuzular · mevcut kilo × TL/kg</div>
  </div>
  <div class="growthGroupAlert" id="growthGroupAlert"></div>
  <div class="growthFilters" id="growthFilters"></div>
@@ -1769,8 +1774,12 @@ function renderGrowth(){
  let adgs=infos.map(x=>x.wi.adg).filter(v=>Number.isFinite(v));
  let avgAdg=adgs.length?Math.round(adgs.reduce((s,v)=>s+v,0)/adgs.length):0;
  let ready=infos.filter(x=>x.saleReady),price=+db.lambPricePerKg||450;
- let readyValue=ready.reduce((s,x)=>s+(x.wi.weight||0)*price,0);
- let maleCount=infos.filter(x=>x.a.sex==='Erkek'&&!x.a.breedingReserve).length,targetValue=maleCount*50*price;
+ let readyValue=ready.filter(x=>isLambValueCandidate(x.a)).reduce((s,x)=>s+(x.wi.weight||0)*price,0);
+ let valueData=financeOpportunityData(),targetValue=valueData.target;
+ let currentValue=document.getElementById('growthCurrentValue'),currentPrice=document.getElementById('growthCurrentPrice'),currentHint=document.getElementById('growthCurrentHint');
+ if(currentValue)currentValue.textContent=money(valueData.current);
+ if(currentPrice)currentPrice.textContent=price.toLocaleString(appLocale())+' TL/kg';
+ if(currentHint){let missing=valueData.rows.filter(x=>!x.wi.weight).length;currentHint.textContent=valueData.rows.length+' erkek kuzu · 30 kg üzeri veya 4 aydan büyük · mevcut kilo × TL/kg'+(missing?' · '+missing+' kuzunun kilosu eksik':'');}
  growthLambCount.textContent=infos.length;
  growthSaleReady.textContent=ready.length;
  growthBelowAvg.textContent=infos.filter(x=>x.assessment.level!=='normal'||x.weighDue).length;
@@ -3006,8 +3015,11 @@ function financeSixMonthData(){
  }
  return out;
 }
+function isLambValueCandidate(a){
+ return !!a&&a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a)&&!a.breedingReserve&&(latestWeightInfo(a).weight>30||ageMonths(a.birth)>4);
+}
 function financeOpportunityData(){
- let price=+db.lambPricePerKg||450,males=db.animals.filter(a=>a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a));
+ let price=+db.lambPricePerKg||450,males=db.animals.filter(isLambValueCandidate);
  let rows=males.map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
  rows.forEach(x=>{x.ready=isSaleCandidate(x.a);x.near=!x.ready&&(x.months>=5||x.wi.weight>=45)});
  let ready=rows.filter(x=>x.ready),near=rows.filter(x=>x.near),grow=rows.filter(x=>!x.ready&&!x.near);
