@@ -3258,6 +3258,78 @@ function saveRamCalendarEdit(id){if(!canEditData())return;
 }
 function addTask(){if(!canEditData())return;let t=prompt(uiTranslate('Yapılacak işi yaz'));if(t){db.tasks.push({text:t});save();openSub('today')}}
 function doneTask(i){if(!canEditData())return;db.tasks.splice(i,1);save();toast('İş tamamlandı')}
+function parseNumberWord(x){
+ let m={'bir':1,'iki':2,'üç':3,'uc':3,'dört':4,'dort':4,'beş':5,'bes':5,'altı':6,'alti':6};
+ return m[(x||'').toLocaleLowerCase('tr-TR')]||(+x||0)
+}
+function normalizeCommand(s){
+ return (s||'').toLocaleLowerCase('tr-TR')
+  .replace(/[’']/g,'')
+  .replace(/[.,;:!?]/g,' ')
+  .replace(/\s+/g,' ')
+  .trim()
+}
+function handleLocalCommand(raw){
+ if(!canEditData())return 'Bu hesap yalnızca görüntüleme yetkisine sahip.';
+ let t=englishLocalCommand((raw||'').trim()), low=normalizeCommand(t);
+ if(!t)return 'Bir komut söyle gardaş.';
+ if(low.includes('bugün')&&(low.includes('ne var')||low.includes('yapılacak'))){
+  let rr=reminderItems().filter(x=>x.days<=0),items=[...rr.map(x=>x.text),...db.tasks.map(x=>x.text)];
+  return items.length?'Bugün yapılacak '+items.length+' iş var: '+items.join(', '):'Bugün için kayıtlı iş yok.'
+ }
+ if(low.includes('yem')&&low.includes('masraf')){
+  let m=new Date(), total=db.records.filter(x=>['expense','stock'].includes(x.kind)&&x.date)
+   .filter(x=>{let d=new Date(x.date+'T00:00:00');return d.getFullYear()===m.getFullYear()&&d.getMonth()===m.getMonth()})
+   .filter(x=>(x.category||x.label||'').toLocaleLowerCase('tr-TR').includes('yem')||(x.label||'').toLocaleLowerCase('tr-TR').includes('arpa'))
+   .reduce((a,x)=>a+(+x.amount||0),0);
+  return 'Bu ay kayıtlı yem ve arpa masrafı '+money(total)+'.'
+ }
+
+ // Doğum komutlarını esnek şekilde yakala:
+ // "245 2 kuzu doğurdu", "245 numaralı koyun iki kuzu doğurdu",
+ // "245 ikiz doğurdu", "245 koyun 2 kuzu yaptı".
+ let tagMatch=low.match(/\b(\d{1,12})\b/);
+ let birthWords=/(doğurdu|dogurdu|doğurmuş|dogurmus|doğum yaptı|dogum yapti|kuzu yaptı|kuzu yapti|yavruladı|yavruladi)/;
+ if(tagMatch && birthWords.test(low)){
+  let tag=tagMatch[1], n=0;
+  if(/\bikiz\b/.test(low)) n=2;
+  else if(/\büçüz\b|\bucuz\b/.test(low)) n=3;
+  else {
+   let afterTag=low.slice(low.indexOf(tag)+tag.length);
+   let countMatch=afterTag.match(/\b(\d+|bir|iki|üç|uc|dört|dort|beş|bes|altı|alti)\b(?:\s+tane)?(?:\s+kuzu)?/);
+   if(countMatch)n=parseNumberWord(countMatch[1]);
+  }
+  if(!n)n=1;
+  if(!Number.isInteger(n)||n<1||n>3)return 'Doğum kaydı için 1 ile 3 arasında kuzu sayısı söyle.';
+
+  let mom=db.animals.find(a=>isActiveAnimal(a)&&a.sex==='Dişi'&&String(a.tag||'')===String(tag));
+  if(!mom)return tag+' küpe numaralı aktif dişi bulunamadı. Önce bu koyuna küpe numarasını ekle.';
+  if(!(mom.type==='Koyun'||mom.breedingStatus==='Anaç Adayı'))return 'Doğum için anaç veya anaç adayı seç.';
+  if(!canAddAnimals(n))return 'FREE paketindeki 20 aktif hayvan sınırı bu doğumla aşılır. PRO üyeliği gerekir.';
+  if(db.records.some(r=>r.kind==='birth'&&r.motherId===mom.id&&r.date===today()))return 'Bu koyuna bugün doğum zaten kaydedilmiş; mevcut doğumu düzenle.';
+  if(mom.breedingStatus==='Anaç Adayı'){mom.breedingStatus='Anaç';mom.type='Koyun';mom.status='Aktif'}
+  else if(!mom.breedingStatus)mom.breedingStatus='Anaç';
+
+  let sexes=[];
+  if(low.includes('biri erkek')&&low.includes('biri dişi'))sexes=['Erkek','Dişi'];
+  else if(low.includes('biri dişi')&&low.includes('biri erkek'))sexes=['Dişi','Erkek'];
+  else if(/\berkek\b/.test(low)&&!/\bdişi\b/.test(low))sexes=Array(n).fill('Erkek');
+  else if(/\bdişi\b/.test(low)&&!/\berkek\b/.test(low))sexes=Array(n).fill('Dişi');
+
+  let childIds=[];
+  for(let i=0;i<n;i++){const id=uid('l');childIds.push(id);db.animals.push({
+   id,type:'Kuzu',sex:sexes[i]||'Bilinmiyor',tag:'',status:'Aktif',
+   birth:today(),weight:'',motherId:mom.id,breedingStatus:''
+  })};
+  db.records.push({
+   id:uid('rec'),kind:'birth',label:'Doğum · '+n+' kuzu',date:today(),motherId:mom.id,count:n,childIds,
+   note:(sexes.length?sexes.join(', ')+' · ':'')+'Sesli/yazılı komutla eklendi'
+  });
+  save();
+  return tag+' numaralı koyuna '+n+' kuzu doğum kaydı ekledim; kuzular sürüye eklendi'+(sexes.length?' ('+sexes.join(', ')+')':'')+'.'
+ }
+ return appLanguage==='en'?'I heard: “'+raw+'”. This local assistant supports births, today’s tasks and monthly feed costs. The full AI connection is not active yet.':'Seni duydum: “'+t+'”. Bu komutu henüz otomatik işleyemiyorum; doğum, bugün yapılacaklar veya yem masrafı komutlarından birini söyle.'
+}
 if(typeof MutationObserver!=='undefined'){let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;observer.disconnect();refreshLanguage();observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})})});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})}
 if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
 restoreDeviceContext();

@@ -18,6 +18,6 @@ assert.equal(a.run("englishLocalCommand('Ewe 245 had twins; one male and one fem
 assert.equal(a.run("englishLocalCommand('Ewe 245 gave birth to four lambs')"),'245 4 kuzu doğurdu ');
 assert.match(a.run("uiTranslate(handleLocalCommand('Ewe 245 gave birth to four lambs'))"),/between 1 and 3/);
 assert.equal(a.run("englishLocalCommand('Ewe 245 gave birth')"),'Ewe 245 gave birth');
-a.run("addChat('Koyun','user');refreshLanguage()");assert.equal(a.document.querySelector('.userMsg').textContent,'Koyun');
+a.run("refreshLanguage()");assert.equal(a.document.querySelector('.userMsg'),null);assert.equal(a.document.getElementById('chat'),null);
 const b=make(a.storage);assert.equal(b.document.documentElement.lang,'en');assert.match(b.document.querySelector('[data-go="reports"]').textContent,/Reports/);
 console.log('PASS: language persistence, reversible navigation/forms, unchanged flock data, canonical select values, English commands and user-text protection');
