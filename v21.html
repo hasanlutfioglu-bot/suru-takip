@@ -69,6 +69,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .growthFilters{display:flex;gap:7px;overflow:auto;margin:0 0 10px}.growthFilters button{white-space:nowrap}.growthFilters .active{background:var(--green);color:#fff}
 .growthTableWrap{overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.growthTable{border-collapse:collapse;width:100%;table-layout:fixed;font-size:11px}.growthTable th{position:sticky;top:0;background:#eef4ef;color:#365543;text-align:center;padding:9px 3px;border-bottom:1px solid var(--line);white-space:nowrap}.growthTable td{padding:10px 3px;border-bottom:1px solid #edf1ee;vertical-align:middle;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.growthTable tr:last-child td{border-bottom:0}.growthTable tr.saleReadyRow{background:#edf8f0}.growthTable tr.saleLightRow{background:#fff6dc}.growthTable tr.saleLowRow{background:#fdeaea}.growthTable .tagcell{font-weight:800}.growthNote{font-size:11px;color:var(--muted);margin-top:3px}.growthStatus{display:inline-block;border-radius:99px;padding:5px 8px;font-size:11px;font-weight:800}.growthStatus.ok{background:#e3f2e8;color:#17623a}.growthStatus.warn{background:#fff0c7;color:#815a00}.growthStatus.bad{background:#f7dddd;color:#9a2f2f}.growthStatus.neutral{background:#edf0ee;color:#5d6962}.growthTable th:nth-child(1),.growthTable td:nth-child(1){width:18%;text-align:left;padding-left:8px}.growthTable th:nth-child(2),.growthTable td:nth-child(2){width:14%}.growthTable th:nth-child(3),.growthTable td:nth-child(3){width:15%}.growthTable th:nth-child(4),.growthTable td:nth-child(4){width:16%}.growthTable th:nth-child(5),.growthTable td:nth-child(5){width:15%}.growthTable th:nth-child(6),.growthTable td:nth-child(6){width:22%}.growthTable .tagcell{font-size:12px}.growthStatus{max-width:100%;overflow:hidden;text-overflow:ellipsis}.growthTapHint{text-align:center;font-size:11px;color:var(--muted);margin:8px 0 0}.growthDetailGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}.growthDetailMetric{background:#f6f9f7;border-radius:14px;padding:11px}.growthDetailMetric b{display:block;font-size:18px}.growthDetailMetric span{font-size:11px;color:var(--muted)}
 .growthMarket{display:grid;grid-template-columns:106px 1fr 1fr;gap:8px;align-items:stretch;margin:0 0 10px}.growthPriceBox,.growthMoneyBox{background:#fff;border:1px solid var(--line);border-radius:15px;padding:10px;min-width:0}.growthPriceBox label,.growthMoneyBox span{display:block;font-size:10px;color:var(--muted);line-height:1.2}.growthPriceEdit{display:flex;align-items:center;gap:3px;margin-top:3px}.growthPriceEdit input{min-height:30px;height:30px;margin:0;padding:4px 5px;font-size:14px;font-weight:800;width:58px}.growthPriceEdit small{font-size:10px;white-space:nowrap}.growthMoneyBox b{display:block;font-size:15px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button.growthStat,button.growthMoneyBox{font:inherit;color:inherit;text-align:left;width:100%;cursor:pointer}.growthStat:active,.growthMoneyBox:active,.moneyViz.growthClickable:active{transform:scale(.99)}.growthStat,.growthMoneyBox,.moneyViz.growthClickable{transition:transform .12s ease,border-color .12s ease}.growthStat:hover,.growthMoneyBox:hover{border-color:#9ab9a7}.moneyViz.growthClickable{cursor:pointer}.growthBreakSummary{background:#eef6f1;border:1px solid #d7e6dc;border-radius:14px;padding:11px 12px;margin-bottom:8px}.growthBreakSummary b{display:block;font-size:20px}.growthBreakSummary span{display:block;font-size:11px;color:var(--muted);margin-top:2px}.growthBreakList{display:grid;gap:7px}.growthBreakRow{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px 12px;color:var(--ink)}.growthBreakRow>span{min-width:0}.growthBreakRow b{display:block}.growthBreakRow small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.growthBreakRow strong{white-space:nowrap;font-size:13px}
 .weighDue{display:inline-block;margin-left:2px;font-size:11px}.growthNearRow{background:#f7faf8}.growthStatus.near{background:#e7eef9;color:#315a8a}
 .growthGroupAlert{display:none;background:#fff7e6;border:1px solid #ead08f;border-radius:16px;padding:12px 13px;margin:0 0 10px}.growthGroupAlert.show{display:block}.growthGroupAlert b{font-size:13px}.growthGroupAlert .muted{font-size:11px;margin-top:3px}
 .growthControlRow{background:#fdeaea}.growthReason{background:#f8faf8;border-radius:14px;padding:11px 12px;margin:8px 0;font-size:12px;line-height:1.5}.growthReason strong{display:block;margin-bottom:2px}
@@ -145,7 +146,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.2</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.3</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -493,17 +494,17 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   </div>
  </div>
  <div class="growthStats">
-  <div class="growthStat"><b id="growthLambCount">0</b><span>Aktif kuzu</span></div>
-  <div class="growthStat"><b id="growthSaleReady">0</b><span>Satışa hazır</span></div>
-  <div class="growthStat"><b id="growthBelowAvg">0</b><span>Takip gereken</span></div>
-  <div class="growthStat"><b id="growthAvgAdg">—</b><span>Ort. günlük artış</span></div>
+  <button type="button" class="growthStat" onclick="setGrowthView('Tümü')"><b id="growthLambCount">0</b><span>Aktif kuzu</span></button>
+  <button type="button" class="growthStat" onclick="setGrowthView('Satışa hazır')"><b id="growthSaleReady">0</b><span>Satışa hazır</span></button>
+  <button type="button" class="growthStat" onclick="setGrowthView('Takip')"><b id="growthBelowAvg">0</b><span>Takip gereken</span></button>
+  <button type="button" class="growthStat" onclick="openGrowthBreakdown('adg')"><b id="growthAvgAdg">—</b><span>Ort. günlük artış</span></button>
  </div>
  <div class="growthMarket">
   <div class="growthPriceBox"><label>Kuzu fiyatı</label><div class="growthPriceEdit"><input id="growthPriceInput" type="number" min="0" step="1" inputmode="decimal" onchange="saveLambPrice(this.value)"><small>TL/kg</small></div></div>
-  <div class="growthMoneyBox"><span>Hazırların değeri</span><b id="growthReadyValue">0 TL</b></div>
-  <div class="growthMoneyBox"><span>50 kg hedef</span><b id="growthTargetValue">0 TL</b></div>
+  <button type="button" class="growthMoneyBox" onclick="openGrowthBreakdown('readyValue')"><span>Hazırların değeri</span><b id="growthReadyValue">0 TL</b></button>
+  <button type="button" class="growthMoneyBox" onclick="openGrowthBreakdown('targetValue')"><span>50 kg hedef</span><b id="growthTargetValue">0 TL</b></button>
  </div>
- <div class="moneyViz">
+ <div class="moneyViz growthClickable" role="button" tabindex="0" onclick="openGrowthBreakdown('currentValue')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGrowthBreakdown('currentValue')}">
   <div class="moneyVizHead"><b>💰 Mevcut Tahmini Satış Geliri</b><span id="growthCurrentPrice" class="pulseBadge">— TL/kg</span></div>
   <div class="moneyBig" id="growthCurrentValue">0 TL</div>
   <div class="moneySub" id="growthCurrentHint">30 kg üzeri veya 4 aydan büyük erkek kuzular · mevcut kilo × TL/kg</div>
@@ -1756,6 +1757,59 @@ function showGrowthDetail(id){
    <button class="small" style="flex:1" onclick="toggleLambBreedingReserve('${a.id}')">${a.breedingReserve?'Ayırmayı Kaldır':'🐏 Koçluk İçin Ayır'}</button>
    ${assessment.level==='control'? `<button class="small" style="flex:1" onclick="closeModal();setTimeout(()=>openAddForAnimal('health','${a.id}'),60)">🩺 Sağlık Kaydı</button>`:''}
   </div>`)
+}
+function setGrowthView(filter){
+ growthFilter=filter||'Tümü';
+ renderGrowth();
+ setTimeout(()=>document.getElementById('growthFilters')?.scrollIntoView({behavior:'smooth',block:'start'}),30);
+}
+function openGrowthBreakdown(kind){
+ const price=+db.lambPricePerKg||450;
+ const active=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a));
+ const infos=active.map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
+ let title='Kuzu Gelişim Detayı',summary='',items=[];
+ if(kind==='adg'){
+  items=infos.filter(x=>Number.isFinite(x.wi.adg)).sort((a,b)=>b.wi.adg-a.wi.adg).map(x=>({
+   a:x.a,
+   line:(x.wi.weight?x.wi.weight.toFixed(1)+' kg · ':'')+compactLambAge(x.a),
+   value:Math.round(x.wi.adg)+' g/gün'
+  }));
+  const avg=items.length?Math.round(items.reduce((sum,x)=>sum+(latestWeightInfo(x.a).adg||0),0)/items.length):0;
+  title='Ortalama Günlük Artış';
+  summary=items.length?avg+' g/gün':'Veri yok';
+ }else if(kind==='readyValue'){
+  items=infos.filter(x=>{
+   const ready=x.a.sex==='Erkek'&&!x.a.breedingReserve&&(x.months>=5.5||x.wi.weight>=50||x.a.status==='Satılacak');
+   return ready&&isLambValueCandidate(x.a);
+  }).sort((a,b)=>(b.wi.weight||0)-(a.wi.weight||0)).map(x=>({
+   a:x.a,
+   line:(x.wi.weight?x.wi.weight.toFixed(1):'0')+' kg × '+price.toLocaleString(appLocale())+' TL/kg',
+   value:money((x.wi.weight||0)*price)
+  }));
+  title='Satışa Hazır Kuzuların Değeri';
+  summary=money(items.reduce((sum,x)=>sum+((latestWeightInfo(x.a).weight||0)*price),0));
+ }else if(kind==='targetValue'){
+  const d=financeOpportunityData();
+  items=d.rows.slice().sort((a,b)=>(b.wi.weight||0)-(a.wi.weight||0)).map(x=>({
+   a:x.a,
+   line:'50 kg × '+price.toLocaleString(appLocale())+' TL/kg · şimdi '+(x.wi.weight?x.wi.weight.toFixed(1)+' kg':'kilo yok'),
+   value:money(50*price)
+  }));
+  title='50 kg Hedef Değeri';
+  summary=money(d.target);
+ }else{
+  const d=financeOpportunityData();
+  items=d.rows.slice().sort((a,b)=>(b.wi.weight||0)-(a.wi.weight||0)).map(x=>({
+   a:x.a,
+   line:(x.wi.weight?x.wi.weight.toFixed(1)+' kg':'Kilo kaydı yok')+' × '+price.toLocaleString(appLocale())+' TL/kg',
+   value:x.wi.weight?money(x.wi.weight*price):'0 TL'
+  }));
+  title='Mevcut Tahmini Satış Geliri';
+  summary=money(d.current);
+ }
+ const rows=items.length?items.map(x=>`<button type="button" class="growthBreakRow" onclick="closeModal();setTimeout(()=>showGrowthDetail('${x.a.id}'),60)"><span><b>${escHtml(animalName(x.a))}</b><small>${escHtml(x.line)}</small></span><strong>${escHtml(x.value)}</strong></button>`).join(''):'<div class="empty">Bu hesapta gösterilecek kuzu yok.</div>';
+ const note=kind==='targetValue'?'Her kuzu 50 kg olduğunda oluşacak değer.':kind==='currentValue'?'30 kg üzeri veya 4 aydan büyük, koçluk için ayrılmamış erkek kuzular.':kind==='readyValue'?'Satış kriterini karşılayan ve değer hesabına giren erkek kuzular.':'Tartım kayıtlarından hesaplanan günlük canlı ağırlık artışı.';
+ showModal(title,`<div class="growthBreakSummary"><b>${escHtml(summary)}</b><span>${escHtml(note)}</span></div><div class="growthBreakList">${rows}</div><div class="growthTapHint">Kuzuya dokun: gelişim, tartım geçmişi ve kendi değeri açılsın.</div>`);
 }
 function renderGrowth(){
  let body=document.getElementById('growthTableBody'),filters=document.getElementById('growthFilters');
