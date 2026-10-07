@@ -31,25 +31,7 @@ input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;borde
 .empty{padding:24px;text-align:center;color:var(--muted)}.money.plus{color:#277044}.money.minus{color:#a44747}.clickcard{cursor:pointer}.clickcard:active{transform:scale(.99)}.reportList{margin-top:10px}.reportList .card{box-shadow:none;background:#fafcf9}.rateHelp{font-size:12px;color:var(--muted);line-height:1.45;margin-top:8px}.reportFold{cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between}.reportFold:after{content:'▾';font-size:13px;color:var(--muted);transition:transform .15s}.reportFold.closed:after{transform:rotate(-90deg)}.quickResults{margin-top:6px}.quickResult{padding:10px 0;border-top:1px solid var(--line)}.quickActions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
 @media(min-width:620px){.grid{grid-template-columns:repeat(4,1fr)}.menuGrid{grid-template-columns:repeat(3,1fr)}}
 
-.chatBox{min-height:180px;max-height:320px;overflow:auto}.chatMsg{padding:10px 12px;border-radius:14px;margin:8px 0;line-height:1.35}.botMsg{background:#eef4ef;margin-right:12%}.userMsg{background:#dfeee3;margin-left:12%;text-align:right}.talkBtn{width:100%;border:0;border-radius:18px;padding:16px;margin:10px 0 6px;background:var(--green);color:white;font-size:17px;font-weight:800;box-shadow:var(--shadow)}.talkBtn.listening{background:var(--bad);animation:pulse 1s infinite}.voiceStatus{text-align:center;color:var(--muted);font-size:12px;margin-bottom:10px}.chatComposer{display:flex;gap:8px;margin-bottom:10px}.chatComposer input{flex:1;min-width:0;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}@keyframes pulse{50%{opacity:.72}}
 
-/* Shared mobile workspace theme. */
-:root{--bg:#edf3f0;--green:#175c42;--green2:#287d5d;--line:#d8e5de;--shadow:0 6px 22px #17442d0c}
-header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
-.hero{background:linear-gradient(120deg,#123c2e,#227653);padding:26px;border-radius:24px;margin-bottom:16px}.hero h2{font-size:38px;letter-spacing:-1px}.hero small{font-size:14px;font-weight:700;letter-spacing:1px}.hero #heroSub{margin-top:10px;font-size:15px;opacity:.9}
-.homeSummary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.summaryCard{background:white;text-align:left;border:1px solid var(--line);border-radius:20px;padding:20px 16px;color:var(--ink);box-shadow:var(--shadow);min-width:0}.summaryCard span{display:block;font-size:15px;line-height:1.4}.summaryCard b{display:block;font-size:32px;line-height:1.25;margin:12px 0;overflow-wrap:anywhere}.summaryCard small{display:block;font-size:14px;line-height:1.5;color:var(--muted);font-weight:400}.saleSummary{grid-column:1/-1}
-.homeUpcoming{margin-top:16px;background:white;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
-.homeUpcomingHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}.homeUpcomingHead b{font-size:16px}.homeUpcomingCount{min-width:28px;height:28px;border-radius:99px;background:#e5efe8;color:var(--green);display:grid;place-items:center;font-size:12px;font-weight:800}
-.upcomingItem{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #edf1ee}.upcomingItem:first-of-type{border-top:0}.upcomingIcon{width:38px;height:38px;border-radius:12px;background:#eef4ef;display:grid;place-items:center;font-size:18px;flex:0 0 auto}.upcomingText{flex:1;min-width:0}.upcomingText b{display:block;font-size:14px;line-height:1.35}.upcomingMeta{font-size:12px;color:var(--muted);margin-top:3px}.upcomingLate{color:var(--bad);font-weight:700}.upcomingToday{color:var(--green);font-weight:700}.upcomingMore{width:100%;margin-top:8px;background:#f2f6f3}
-.homeDataQuality{margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px 18px;box-shadow:var(--shadow);display:none}
-.homeDataQuality button{margin-top:10px;width:100%;background:#f2f6f3}
-.animalQuickActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 14px}.animalQuickActions button{width:100%}
-.animalSnapshot{margin-top:10px;padding-top:10px;border-top:1px solid #edf1ee}.animalSnapshot .muted{margin-top:3px}
-.saleSoonTag{display:inline-block;margin-top:6px;padding:5px 9px;border-radius:999px;background:#fff5d9;color:#835d00;font-size:12px;font-weight:700}.animalDisposition{display:inline-block;margin-top:6px;padding:6px 10px;border-radius:999px;background:#e3f2e8;color:#17623a;font-size:12px;font-weight:800}.animalDisposition.out{background:#f1e9e9;color:#7f3434}.animalDisposition.sale{background:#fff0c7;color:#815a00}
-.herdHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px}.herdHead h3{margin:0}.herdToolbar{display:flex;gap:8px;flex-wrap:wrap}.herdToolsPanel{display:none;background:white;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.herdToolsPanel.show{display:block}.herdToolsPanel .small{margin:3px}
-.herdSearchCard{background:white;border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin-bottom:10px}.herdSearchCard input{margin:8px 0 0}.herdSearchTitle{display:flex;align-items:center;justify-content:space-between;gap:8px}.herdSearchTitle b{font-size:15px}.herdSearchTitle span{font-size:12px;color:var(--muted)}
-.herdControls{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:8px;margin:10px 0 12px}.herdControls input,.herdControls select{margin:0}
-.herdCount{font-size:12px;color:var(--muted);margin:0 2px 8px}.herdAnimal{padding:15px 16px}.herdAnimalTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.herdAnimalName{font-size:16px;font-weight:800}.herdAnimalMeta{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.45}.herdAnimalActions{display:flex;gap:7px;margin-top:12px}.herdAnimalActions .openCard{flex:1;background:#eef4ef}.herdAnimalActions .small{white-space:nowrap}
 @media(max-width:420px){.herdControls{grid-template-columns:1fr}.herdToolbar .small{flex:1}}
 .herdSimpleHead{display:flex;align-items:center;justify-content:space-between;margin:14px 0 10px}.herdSimpleHead h3{margin:0;font-size:24px}.herdTopActions{display:flex;gap:7px}
 .herdMainSearch{position:relative;margin-bottom:10px}.herdMainSearch input{margin:0;padding:14px 14px 14px 42px;border-radius:18px;box-shadow:var(--shadow)}.herdMainSearch:before{content:'🔎';position:absolute;left:14px;top:12px;z-index:1}
@@ -3280,25 +3262,16 @@ function saveRamCalendarEdit(id){if(!canEditData())return;
 }
 function addTask(){if(!canEditData())return;let t=prompt(uiTranslate('Yapılacak işi yaz'));if(t){db.tasks.push({text:t});save();openSub('today')}}
 function doneTask(i){if(!canEditData())return;db.tasks.splice(i,1);save();toast('İş tamamlandı')}
-let speechRec=null, voiceListening=false;
-function addChat(text,who){let log=document.getElementById('chatLog');if(!log)return;let d=document.createElement('div');d.className='chatMsg '+(who==='user'?'userMsg':'botMsg');d.textContent=who==='user'?text:uiTranslate(text);if(who==='user')d.setAttribute('data-no-i18n','');log.appendChild(d);log.scrollTop=log.scrollHeight}
-function speakReply(text){try{if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(uiTranslate(text));u.lang=appLocale();u.rate=1;window.speechSynthesis.speak(u)}catch(e){}}
-function replyChat(text){addChat(text,'bot');speakReply(text)}
-function parseNumberWord(x){
- let m={'bir':1,'iki':2,'üç':3,'uc':3,'dört':4,'dort':4,'beş':5,'bes':5,'altı':6,'alti':6};
- return m[(x||'').toLocaleLowerCase('tr-TR')]||(+x||0)
-}
-function normalizeCommand(s){
- return (s||'').toLocaleLowerCase('tr-TR')
-  .replace(/[’']/g,'')
-  .replace(/[.,;:!?]/g,' ')
-  .replace(/\s+/g,' ')
-  .trim()
-}
-function handleLocalCommand(raw){
- if(!canEditData())return 'Bu hesap yalnızca görüntüleme yetkisine sahip.';
- let t=englishLocalCommand((raw||'').trim()), low=normalizeCommand(t);
- if(!t)return 'Bir komut söyle gard=true;try{await prompt.prompt();await prompt.userChoice;}catch(e){toast('Tarayıcı menüsünden Ana ekrana ekle seçeneğini kullan.')}}
+if(typeof MutationObserver!=='undefined'){let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;observer.disconnect();refreshLanguage();observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})})});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})}
+if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
+restoreDeviceContext();
+installBackNavigation();
+renderAll();
+initCloud();if(/(?:^|[?&])action=delete-account(?:&|$)/.test(location.search||''))setTimeout(openDeleteAccount,0);
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;document.getElementById('installCard').hidden=false});
+window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;document.getElementById('installCard').hidden=true});
+async function installApp(){const prompt=deferredInstallPrompt;if(!prompt)return;deferredInstallPrompt=null;document.getElementById('installCard').hidden=true;try{await prompt.prompt();await prompt.userChoice;}catch(e){toast('Tarayıcı menüsünden Ana ekrana ekle seçeneğini kullan.')}}
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script><!-- deploy-refresh-20261007 -->
 </body></html>
