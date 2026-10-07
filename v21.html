@@ -76,7 +76,7 @@ button.growthStat,button.growthMoneyBox{font:inherit;color:inherit;text-align:le
 .reportHead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:15px 0 10px}.reportHead h3{margin:0;font-size:24px}.reportHead .muted{font-size:12px}
 .reportPeriodTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.reportPeriodTabs .tab{justify-content:center;margin:0}
 .reportHero{background:linear-gradient(125deg,#163f31,#246f51);color:#fff;border-radius:22px;padding:17px;margin-bottom:10px}.reportHero .muted{color:#dcebe3}.reportHeroNet{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:10px}.reportHeroNet b{font-size:28px;line-height:1}.reportHeroNet span{font-size:11px;opacity:.88}
-.reportKpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}.reportKpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;min-width:0}.reportKpi b{display:block;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.reportKpi span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.reportKpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}.reportKpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;min-width:0}.reportKpi b{display:block;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.reportKpi span{display:block;font-size:11px;color:var(--muted);margin-top:2px}button.reportKpi{font:inherit;color:inherit;text-align:left;width:100%;cursor:pointer}.reportKpi.clickcard:hover,.reportActionCard:hover{border-color:#9ab9a7}.reportHero[role="button"]{cursor:pointer;transition:transform .12s ease}.reportHero[role="button"]:active,.reportKpi.clickcard:active,.reportActionCard:active,.moneySegment:active{transform:scale(.99)}
 .reportNav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px}.reportNav button{padding:9px 4px;border-radius:13px;font-size:11px;line-height:1.2;background:#edf2ef}.reportNav button.active{background:var(--green);color:#fff}.reportNav button b{display:block;font-size:17px;margin-bottom:3px}
 .reportPanel{display:none}.reportPanel.active{display:block}.reportSectionTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:15px 2px 8px}.reportSectionTitle b{font-size:16px}.reportMiniGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.reportActionCard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;text-align:left}.reportActionCard b{display:block;font-size:18px}.reportActionCard span{font-size:11px;color:var(--muted)}.reportInsight{background:#f6f9f7;border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}.reportInsight b{font-size:14px}.reportInsight .muted{font-size:11px;margin-top:3px}
 #reports[data-report-context="overview"] [data-report-summary]:not([data-report-summary~="overview"]),
@@ -146,7 +146,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.3</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.4</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -245,7 +245,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   <button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Bu Yıl</button>
  </div>
 
- <div class="reportHero" data-report-summary="overview finance">
+ <div class="reportHero" data-report-summary="overview finance" role="button" tabindex="0" onclick="openReportDetail('net')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReportDetail('net')}">
   <div class="muted" id="reportLabel">Bu ay</div>
   <div class="reportHeroNet">
    <div><span>NET SONUÇ</span><b id="rNet">0 TL</b></div>
@@ -254,10 +254,10 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
  </div>
 
  <div class="reportKpis" data-report-summary="overview finance herd">
-  <div class="reportKpi" data-report-summary="overview finance"><b id="rIncome">0</b><span>Gelir</span></div>
-  <div class="reportKpi" data-report-summary="overview finance"><b id="rExpense">0</b><span>Gider</span></div>
-  <div class="reportKpi clickcard" data-report-summary="overview herd" onclick="openSaleCandidates()"><b id="rSaleReadyTop">0</b><span>Satışa hazır kuzu</span></div>
-  <div class="reportKpi" data-report-summary="overview herd"><b id="rBirths">0</b><span>Yeni doğan kuzu</span></div>
+  <button type="button" class="reportKpi clickcard" data-report-summary="overview finance" onclick="openReportDetail('income')"><b id="rIncome">0</b><span>Gelir</span></button>
+  <button type="button" class="reportKpi clickcard" data-report-summary="overview finance" onclick="openReportDetail('expense')"><b id="rExpense">0</b><span>Gider</span></button>
+  <button type="button" class="reportKpi clickcard" data-report-summary="overview herd" onclick="openGrowthBreakdown('readyValue')"><b id="rSaleReadyTop">0</b><span>Satışa hazır kuzu</span></button>
+  <button type="button" class="reportKpi clickcard" data-report-summary="overview herd" onclick="openReportDetail('births')"><b id="rBirths">0</b><span>Yeni doğan kuzu</span></button>
  </div>
 
  <div class="reportInsight" data-report-summary="overview finance">
@@ -273,9 +273,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   <div class="reportSectionTitle"><b>İşletme Özeti</b></div>
   <div class="reportMiniGrid">
    <button class="reportActionCard" onclick="openFinanceDetail('sale')"><b id="rQuickSale">0</b><span>Hayvan satış geliri</span></button>
-   <button class="reportActionCard" onclick="go('growth')"><b id="rSaleCandidates">0</b><span>Kuzu gelişim / satış</span></button>
-   <div class="reportActionCard"><b id="rLambedEwes">0</b><span>Doğuran anaç</span></div>
-   <div class="reportActionCard"><b id="rDeaths">0</b><span>Kayıp / ölüm</span></div>
+   <button class="reportActionCard" onclick="openGrowthBreakdown('readyValue')"><b id="rSaleCandidates">0</b><span>Kuzu gelişim / satış</span></button>
+   <button class="reportActionCard" onclick="openReportDetail('lambedEwes')"><b id="rLambedEwes">0</b><span>Doğuran anaç</span></button>
+   <button class="reportActionCard" onclick="openReportDetail('deaths')"><b id="rDeaths">0</b><span>Kayıp / ölüm</span></button>
   </div>
   <div id="proPulseLock" class="card" style="display:none">
    <div class="row"><div><b>🔒 İşletme Nabzı · PRO</b><div class="muted" style="margin-top:4px">Finans, doğum, gelişim, satış ve sağlık durumunu tek ekranda analiz eder.</div></div><button class="small primary" onclick="openPlans()">PRO</button></div>
@@ -313,8 +313,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 
   <div class="reportSectionTitle"><b>Doğum Performansı</b><button class="small" onclick="switchReportView('herd')">Detay ›</button></div>
   <div class="reportMiniGrid">
-   <div class="reportActionCard"><b id="rProlificacy">0%</b><span>Kuzu verimi</span></div>
-   <button class="reportActionCard" onclick="toggleNonLambing()"><b id="rLambingRate">0%</b><span>Anaç sürü doğum oranı</span></button>
+   <button class="reportActionCard" onclick="openReportDetail('prolificacy')"><b id="rProlificacy">0%</b><span>Kuzu verimi</span></button>
+   <button class="reportActionCard" onclick="openReportDetail('lambingRate')"><b id="rLambingRate">0%</b><span>Anaç sürü doğum oranı</span></button>
   </div>
  </div>
 
@@ -326,14 +326,14 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
     <div class="vizBars" id="financeVizBars"></div>
     <div class="vizLegend"><span><i class="inc"></i>Gelir</span><span><i class="exp"></i>Gider</span></div>
    </div>
-   <div class="moneyViz">
+   <div class="moneyViz clickcard" onclick="if(!event.target.closest('button'))openGrowthBreakdown('currentValue')">
     <div class="moneyVizHead"><div><b>💰 Sürü Değeri ve Satış Potansiyeli</b><div class="muted">30 kg üzeri veya 4 aydan büyük erkek kuzular</div></div><span id="herdMoneyPrice" class="pulseBadge">— TL/kg</span></div>
     <div class="moneyBig" id="herdMoneyCurrent">—</div>
     <div class="moneySub">Koçluk için ayrılanlar hariç · mevcut kilo × güncel kg fiyatı</div>
     <div class="moneySegments">
-     <button class="moneySegment" onclick="openSaleCandidates()"><span>SATIŞA HAZIR</span><b id="herdReadyValue">—</b><small id="herdReadyCount">0 kuzu</small></button>
-     <div class="moneySegment"><span>50 KG HEDEF</span><b id="herdMoneyTargetValue">—</b><small id="herdTargetCount">0 kuzu</small></div>
-     <div class="moneySegment"><span>POTANSİYEL FARK</span><b id="herdMoneyGap">—</b><small>Bugün → hedef</small></div>
+     <button class="moneySegment" onclick="openGrowthBreakdown('readyValue')"><span>SATIŞA HAZIR</span><b id="herdReadyValue">—</b><small id="herdReadyCount">0 kuzu</small></button>
+     <button class="moneySegment" onclick="openGrowthBreakdown('targetValue')"><span>50 KG HEDEF</span><b id="herdMoneyTargetValue">—</b><small id="herdTargetCount">0 kuzu</small></button>
+     <button class="moneySegment" onclick="openReportDetail('potentialGap')"><span>POTANSİYEL FARK</span><b id="herdMoneyGap">—</b><small>Bugün → hedef</small></button>
     </div>
     <div class="moneyMeter"><span id="herdMoneyMeter" style="width:0%"></span></div>
     <div class="moneyMeterText"><span id="herdMoneyProgress">50 kg hedefinin %0'ı</span><span id="herdMoneyTarget">Hedef —</span></div>
@@ -342,9 +342,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
    <div class="driverViz">
     <div class="driverHead"><div><b>🐏 Satış Senaryosu</b><div class="muted">Tek bakışta üç seçenek</div></div><span id="herdSaleScenarioHint">—</span></div>
     <div class="reportMiniGrid" style="margin-top:10px">
-     <button class="reportActionCard" onclick="go('growth')"><b id="herdSellToday">—</b><span>Bugün hepsi</span></button>
-     <button class="reportActionCard" onclick="openSaleCandidates()"><b id="herdSellReady">—</b><span>Sadece satışa hazır</span></button>
-     <div class="reportActionCard"><b id="herdSellTarget">—</b><span>50 kg hedefinde</span></div>
+     <button class="reportActionCard" onclick="openGrowthBreakdown('currentValue')"><b id="herdSellToday">—</b><span>Bugün hepsi</span></button>
+     <button class="reportActionCard" onclick="openGrowthBreakdown('readyValue')"><b id="herdSellReady">—</b><span>Sadece satışa hazır</span></button>
+     <button class="reportActionCard" onclick="openGrowthBreakdown('targetValue')"><b id="herdSellTarget">—</b><span>50 kg hedefinde</span></button>
     </div>
    </div>
    <div class="driverViz">
@@ -372,10 +372,10 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   <div class="reportPanel" data-report-panel="herd">
    <div class="reportSectionTitle"><b>Sürü ve Performans</b><button class="small primary" onclick="go('growth')">Kuzu Gelişim</button></div>
    <div class="reportMiniGrid">
-    <button class="reportActionCard" onclick="openHerdFilter('Erkek Kuzular')"><b id="rMaleLambs">0</b><span>Erkek kuzu</span></button>
-    <button class="reportActionCard" onclick="openHerdFilter('Dişi Kuzular')"><b id="rFemaleLambs">0</b><span>Dişi kuzu</span></button>
-    <div class="reportActionCard"><b id="rUnknownLambs">0</b><span>Cinsiyeti bilinmeyen</span></div>
-    <button class="reportActionCard" onclick="openSaleCandidates()"><b id="rSaleCandidatesHerd">0</b><span>Satışa hazır</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('maleLambs')"><b id="rMaleLambs">0</b><span>Erkek kuzu</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('femaleLambs')"><b id="rFemaleLambs">0</b><span>Dişi kuzu</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('unknownLambs')"><b id="rUnknownLambs">0</b><span>Cinsiyeti bilinmeyen</span></button>
+    <button class="reportActionCard" onclick="openGrowthBreakdown('readyValue')"><b id="rSaleCandidatesHerd">0</b><span>Satışa hazır</span></button>
    </div>
 
 
@@ -383,9 +383,9 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
    <div class="driverViz">
     <div class="driverHead"><div><b>🐏 Satışa Hazırlık</b><div class="muted">Erkek kuzuların mevcut sürü durumu</div></div><span id="herdReadinessHint">—</span></div>
     <div class="saleReadiness">
-     <button class="saleStage ready" onclick="openSaleCandidates()"><b id="herdReadyStage">0</b><span>Satışa hazır</span></button>
-     <button class="saleStage near" onclick="go('growth')"><b id="herdNearStage">0</b><span>Yaklaşıyor</span></button>
-     <button class="saleStage grow" onclick="go('growth')"><b id="herdGrowStage">0</b><span>Gelişimde</span></button>
+     <button class="saleStage ready" onclick="openGrowthBreakdown('readyValue')"><b id="herdReadyStage">0</b><span>Satışa hazır</span></button>
+     <button class="saleStage near" onclick="openReportDetail('saleNear')"><b id="herdNearStage">0</b><span>Yaklaşıyor</span></button>
+     <button class="saleStage grow" onclick="openReportDetail('saleGrow')"><b id="herdGrowStage">0</b><span>Gelişimde</span></button>
     </div>
    </div>
 
@@ -401,40 +401,40 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
    </div>
    <div class="reportSectionTitle"><b>Mevcut Sürü</b></div>
    <div class="reportMiniGrid">
-    <div class="reportActionCard"><b id="rActiveAnimals">0</b><span>Aktif hayvan</span></div>
-    <div class="reportActionCard"><b id="rBusinessEwes">0</b><span>Koyun</span></div>
-    <div class="reportActionCard"><b id="rBusinessRams">0</b><span>Koç</span></div>
-    <div class="reportActionCard"><b id="rBusinessLambs">0</b><span>Kuzu</span></div>
+    <button class="reportActionCard" onclick="openReportDetail('activeAnimals')"><b id="rActiveAnimals">0</b><span>Aktif hayvan</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('ewes')"><b id="rBusinessEwes">0</b><span>Koyun</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('rams')"><b id="rBusinessRams">0</b><span>Koç</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('lambs')"><b id="rBusinessLambs">0</b><span>Kuzu</span></button>
    </div>
 
    <div class="reportSectionTitle"><b>Doğum performansı</b></div>
    <div class="reportMiniGrid">
-    <div class="reportActionCard"><b id="rLambedEwesHerd">0</b><span>Doğuran anaç</span></div>
-    <div class="reportActionCard"><b id="rProlificacyHerd">0%</b><span>Doğuranların kuzu verimi</span></div>
-    <button class="reportActionCard" onclick="toggleNonLambing()"><b id="rLambingRateHerd">0%</b><span>Anaç sürü doğum oranı</span></button>
-    <button class="reportActionCard" onclick="toggleNonLambing()"><b id="rNonLambingCount">0</b><span>Doğurmayan anaç</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('lambedEwes')"><b id="rLambedEwesHerd">0</b><span>Doğuran anaç</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('prolificacy')"><b id="rProlificacyHerd">0%</b><span>Doğuranların kuzu verimi</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('lambingRate')"><b id="rLambingRateHerd">0%</b><span>Anaç sürü doğum oranı</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('nonLambing')"><b id="rNonLambingCount">0</b><span>Doğurmayan anaç</span></button>
    </div>
    <div class="card rateHelp"><b>Hesap:</b> Kuzu verimi = doğan kuzu ÷ doğuran anaç × 100. Anaç sürü doğum oranı = doğuran farklı anaç ÷ aktif anaç × 100.</div>
    <div id="nonLambingPanel" class="card" style="display:none"><div class="row"><b>Doğurmayan anaçlar</b><button class="small" onclick="toggleNonLambing()">Kapat</button></div><div class="muted" id="nonLambingHint" style="margin:8px 0"></div><div id="nonLambingList" class="reportList"></div></div>
 
    <div class="reportSectionTitle"><b>Kayıplar / Ölüm</b></div>
    <div class="reportMiniGrid">
-    <div class="reportActionCard"><b id="rDeathEwes">0</b><span>Ölen koyun</span></div>
-    <div class="reportActionCard"><b id="rDeathLambs">0</b><span>Ölen kuzu</span></div>
+    <button class="reportActionCard" onclick="openReportDetail('deathEwes')"><b id="rDeathEwes">0</b><span>Ölen koyun</span></button>
+    <button class="reportActionCard" onclick="openReportDetail('deathLambs')"><b id="rDeathLambs">0</b><span>Ölen kuzu</span></button>
    </div>
    <div class="card"><div id="deathReportList"></div></div>
 
    <details class="card">
     <summary><b>Kayıt ve operasyon özeti</b></summary>
     <div class="reportMiniGrid" style="margin-top:10px">
-     <div class="reportActionCard"><b id="rHealth">0</b><span>Sağlık kaydı</span></div>
-     <div class="reportActionCard"><b id="rWeights">0</b><span>Tartım kaydı</span></div>
-     <div class="reportActionCard"><b id="rSales">0</b><span>Satış kaydı</span></div>
-     <div class="reportActionCard"><b id="rStockMoves">0</b><span>Stok alımı</span></div>
-     <div class="reportActionCard"><b id="rHarvests">0</b><span>Hasat / ürün</span></div>
-     <div class="reportActionCard"><b id="rNotes">0</b><span>Not kaydı</span></div>
-     <div class="reportActionCard"><b id="rAnimalAdds">0</b><span>Hayvan ekleme</span></div>
-     <div class="reportActionCard"><b id="rPromotions">0</b><span>Sürü statü değişimi</span></div>
+     <button class="reportActionCard" onclick="openReportDetail('healthRecords')"><b id="rHealth">0</b><span>Sağlık kaydı</span></button>
+     <button class="reportActionCard" onclick="openReportDetail('weightRecords')"><b id="rWeights">0</b><span>Tartım kaydı</span></button>
+     <button class="reportActionCard" onclick="openReportDetail('saleRecords')"><b id="rSales">0</b><span>Satış kaydı</span></button>
+     <button class="reportActionCard" onclick="openReportDetail('stockRecords')"><b id="rStockMoves">0</b><span>Stok alımı</span></button>
+     <button class="reportActionCard" onclick="openReportDetail('harvestRecords')"><b id="rHarvests">0</b><span>Hasat / ürün</span></button>
+     <button class="reportActionCard" onclick="openReportDetail('noteRecords')"><b id="rNotes">0</b><span>Not kaydı</span></button>
+     <button class="reportActionCard" onclick="openReportDetail('animalAddRecords')"><b id="rAnimalAdds">0</b><span>Hayvan ekleme</span></button>
+     <button class="reportActionCard" onclick="openReportDetail('promotionRecords')"><b id="rPromotions">0</b><span>Sürü statü değişimi</span></button>
     </div>
    </details>
    <details class="card"><summary><b>Anaç performans listesi</b></summary><div id="ewePerformanceList" style="margin-top:10px"></div></details>
@@ -2925,6 +2925,131 @@ function setReport(m,el){customReportStart='';customReportEnd='';
  renderReports()
 }
 function toggleNonLambing(){let p=document.getElementById('nonLambingPanel');if(p)p.style.display=p.style.display==='none'?'block':'none'}
+
+function reportAnimalListHtml(animals,detailFn){
+ const arr=(animals||[]).filter(Boolean);
+ if(!arr.length)return '<div class="empty">Bu kutuda gösterilecek hayvan yok.</div>';
+ return '<div class="growthBreakList">'+arr.map(a=>{
+  const detail=detailFn?detailFn(a):[a.sex||'',age(a.birth),a.type==='Kuzu'&&a.weight?a.weight+' kg':'',a.status||''].filter(Boolean).join(' · ');
+  return '<button type="button" class="growthBreakRow" onclick="closeModal();setTimeout(()=>animalCard(\''+a.id+'\'),60)"><span><b>'+escHtml(animalName(a))+'</b><small>'+escHtml(detail)+'</small></span><strong>Detay ›</strong></button>';
+ }).join('')+'</div>';
+}
+function reportRecordListHtml(rows){
+ const arr=(rows||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+ return arr.length?arr.map(recordHtml).join(''):'<div class="empty">Bu dönemde kayıt yok.</div>';
+}
+function reportBirthListHtml(rows){
+ const arr=(rows||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+ if(!arr.length)return '<div class="empty">Bu dönemde doğum kaydı yok.</div>';
+ return '<div class="growthBreakList">'+arr.map(r=>{
+  const mother=db.animals.find(a=>a.id===r.motherId),count=Math.max(0,+r.count||0);
+  const label=mother?animalName(mother):(r.label||'Anaç kartı bulunamadı');
+  const detail=(r.date||'Tarih yok')+' · '+count+' kuzu'+(r.note?' · '+r.note:'');
+  const action=mother?"closeModal();setTimeout(()=>animalCard('"+mother.id+"'),60)":"editRecord('"+r.id+"')";
+  return '<button type="button" class="growthBreakRow" onclick="'+action+'"><span><b>'+escHtml(label)+'</b><small>'+escHtml(detail)+'</small></span><strong>'+count+' kuzu</strong></button>';
+ }).join('')+'</div>';
+}
+function openReportDetail(kind){
+ const mode=db.report||'monthly',period=reportDateLabel(mode),rows=reportRecords(mode),f=calcFinance(mode),metrics=birthMetrics(mode);
+ const active=db.animals.filter(isActiveAnimal),lambs=active.filter(a=>a.type==='Kuzu');
+ let title='Rapor Detayı',summary='',note=period,body='',footer='';
+ const wrap=(sum,desc,html)=>'<div class="growthBreakSummary"><b>'+escHtml(sum)+'</b><span>'+escHtml(desc)+'</span></div>'+html;
+ if(kind==='net'){
+  const fin=rows.filter(r=>['income','expense','sale','stock'].includes(r.kind));
+  title='Net Sonuç Detayı';summary=money(f.income-f.expense);note=period+' · Gelir '+money(f.income)+' · Gider '+money(f.expense);
+  body=reportRecordListHtml(fin);
+ }else if(kind==='income'){
+  const arr=rows.filter(r=>['income','sale'].includes(r.kind));
+  title='Gelir Detayı';summary=money(arr.reduce((s,r)=>s+(+r.amount||0),0));note=period+' · '+arr.length+' kayıt';body=reportRecordListHtml(arr);
+ }else if(kind==='expense'){
+  const arr=rows.filter(r=>['expense','stock'].includes(r.kind));
+  title='Gider Detayı';summary=money(arr.reduce((s,r)=>s+(+r.amount||0),0));note=period+' · '+arr.length+' kayıt';body=reportRecordListHtml(arr);
+ }else if(kind==='births'){
+  title='Yeni Doğan Kuzular';summary=metrics.lambs+' kuzu';note=period+' · '+metrics.births.length+' doğum kaydı';body=reportBirthListHtml(metrics.births);
+ }else if(kind==='lambedEwes'||kind==='prolificacy'){
+  const mothers=metrics.lambedIds.map(id=>db.animals.find(a=>a.id===id)).filter(Boolean);
+  title=kind==='prolificacy'?'Kuzu Verimi Detayı':'Doğuran Anaçlar';
+  summary=kind==='prolificacy'?pct(metrics.prolificacy):mothers.length+' anaç';
+  note=kind==='prolificacy'?(metrics.lambs+' kuzu ÷ '+metrics.lambedIds.length+' doğuran anaç × 100'):(period+' · '+metrics.lambs+' doğan kuzu');
+  body=reportAnimalListHtml(mothers,a=>{
+   const br=metrics.births.filter(r=>r.motherId===a.id),born=br.reduce((s,r)=>s+(+r.count||0),0),last=br.map(r=>r.date).filter(Boolean).sort().pop()||'—';
+   return br.length+' doğum · '+born+' kuzu · son '+last;
+  });
+ }else if(kind==='lambingRate'){
+  const mothers=metrics.lambedIds.map(id=>db.animals.find(a=>a.id===id)).filter(Boolean);
+  title='Anaç Sürü Doğum Oranı';summary=pct(metrics.lambingRate);note=metrics.lambedIds.length+' doğuran anaç ÷ '+metrics.ewes.length+' aktif anaç × 100';
+  body='<div class="reportSectionTitle"><b>Doğuran anaçlar · '+mothers.length+'</b></div>'+reportAnimalListHtml(mothers)+
+       '<div class="reportSectionTitle"><b>Bu dönemde doğurmayanlar · '+metrics.nonLambing.length+'</b></div>'+reportAnimalListHtml(metrics.nonLambing,a=>{
+        const last=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id&&r.date).map(r=>r.date).sort().pop()||'Hiç doğum kaydı yok';
+        return 'Son doğum: '+last;
+       });
+ }else if(kind==='nonLambing'){
+  title='Doğurmayan Anaçlar';summary=metrics.nonLambing.length+' anaç';note=period+' · aktif anaçlar içinde bu dönemde doğum kaydı olmayanlar';
+  body=reportAnimalListHtml(metrics.nonLambing,a=>{
+   const last=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id&&r.date).map(r=>r.date).sort().pop()||'Hiç doğum kaydı yok';
+   return 'Son doğum: '+last;
+  });
+ }else if(kind==='deaths'||kind==='deathEwes'||kind==='deathLambs'){
+  let arr=rows.filter(r=>r.kind==='death');
+  if(kind!=='deaths'){
+   const type=kind==='deathEwes'?'Koyun':'Kuzu';
+   arr=arr.filter(r=>db.animals.find(a=>a.id===r.animalId)?.type===type);
+  }
+  title=kind==='deathEwes'?'Ölen Koyunlar':kind==='deathLambs'?'Ölen Kuzular':'Kayıp / Ölüm Detayı';
+  summary=arr.length+' kayıt';note=period;
+  body=arr.length?'<div class="growthBreakList">'+arr.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(r=>{
+   const a=db.animals.find(x=>x.id===r.animalId),label=a?animalName(a):(r.label||'Hayvan kartı yok'),detail=(r.date||'')+(r.note?' · '+r.note:'');
+   const action=a?"closeModal();setTimeout(()=>animalCard('"+a.id+"'),60)":"editRecord('"+r.id+"')";
+   return '<button type="button" class="growthBreakRow" onclick="'+action+'"><span><b>'+escHtml(label)+'</b><small>'+escHtml(detail)+'</small></span><strong>Detay ›</strong></button>';
+  }).join('')+'</div>':'<div class="empty">Bu dönemde ölüm/kayıp kaydı yok.</div>';
+ }else if(['activeAnimals','ewes','rams','lambs','maleLambs','femaleLambs','unknownLambs'].includes(kind)){
+  let arr=active;
+  if(kind==='ewes')arr=active.filter(a=>a.type==='Koyun');
+  if(kind==='rams')arr=active.filter(a=>a.type==='Koç');
+  if(kind==='lambs')arr=lambs;
+  if(kind==='maleLambs')arr=lambs.filter(a=>a.sex==='Erkek');
+  if(kind==='femaleLambs')arr=lambs.filter(a=>a.sex==='Dişi');
+  if(kind==='unknownLambs')arr=lambs.filter(a=>!a.sex||a.sex==='Bilinmiyor');
+  const names={activeAnimals:'Aktif Hayvanlar',ewes:'Koyunlar',rams:'Koçlar',lambs:'Kuzular',maleLambs:'Erkek Kuzular',femaleLambs:'Dişi Kuzular',unknownLambs:'Cinsiyeti Bilinmeyen Kuzular'};
+  title=names[kind];summary=arr.length+' hayvan';note='Mevcut aktif sürü';
+  body=reportAnimalListHtml(arr);
+ }else if(kind==='saleNear'||kind==='saleGrow'){
+  const males=lambs.filter(a=>a.sex==='Erkek').map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
+  males.forEach(x=>{x.ready=isSaleCandidate(x.a);x.near=!x.ready&&(x.months>=5||x.wi.weight>=45)});
+  const chosen=kind==='saleNear'?males.filter(x=>x.near):males.filter(x=>!x.ready&&!x.near);
+  title=kind==='saleNear'?'Satışa Yaklaşan Kuzular':'Gelişimdeki Erkek Kuzular';summary=chosen.length+' kuzu';
+  note=kind==='saleNear'?'5+ aylık veya 45+ kg olup henüz satış kriterini tamamlamayanlar':'Henüz satış hedefine yaklaşmayan aktif erkek kuzular';
+  body=reportAnimalListHtml(chosen.map(x=>x.a),a=>{
+   const wi=latestWeightInfo(a);return age(a.birth)+(wi.weight?' · '+wi.weight.toFixed(1)+' kg':' · kilo kaydı yok');
+  });
+ }else if(kind==='potentialGap'){
+  const d=financeOpportunityData(),gap=Math.max(0,d.target-d.current);
+  title='Potansiyel Fark Detayı';summary=money(gap);note='Bugünkü toplam değer → tüm adaylar 50 kg olduğunda hedef değer';
+  body=d.rows.length?'<div class="growthBreakList">'+d.rows.slice().sort((a,b)=>(b.wi.weight||0)-(a.wi.weight||0)).map(x=>{
+   const current=(x.wi.weight||0)*d.price,target=50*d.price,diff=Math.max(0,target-current);
+   return '<button type="button" class="growthBreakRow" onclick="closeModal();setTimeout(()=>showGrowthDetail(\''+x.a.id+'\'),60)"><span><b>'+escHtml(animalName(x.a))+'</b><small>'+escHtml((x.wi.weight?x.wi.weight.toFixed(1)+' kg':'kilo yok')+' · bugün '+money(current)+' · 50 kg hedef '+money(target))+'</small></span><strong>'+escHtml(money(diff))+'</strong></button>';
+  }).join('')+'</div>':'<div class="empty">Hesaba giren erkek kuzu yok.</div>';
+ }else{
+  const recordKinds={
+   healthRecords:{title:'Sağlık Kayıtları',kinds:['health']},
+   weightRecords:{title:'Tartım Kayıtları',kinds:['weight']},
+   saleRecords:{title:'Satış Kayıtları',kinds:['sale']},
+   stockRecords:{title:'Stok Alımları',kinds:['stock']},
+   harvestRecords:{title:'Hasat / Ürün Kayıtları',kinds:['harvest']},
+   noteRecords:{title:'Not Kayıtları',kinds:['note']},
+   animalAddRecords:{title:'Hayvan Ekleme Kayıtları',kinds:['animal_add','setup']},
+   promotionRecords:{title:'Sürü Statü Değişimleri',kinds:['promotion','breeder']}
+  };
+  const cfg=recordKinds[kind];
+  if(cfg){
+   const arr=rows.filter(r=>cfg.kinds.includes(r.kind));
+   title=cfg.title;summary=arr.length+' kayıt';note=period;body=reportRecordListHtml(arr);
+  }else{
+   body='<div class="empty">Bu detay henüz bulunamadı.</div>';
+  }
+ }
+ showModal(title,wrap(summary,note,body)+footer);
+}
 function financeDetailRows(group){
  let rows=reportRecords(db.report||'monthly').filter(x=>['income','expense','sale','stock'].includes(x.kind));
  let lower=x=>String(x||'').toLocaleLowerCase('tr-TR');
