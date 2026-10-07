@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.4</title>
+<title>Sürü Takip V21.5</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -23,8 +23,8 @@ button,.btn{border:0;border-radius:13px;padding:11px 13px;font-weight:700;cursor
 input,select,textarea{width:100%;border:1px solid #d6ded7;background:white;border-radius:12px;padding:12px;font:inherit;margin:5px 0 10px}label{font-size:12px;color:var(--muted);font-weight:700}.pickList{max-height:270px;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:6px;margin:5px 0 12px;background:#fafcf9}.pickRow{display:flex;gap:10px;align-items:center;padding:10px;border-bottom:1px solid var(--line);font-size:13px}.pickRow:last-child{border-bottom:0}.pickRow input{width:auto;margin:0}.pickRow span{flex:1}.pickEmpty{padding:12px;color:var(--muted);font-size:13px}
 .listitem{padding:12px 0;border-bottom:1px solid #edf0ed}.listitem:last-child{border:0}.recordActions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.tag{display:inline-block;font-size:11px;border-radius:99px;padding:4px 7px;background:#eef3ef;color:#45604d}
 .bottom{position:fixed;bottom:0;left:0;right:0;z-index:10;background:#ffffffed;backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center}
-.bottomin{width:min(760px,100%);display:grid;grid-template-columns:repeat(5,1fr);padding:7px 5px calc(7px + env(safe-area-inset-bottom))}
-.nav{background:transparent;color:#667068;padding:7px 2px;font-size:11px}.nav b{display:block;font-size:20px}.nav.active{color:var(--green)}.nav.aiNav{position:relative;margin-top:-22px}.nav.aiNav b{width:54px;height:54px;margin:0 auto 2px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--green);color:#fff;font-size:25px;box-shadow:0 8px 20px #245c3b55;border:4px solid #fff}
+.bottomin{width:min(760px,100%);display:grid;grid-template-columns:repeat(4,1fr);padding:7px 5px calc(7px + env(safe-area-inset-bottom))}
+.nav{background:transparent;color:#667068;padding:7px 2px;font-size:11px}.nav b{display:block;font-size:20px}.nav.active{color:var(--green)}
 .menuGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.menuBtn{text-align:left;background:white;border:1px solid var(--line);padding:16px;min-height:72px}
 .modal{position:fixed;inset:0;background:#0008;z-index:30;display:none;align-items:flex-end;justify-content:center}.modal.show{display:flex}.sheet{background:var(--bg);width:min(760px,100%);max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:18px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#172018;color:white;padding:11px 15px;border-radius:99px;display:none;z-index:50}
@@ -145,7 +145,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.5</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -511,14 +511,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
  <div class="growthTapHint">Satıra dokun: uyarının nedeni, yaş grubu karşılaştırması, hedef ve tartım geçmişi açılsın.</div><div class="weightLegend" style="margin:8px 2px">Normal · Takip · Kontrol · Satış. ⏱ = tartım zamanı. Kontrol yalnız kilo kaybı veya iki dönem üst üste düşük gelişimde çıkar.</div>
 </section>
 
-<section id="chat" class="screen"><h3>Sürü Yapay Zekâsı</h3>
- <div class="card"><b>Konuşarak yönet</b><p class="muted">Mikrofona bas ve normal konuş. Yapay zekâ canlı sürü verilerini okuyup cevap verir.</p></div>
- <div class="card chatBox" id="chatLog"><div class="chatMsg botMsg">Hazırım gardaş. Sürün hakkında istediğin gibi sorabilirsin. Şimdilik sadece okuma modundayım.</div></div>
- <button id="talkBtn" class="talkBtn" type="button" onclick="toggleVoice()">🎙️ Bas ve Konuş</button>
- <div id="voiceStatus" class="voiceStatus">Mikrofon hazır</div>
- <div class="chatComposer"><input id="chatInput" type="text" placeholder="Komut yaz veya mikrofona bas…" onkeydown="if(event.key==='Enter')sendChatCommand()"><button class="primary" type="button" onclick="sendChatCommand()">Gönder</button></div>
- <div class="card" id="chatHints"></div>
-</section>
+
 
 <section id="all" class="screen"><div class="row"><h3>Tüm Menüler</h3><button class="small" onclick="go('home')">Geri</button></div><div class="menuGrid">
  <button class="menuBtn" onclick="openSub('health')">💉<br><b>Sağlık</b></button><button class="menuBtn" onclick="openSub('births')">🐑<br><b>Doğum-Kuzulama</b></button>
@@ -555,7 +548,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <nav class="bottom"><div class="bottomin">
 <button class="nav active" data-go="home" onclick="go('home')"><b>⌂</b>Ana Sayfa</button>
 <button class="nav" data-go="herd" onclick="go('herd')"><b>🐑</b>Sürü</button>
-<button class="nav aiNav" data-go="chat" onclick="go('chat')"><b>✦</b>Yapay Zekâ</button>
+
 <button class="nav" data-go="add" onclick="go('add')"><b>＋</b>Kayıt Ekle</button>
 <button class="nav" data-go="reports" onclick="go('reports')"><b>▥</b>Raporlar</button>
 </div></nav>
@@ -3305,104 +3298,7 @@ function normalizeCommand(s){
 function handleLocalCommand(raw){
  if(!canEditData())return 'Bu hesap yalnızca görüntüleme yetkisine sahip.';
  let t=englishLocalCommand((raw||'').trim()), low=normalizeCommand(t);
- if(!t)return 'Bir komut söyle gardaş.';
- if(low.includes('bugün')&&(low.includes('ne var')||low.includes('yapılacak'))){
-  let rr=reminderItems().filter(x=>x.days<=0),items=[...rr.map(x=>x.text),...db.tasks.map(x=>x.text)];
-  return items.length?'Bugün yapılacak '+items.length+' iş var: '+items.join(', '):'Bugün için kayıtlı iş yok.'
- }
- if(low.includes('yem')&&low.includes('masraf')){
-  let m=new Date(), total=db.records.filter(x=>['expense','stock'].includes(x.kind)&&x.date)
-   .filter(x=>{let d=new Date(x.date+'T00:00:00');return d.getFullYear()===m.getFullYear()&&d.getMonth()===m.getMonth()})
-   .filter(x=>(x.category||x.label||'').toLocaleLowerCase('tr-TR').includes('yem')||(x.label||'').toLocaleLowerCase('tr-TR').includes('arpa'))
-   .reduce((a,x)=>a+(+x.amount||0),0);
-  return 'Bu ay kayıtlı yem ve arpa masrafı '+money(total)+'.'
- }
-
- // Doğum komutlarını esnek şekilde yakala:
- // "245 2 kuzu doğurdu", "245 numaralı koyun iki kuzu doğurdu",
- // "245 ikiz doğurdu", "245 koyun 2 kuzu yaptı".
- let tagMatch=low.match(/\b(\d{1,12})\b/);
- let birthWords=/(doğurdu|dogurdu|doğurmuş|dogurmus|doğum yaptı|dogum yapti|kuzu yaptı|kuzu yapti|yavruladı|yavruladi)/;
- if(tagMatch && birthWords.test(low)){
-  let tag=tagMatch[1], n=0;
-  if(/\bikiz\b/.test(low)) n=2;
-  else if(/\büçüz\b|\bucuz\b/.test(low)) n=3;
-  else {
-   let afterTag=low.slice(low.indexOf(tag)+tag.length);
-   let countMatch=afterTag.match(/\b(\d+|bir|iki|üç|uc|dört|dort|beş|bes|altı|alti)\b(?:\s+tane)?(?:\s+kuzu)?/);
-   if(countMatch)n=parseNumberWord(countMatch[1]);
-  }
-  if(!n)n=1;
-  if(!Number.isInteger(n)||n<1||n>3)return 'Doğum kaydı için 1 ile 3 arasında kuzu sayısı söyle.';
-
-  let mom=db.animals.find(a=>isActiveAnimal(a)&&a.sex==='Dişi'&&String(a.tag||'')===String(tag));
-  if(!mom)return tag+' küpe numaralı aktif dişi bulunamadı. Önce bu koyuna küpe numarasını ekle.';
-  if(!(mom.type==='Koyun'||mom.breedingStatus==='Anaç Adayı'))return 'Doğum için anaç veya anaç adayı seç.';
-  if(!canAddAnimals(n))return 'FREE paketindeki 20 aktif hayvan sınırı bu doğumla aşılır. PRO üyeliği gerekir.';
-  if(db.records.some(r=>r.kind==='birth'&&r.motherId===mom.id&&r.date===today()))return 'Bu koyuna bugün doğum zaten kaydedilmiş; mevcut doğumu düzenle.';
-  if(mom.breedingStatus==='Anaç Adayı'){mom.breedingStatus='Anaç';mom.type='Koyun';mom.status='Aktif'}
-  else if(!mom.breedingStatus)mom.breedingStatus='Anaç';
-
-  let sexes=[];
-  if(low.includes('biri erkek')&&low.includes('biri dişi'))sexes=['Erkek','Dişi'];
-  else if(low.includes('biri dişi')&&low.includes('biri erkek'))sexes=['Dişi','Erkek'];
-  else if(/\berkek\b/.test(low)&&!/\bdişi\b/.test(low))sexes=Array(n).fill('Erkek');
-  else if(/\bdişi\b/.test(low)&&!/\berkek\b/.test(low))sexes=Array(n).fill('Dişi');
-
-  let childIds=[];
-  for(let i=0;i<n;i++){const id=uid('l');childIds.push(id);db.animals.push({
-   id,type:'Kuzu',sex:sexes[i]||'Bilinmiyor',tag:'',status:'Aktif',
-   birth:today(),weight:'',motherId:mom.id,breedingStatus:''
-  })};
-  db.records.push({
-   id:uid('rec'),kind:'birth',label:'Doğum · '+n+' kuzu',date:today(),motherId:mom.id,count:n,childIds,
-   note:(sexes.length?sexes.join(', ')+' · ':'')+'Sesli/yazılı komutla eklendi'
-  });
-  save();
-  return tag+' numaralı koyuna '+n+' kuzu doğum kaydı ekledim; kuzular sürüye eklendi'+(sexes.length?' ('+sexes.join(', ')+')':'')+'.'
- }
- return appLanguage==='en'?'I heard: “'+raw+'”. This local assistant supports births, today’s tasks and monthly feed costs. The full AI connection is not active yet.':'Seni duydum: “'+t+'”. Bu komutu henüz otomatik işleyemiyorum; doğum, bugün yapılacaklar veya yem masrafı komutlarından birini söyle.'
-}
-async function sendChatCommand(text){let inp=document.getElementById('chatInput');let t=(typeof text==='string'?text:(inp?.value||'')).trim();if(!t)return;if(inp)inp.value='';addChat(t,'user');if(!sb||!cloudSession||!cloudFarmId){replyChat(appLanguage==='en'?'Sign in to cloud first.':'Yapay zekâyı kullanmak için önce buluta giriş yap gardaş.');return}let vs=document.getElementById('voiceStatus');if(vs)vs.textContent=appLanguage==='en'?'AI is thinking…':'Yapay zekâ düşünüyor…';try{let result=await sb.functions.invoke('suru-ai',{body:{farm_id:cloudFarmId,message:t}});if(result.error)throw result.error;let out=result.data||{};replyChat(out.answer||'Cevap alınamadı.');if(vs)vs.textContent=appLanguage==='en'?'AI ready · read only':'Yapay zekâ hazır · salt okuma'}catch(e){replyChat((appLanguage==='en'?'Connection failed: ':'Bağlantı kurulamadı: ')+(e.message||'Bilinmeyen hata'));if(vs)vs.textContent=appLanguage==='en'?'AI connection error':'Yapay zekâ bağlantı hatası'}}
-function voiceSupported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition)}
-async function requestMicPermission(){
- try{
-  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
-   let stream=await navigator.mediaDevices.getUserMedia({audio:true});
-   stream.getTracks().forEach(t=>t.stop());
-  }
-  return true
- }catch(e){return false}
-}
-async function toggleVoice(){
- if(voiceListening){try{speechRec&&speechRec.stop()}catch(e){}return}
- if(!voiceSupported()){
-  voiceStatus.textContent='Bu tarayıcı sesli tanımayı desteklemiyor. Dosyayı Chrome ile açmayı dene.';
-  toast('Mikrofon tanıma desteklenmiyor');return
- }
- let permissionOk=await requestMicPermission();
- if(!permissionOk){
-  voiceStatus.textContent='Mikrofon izni alınamadı. ChatGPT içindeki dosya görüntüleyici yerine dosyayı Chrome ile açıp mikrofon izni ver.';
- }
- let R=window.SpeechRecognition||window.webkitSpeechRecognition;
- speechRec=new R();speechRec.lang=appLocale();speechRec.interimResults=true;speechRec.continuous=false;
- let finalText='';
- speechRec.onstart=()=>{voiceListening=true;talkBtn.classList.add('listening');talkBtn.textContent='⏹️ Dinliyorum… Bitir';voiceStatus.textContent='Konuşabilirsin…'};
- speechRec.onresult=e=>{let live='';for(let i=e.resultIndex;i<e.results.length;i++){let part=e.results[i][0].transcript;if(e.results[i].isFinal)finalText+=part;else live+=part}chatInput.value=(finalText||live).trim();voiceStatus.textContent='Duydum: '+chatInput.value};
- speechRec.onerror=e=>{voiceStatus.textContent=e.error==='not-allowed'?'Mikrofon izni verilmedi. Dosyayı Chrome ile aç ve mikrofon izni ver.':'Mikrofon hatası: '+e.error};
- speechRec.onend=()=>{voiceListening=false;talkBtn.classList.remove('listening');talkBtn.textContent='🎙️ Bas ve Konuş';if(finalText.trim()){chatInput.value=finalText.trim();sendChatCommand(finalText.trim())}else if(voiceStatus.textContent===uiTranslate('Konuşabilirsin…'))voiceStatus.textContent='Ses algılanmadı; tekrar basabilirsin.'};
- try{speechRec.start()}catch(e){voiceStatus.textContent='Mikrofon başlatılamadı. Dosyayı Chrome ile açmayı dene.'}
-}
-if(typeof MutationObserver!=='undefined'){let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;observer.disconnect();refreshLanguage();observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})})});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})}
-if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
-restoreDeviceContext();
-installBackNavigation();
-renderAll();
-initCloud();if(/(?:^|[?&])action=delete-account(?:&|$)/.test(location.search||''))setTimeout(openDeleteAccount,0);
-let deferredInstallPrompt=null;
-window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;document.getElementById('installCard').hidden=false});
-window.addEventListener('appinstalled',()=>{deferredInstallPrompt=null;document.getElementById('installCard').hidden=true});
-async function installApp(){const prompt=deferredInstallPrompt;if(!prompt)return;deferredInstallPrompt=null;document.getElementById('installCard').hidden=true;try{await prompt.prompt();await prompt.userChoice;}catch(e){toast('Tarayıcı menüsünden Ana ekrana ekle seçeneğini kullan.')}}
+ if(!t)return 'Bir komut söyle gard=true;try{await prompt.prompt();await prompt.userChoice;}catch(e){toast('Tarayıcı menüsünden Ana ekrana ekle seçeneğini kullan.')}}
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
-</script><!-- deploy-refresh-20261001 -->
+</script><!-- deploy-refresh-20261007 -->
 </body></html>
