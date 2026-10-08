@@ -1,4 +1,4 @@
-const CACHE='suru-v21-20261007-report-details-v2144';
+const CACHE='suru-v21-20261008-herd-usability-v2145';
 const APP=new URL('./v21.html',self.location.href).href;
 const ASSETS=['./manifest.webmanifest','./icons/app.svg','./icons/app-192.png','./icons/app-512.png'].map(path=>new URL(path,self.location.href).href);
 const SDK='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2';
@@ -13,3 +13,4 @@ self.addEventListener('fetch',event=>{
  }else if(request.url===SDK){event.respondWith((async()=>{const cache=await caches.open(CACHE);const cached=await cache.match(SDK);if(cached)return cached;const response=await fetch(request);if(response.ok)await cache.put(SDK,response.clone());return response})())}
  // Auth, database requests and user data are never cached here.
 });
+
