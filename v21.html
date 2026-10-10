@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.4.7</title>
+<title>Sürü Takip V21.4.8</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -149,7 +149,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.7</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.8</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -1751,6 +1751,12 @@ function showGrowthDetail(id){
    ?`<div class="growthReason" style="background:#fff7e6"><strong>🟡 Takip</strong>${assessment.reasons.map(escHtml).join(' · ')}</div>`
    :'';
  showModal('Kuzu Gelişim · '+(a.tag?'#'+a.tag:'Küpesiz'),`
+  <div class="card"><b>⚡ Hızlı İşlemler</b><div class="animalQuickActions" style="margin-bottom:0">
+    <button class="small primary" onclick="editGrowthTag('${a.id}')">🏷️ Küpe ${a.tag?'Düzenle':'Ekle'}</button>
+    <button class="small" onclick="openAddForAnimal('weight','${a.id}')">⚖️ Tartım Ekle</button>
+    <button class="small" onclick="openAddForAnimal('health','${a.id}')">💉 Sağlık Kaydı</button>
+    <button class="small" onclick="editAnimal('${a.id}')">✏️ Bilgileri Düzenle</button>
+  </div></div>
   ${weighDue?`<div class="card" style="border-color:#e0b04a;background:#fff8e8"><b>⏱️ Tartım zamanı</b><div class="muted" style="margin-top:3px">${lastDays===null?'Henüz tartım yapılmadı.':'Son tartım '+lastDays+' gün önce.'}</div></div>`:''}
   ${warning}
   ${(()=>{let e=lambTargetEstimate(a,wi);return e?'<div class="card" style="margin:8px 0"><b>🎯 50 kg hedefine kalan: '+(e.measuredTarget?'hedef tamam':e.days?e.days+' gün (tahmini)':'tahmini süre doldu; tekrar tart')+'</b><div class="muted">'+e.remaining.toFixed(1)+' kg kaldı · 230 g/gün varsayımı · gerçek tartımlarla güncellenir</div></div>':''})()}
@@ -1775,6 +1781,17 @@ function showGrowthDetail(id){
    <button class="small" style="flex:1" onclick="toggleLambBreedingReserve('${a.id}')">${a.breedingReserve?'Ayırmayı Kaldır':'🐏 Koçluk İçin Ayır'}</button>
    ${assessment.level==='control'? `<button class="small" style="flex:1" onclick="closeModal();setTimeout(()=>openAddForAnimal('health','${a.id}'),60)">🩺 Sağlık Kaydı</button>`:''}
   </div>`)
+}
+function editGrowthTag(id){
+ const a=db.animals.find(x=>x.id===id);if(!a)return toast('Hayvan bulunamadı');
+ showModal('Küpe Ekle / Düzenle',`<label>Küpe numarası</label><input id="growthTagInput" value="${escHtml(a.tag||'')}" maxlength="32" placeholder="Küpe numarasını gir"><button class="primary" onclick="saveGrowthTag('${id}')">Küpeyi Kaydet</button>`);
+}
+function saveGrowthTag(id){
+ if(!canEditData())return;
+ const a=db.animals.find(x=>x.id===id),field=document.getElementById('growthTagInput');if(!a||!field)return;
+ const v=field.value.trim();
+ if(v&&db.animals.some(x=>x.id!==id&&String(x.tag||'').trim().toLocaleLowerCase('tr-TR')===v.toLocaleLowerCase('tr-TR')))return toast('Bu küpe numarası zaten kullanılıyor');
+ a.tag=v;save();showGrowthDetail(id);toast('Küpe kaydedildi');
 }
 function setGrowthView(filter){
  growthFilter=filter||'Tümü';
