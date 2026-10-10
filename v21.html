@@ -1752,7 +1752,7 @@ function showGrowthDetail(id){
  showModal('Kuzu Gelişim · '+(a.tag?'#'+a.tag:'Küpesiz'),`
   ${weighDue?`<div class="card" style="border-color:#e0b04a;background:#fff8e8"><b>⏱️ Tartım zamanı</b><div class="muted" style="margin-top:3px">${lastDays===null?'Henüz tartım yapılmadı.':'Son tartım '+lastDays+' gün önce.'}</div></div>`:''}
   ${warning}
-  ${(()=>{let e=lambTargetEstimate(a,wi);return e?'<div class="card" style="margin:8px 0"><b>🎯 50 kg hedefine kalan: '+(e.days?e.days+' gün (tahmini)':'hedef tamam')+'</b><div class="muted">'+e.remaining.toFixed(1)+' kg kaldı · 230 g/gün varsayımı · gerçek tartımlarla güncellenir</div></div>':''})()}
+  ${(()=>{let e=lambTargetEstimate(a,wi);return e?'<div class="card" style="margin:8px 0"><b>🎯 50 kg hedefine kalan: '+(e.measuredTarget?'hedef tamam':e.days?e.days+' gün (tahmini)':'tahmini süre doldu; tekrar tart')+'</b><div class="muted">'+e.remaining.toFixed(1)+' kg kaldı · 230 g/gün varsayımı · gerçek tartımlarla güncellenir</div></div>':''})()}
   <div class="growthDetailGrid">
    <div class="growthDetailMetric"><b>${compactLambAge(a)}</b><span>Yaş</span></div>
    <div class="growthDetailMetric"><b>${wi.weight?wi.weight.toFixed(1)+' kg':'—'}</b><span>Son kilo</span></div>
@@ -1832,7 +1832,9 @@ function lambTargetEstimate(a,wi){
  const target=50,rate=0.230;
  if(a.type!=='Kuzu'||a.breedingReserve||a.sex!=='Erkek'||!wi.latest||!(wi.weight>0))return null;
  const remaining=Math.max(0,target-wi.weight);
- return {target,remaining,days:Math.ceil(remaining/rate),rate};
+ const elapsed=wi.latest.date?Math.max(0,dateDiffDays(wi.latest.date,today())):0;
+ const estimatedDays=Math.max(0,Math.ceil(remaining/rate)-elapsed);
+ return {target,remaining,days:estimatedDays,rate,elapsed,measuredTarget:remaining===0};
 }
 function renderGrowth(){
  let body=document.getElementById('growthTableBody'),filters=document.getElementById('growthFilters');
@@ -1898,7 +1900,7 @@ function renderGrowth(){
   return `<tr class="${rowCls}" onclick="showGrowthDetail('${x.a.id}')" style="cursor:pointer">
    <td class="tagcell">${escHtml(x.a.tag?'#'+x.a.tag:'—')}${x.a.breedingReserve?'<div class="muted">🐏 Koçlukta</div>':''}</td>
    <td>${compactLambAge(x.a)}</td>
-   <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}${(()=>{let e=lambTargetEstimate(x.a,x.wi);return e?'<div class="muted" style="font-size:11px">'+(e.days?'🎯 50 kg: ~'+e.days+' gün':'🎯 50 kg hedefi tamam')+'</div>':''})()}</td>
+   <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}${(()=>{let e=lambTargetEstimate(x.a,x.wi);return e?'<div class="muted" style="font-size:11px">'+(e.measuredTarget?'🎯 50 kg hedefi tamam':e.days?'🎯 50 kg: ~'+e.days+' gün':'🎯 Tahmini süre doldu; tart')+'</div>':''})()}</td>
    <td>${gain}</td>
    <td>${Number.isFinite(x.wi.adg)?x.wi.adg:'—'}</td>
    <td><span class="growthStatus ${statusClass}">${status}</span></td>
