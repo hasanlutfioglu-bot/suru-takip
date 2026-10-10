@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.4.5</title>
+<title>Sürü Takip V21.4.6</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -1752,6 +1752,7 @@ function showGrowthDetail(id){
  showModal('Kuzu Gelişim · '+(a.tag?'#'+a.tag:'Küpesiz'),`
   ${weighDue?`<div class="card" style="border-color:#e0b04a;background:#fff8e8"><b>⏱️ Tartım zamanı</b><div class="muted" style="margin-top:3px">${lastDays===null?'Henüz tartım yapılmadı.':'Son tartım '+lastDays+' gün önce.'}</div></div>`:''}
   ${warning}
+  ${(()=>{let e=lambTargetEstimate(a,wi);return e?'<div class="card" style="margin:8px 0"><b>🎯 50 kg hedefine kalan: '+(e.days?e.days+' gün (tahmini)':'hedef tamam')+'</b><div class="muted">'+e.remaining.toFixed(1)+' kg kaldı · 230 g/gün varsayımı · gerçek tartımlarla güncellenir</div></div>':''})()}
   <div class="growthDetailGrid">
    <div class="growthDetailMetric"><b>${compactLambAge(a)}</b><span>Yaş</span></div>
    <div class="growthDetailMetric"><b>${wi.weight?wi.weight.toFixed(1)+' kg':'—'}</b><span>Son kilo</span></div>
@@ -1827,6 +1828,12 @@ function openGrowthBreakdown(kind){
  const note=kind==='targetValue'?'Her kuzu 50 kg olduğunda oluşacak değer.':kind==='currentValue'?'30 kg üzerindeki, koçluk için ayrılmamış erkek kuzular.':kind==='readyValue'?'Satış kriterini karşılayan ve değer hesabına giren erkek kuzular.':'Tartım kayıtlarından hesaplanan günlük canlı ağırlık artışı.';
  showModal(title,`<div class="growthBreakSummary"><b>${escHtml(summary)}</b><span>${escHtml(note)}</span></div>${kind==='currentValue'?'<div class="muted" style="margin-bottom:10px">Tahmini değerdir; gerçekleşmiş gelir ve kâr hesabına eklenmez. Koçluk/damızlık ayrılanlar hariçtir.</div><label for="estimatePrice">Canlı kilo fiyatı (TL/kg)</label><input id="estimatePrice" type="number" min="1" inputmode="decimal" value="'+price+'" onchange="saveLambPrice(this.value);openGrowthBreakdown(\'currentValue\')">':''}<div class="growthBreakList">${rows}</div><div class="growthTapHint">Kuzuya dokun: gelişim, tartım geçmişi ve kendi değeri açılsın.</div>`);
 }
+function lambTargetEstimate(a,wi){
+ const target=50,rate=0.230;
+ if(a.type!=='Kuzu'||a.breedingReserve||a.sex!=='Erkek'||!wi.latest||!(wi.weight>0))return null;
+ const remaining=Math.max(0,target-wi.weight);
+ return {target,remaining,days:Math.ceil(remaining/rate),rate};
+}
 function renderGrowth(){
  let body=document.getElementById('growthTableBody'),filters=document.getElementById('growthFilters');
  if(!body||!filters)return;
@@ -1891,7 +1898,7 @@ function renderGrowth(){
   return `<tr class="${rowCls}" onclick="showGrowthDetail('${x.a.id}')" style="cursor:pointer">
    <td class="tagcell">${escHtml(x.a.tag?'#'+x.a.tag:'—')}${x.a.breedingReserve?'<div class="muted">🐏 Koçlukta</div>':''}</td>
    <td>${compactLambAge(x.a)}</td>
-   <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}</td>
+   <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}${(()=>{let e=lambTargetEstimate(x.a,x.wi);return e?'<div class="muted" style="font-size:11px">'+(e.days?'🎯 50 kg: ~'+e.days+' gün':'🎯 50 kg hedefi tamam')+'</div>':''})()}</td>
    <td>${gain}</td>
    <td>${Number.isFinite(x.wi.adg)?x.wi.adg:'—'}</td>
    <td><span class="growthStatus ${statusClass}">${status}</span></td>
