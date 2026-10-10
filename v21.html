@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.4.6</title>
+<title>Sürü Takip V21.4.7</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -144,11 +144,12 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .herdPrimaryFilters button b{display:block;font-size:18px;margin-top:3px}.herdShortcuts,.herdIssueFilters{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.herdIssueFilters:empty{display:none}.herdIssueFilters button{background:#fff3db;color:#775a19}.herdIssueFilters button.active{background:var(--green);color:white}.herdSortRow{display:flex;align-items:center;gap:10px;margin:6px 0 12px}.herdSortRow label{white-space:nowrap}.herdSortRow select{margin:0;flex:1;padding:9px;font-size:13px}.herdWarning{font-size:11px;color:#805b00;margin-top:7px;line-height:1.5}.herdAnimalActions{flex-wrap:wrap}.herdAnimalActions button{min-height:40px}.herdAnimalActions .openCard{background:#eef4ef;color:var(--green)}
+.targetEta{display:block;margin-top:5px;font-size:11px;font-weight:700;line-height:1.35;white-space:normal;overflow-wrap:normal;color:#d4eadd}.growthTable .targetEta{color:#466d59}.growthTable tr.saleLowRow .targetEta,.growthTable tr.growthControlRow .targetEta{color:#b6c9bc}.growthTable td:last-child{white-space:normal;overflow:visible;text-overflow:clip;vertical-align:middle}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.5</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.7</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -1900,10 +1901,10 @@ function renderGrowth(){
   return `<tr class="${rowCls}" onclick="showGrowthDetail('${x.a.id}')" style="cursor:pointer">
    <td class="tagcell">${escHtml(x.a.tag?'#'+x.a.tag:'—')}${x.a.breedingReserve?'<div class="muted">🐏 Koçlukta</div>':''}</td>
    <td>${compactLambAge(x.a)}</td>
-   <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}${(()=>{let e=lambTargetEstimate(x.a,x.wi);return e?'<div class="muted" style="font-size:11px">'+(e.measuredTarget?'🎯 50 kg hedefi tamam':e.days?'🎯 50 kg: ~'+e.days+' gün':'🎯 Tahmini süre doldu; tart')+'</div>':''})()}</td>
+   <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}</td>
    <td>${gain}</td>
    <td>${Number.isFinite(x.wi.adg)?x.wi.adg:'—'}</td>
-   <td><span class="growthStatus ${statusClass}">${status}</span></td>
+   <td><span class="growthStatus ${statusClass}">${status}</span>${(()=>{let e=lambTargetEstimate(x.a,x.wi);return e?`<div class="targetEta">${e.measuredTarget?"🎯 50 kg tamam":e.days?"🎯 "+e.days+" gün kaldı":"🎯 Yeniden tart"}</div>`:""})()}</td>
   </tr>`;
  }).join(''):'<tr><td colspan="6" class="empty">Bu filtrede kuzu yok.</td></tr>';
 }
