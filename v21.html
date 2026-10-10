@@ -1759,7 +1759,7 @@ function showGrowthDetail(id){
   </div></div>
   ${weighDue?`<div class="card" style="border-color:#e0b04a;background:#fff8e8"><b>⏱️ Tartım zamanı</b><div class="muted" style="margin-top:3px">${lastDays===null?'Henüz tartım yapılmadı.':'Son tartım '+lastDays+' gün önce.'}</div></div>`:''}
   ${warning}
-  ${(()=>{let e=lambTargetEstimate(a,wi);return e?'<div class="card" style="margin:8px 0"><b>🎯 50 kg hedefine kalan: '+(e.measuredTarget?'hedef tamam':e.days?e.days+' gün (tahmini)':'tahmini süre doldu; tekrar tart')+'</b><div class="muted">'+e.remaining.toFixed(1)+' kg kaldı · 230 g/gün varsayımı · gerçek tartımlarla güncellenir</div></div>':''})()}
+  ${(()=>{let e=lambTargetEstimate(a,wi);return e?'<div class="card" style="margin:8px 0"><b>🎯 50 kg hedefine kalan: '+(e.measuredTarget?'hedef tamam':e.days?e.days+' gün (tahmini)':'tahmini süre doldu; tekrar tart')+'</b><div class="muted">'+e.remaining.toFixed(1)+' kg kaldı · '+(e.measuredRate?'Son iki tartıma göre '+Math.round(e.rate*1000)+' g/gün':'230 g/gün tahmini artış')+' · yeni tartımda otomatik güncellenir</div></div>':''})()}
   <div class="growthDetailGrid">
    <div class="growthDetailMetric"><b>${compactLambAge(a)}</b><span>Yaş</span></div>
    <div class="growthDetailMetric"><b>${wi.weight?wi.weight.toFixed(1)+' kg':'—'}</b><span>Son kilo</span></div>
@@ -1847,12 +1847,18 @@ function openGrowthBreakdown(kind){
  showModal(title,`<div class="growthBreakSummary"><b>${escHtml(summary)}</b><span>${escHtml(note)}</span></div>${kind==='currentValue'?'<div class="muted" style="margin-bottom:10px">Tahmini değerdir; gerçekleşmiş gelir ve kâr hesabına eklenmez. Koçluk/damızlık ayrılanlar hariçtir.</div><label for="estimatePrice">Canlı kilo fiyatı (TL/kg)</label><input id="estimatePrice" type="number" min="1" inputmode="decimal" value="'+price+'" onchange="saveLambPrice(this.value);openGrowthBreakdown(\'currentValue\')">':''}<div class="growthBreakList">${rows}</div><div class="growthTapHint">Kuzuya dokun: gelişim, tartım geçmişi ve kendi değeri açılsın.</div>`);
 }
 function lambTargetEstimate(a,wi){
- const target=50,rate=0.230;
+ const target=50,defaultRate=0.230;
  if(a.type!=='Kuzu'||a.breedingReserve||a.sex!=='Erkek'||!wi.latest||!(wi.weight>0))return null;
  const remaining=Math.max(0,target-wi.weight);
- const elapsed=wi.latest.date?Math.max(0,dateDiffDays(wi.latest.date,today())):0;
+ // Only two dated, recorded weigh-ins supply an actual daily gain; an estimated
+ // initial weight or a stored historical gain must not become a growth rate.
+ const actualRate=wi.prev&&wi.prev.date<wi.latest.date&&wi.prevWeight>0&&wi.gain>0&&wi.days>0
+   ?wi.gain/wi.days:null;
+ const rate=actualRate||defaultRate;
+ const measuredRate=actualRate!==null;
+ const elapsed=Math.max(0,dateDiffDays(wi.latest.date,today()));
  const estimatedDays=Math.max(0,Math.ceil(remaining/rate)-elapsed);
- return {target,remaining,days:estimatedDays,rate,elapsed,measuredTarget:remaining===0};
+ return {target,remaining,days:estimatedDays,rate,elapsed,measuredRate,measuredTarget:remaining===0};
 }
 function renderGrowth(){
  let body=document.getElementById('growthTableBody'),filters=document.getElementById('growthFilters');
