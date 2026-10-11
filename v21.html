@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.4.8</title>
+<title>Sürü Takip V21.4.9</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -149,7 +149,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.8</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.9</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -1568,6 +1568,10 @@ function ensureLegacyIds(data){data.records?.forEach(r=>{if(!r.id)r.id=uid('rec'
 function dateDiffDays(from,to){let a=new Date(from+'T00:00:00'),b=new Date(to+'T00:00:00');return Math.round((b-a)/864e5)}
 function reminderItems(){
  let out=[];
+ db.animals.filter(isActiveAnimal).forEach(a=>{
+  const e=lambTargetEstimate(a,latestWeightInfo(a));
+  if(e&&!e.measuredTarget&&e.days===0)out.push({type:'target_weight',date:e.targetDate,text:animalName(a)+' · 50 kg tahmini süresi doldu; tartım yap',days:dateDiffDays(today(),e.targetDate),animalId:a.id});
+ });
  db.records.filter(r=>r.kind==='health'&&r.reminderDate&&!r.reminderDone).forEach(r=>{
   let a=db.animals.find(x=>x.id===r.animalId),d=dateDiffDays(today(),r.reminderDate);
   out.push({type:'health',date:r.reminderDate,text:(a?animalName(a):'Hayvan')+' · '+(r.note||'Sağlık işlemi'),days:d,recordId:r.id});
@@ -1607,6 +1611,7 @@ function reminderLabel(x){
  return x.days+' gün kaldı'
 }
 function markReminderDone(type,id){if(!canEditData())return;
+ if(type==='target_weight')return openAddForAnimal('weight',id);
  if(type==='health'){
   let r=db.records.find(x=>x.id===id);if(r)r.reminderDone=true;
  }else{
@@ -1653,12 +1658,12 @@ function renderHomeUpcoming(){
   box.innerHTML='<div class="muted" style="padding:12px 0">Yaklaşan iş yok. Her şey güncel.</div>';
   return;
  }
- let icon=x=>x.type==='health'?'💉':x.type==='flushing'?'🌾':x.type==='mating'?'🐏':x.type==='ram_removal'?'🚪':x.type==='birth_prep'?'🧺':x.type==='birth_start'?'🐑':x.type==='birth_end_info'?'✅':'✓';
+ let icon=x=>x.type==='target_weight'?'⚖️':x.type==='health'?'💉':x.type==='flushing'?'🌾':x.type==='mating'?'🐏':x.type==='ram_removal'?'🚪':x.type==='birth_prep'?'🧺':x.type==='birth_start'?'🐑':x.type==='birth_end_info'?'✅':'✓';
  box.innerHTML=all.slice(0,4).map(x=>{
   let meta=x.manual?'Manuel yapılacak':(x.nearestOnly?'En yakın planlı iş · '+x.date+' · '+reminderLabel(x):(x.date+' · '+reminderLabel(x)));
   let cls=x.manual?'':(x.days<0?'upcomingLate':x.days===0?'upcomingToday':'');
-  let action=x.manual?`doneTask(${x.taskIndex})`:`markReminderDone('${x.type}','${x.recordId||x.calendarId}')`;
-  let btn=x.manual?'Yapıldı':x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';
+  let action=x.manual?`doneTask(${x.taskIndex})`:`markReminderDone('${x.type}','${x.animalId||x.recordId||x.calendarId}')`;
+  let btn=x.manual?'Yapıldı':x.type==='target_weight'?'Tartım yap':x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';
   return `<div class="upcomingItem"><div class="upcomingIcon">${icon(x)}</div><div class="upcomingText"><b>${escHtml(x.text)}</b><div class="upcomingMeta ${cls}">${escHtml(meta)}</div></div><button class="small" onclick="${action}">${btn}</button></div>`;
  }).join('');
 }
@@ -1857,8 +1862,9 @@ function lambTargetEstimate(a,wi){
  const rate=actualRate||defaultRate;
  const measuredRate=actualRate!==null;
  const elapsed=Math.max(0,dateDiffDays(wi.latest.date,today()));
- const estimatedDays=Math.max(0,Math.ceil(remaining/rate)-elapsed);
- return {target,remaining,days:estimatedDays,rate,elapsed,measuredRate,measuredTarget:remaining===0};
+ const targetDate=addDaysISO(wi.latest.date,Math.ceil(remaining/rate));
+ const estimatedDays=Math.max(0,dateDiffDays(today(),targetDate));
+ return {target,remaining,days:estimatedDays,targetDate,rate,elapsed,measuredRate,measuredTarget:remaining===0};
 }
 function renderGrowth(){
  let body=document.getElementById('growthTableBody'),filters=document.getElementById('growthFilters');
@@ -1876,7 +1882,7 @@ function renderGrowth(){
   x.saleReady=x.a.sex==='Erkek'&&!x.a.breedingReserve&&(x.saleByAge||x.saleByWeight||x.a.status==='Satılacak');
   x.saleNear=x.a.sex==='Erkek'&&!x.a.breedingReserve&&!x.saleReady&&(x.months>=5||x.wi.weight>=45);
   x.lastWeighDays=x.wi.latest?.date?Math.max(0,dateDiffDays(x.wi.latest.date,today())):null;
-  x.weighDue=x.lastWeighDays===null||x.lastWeighDays>=21;
+  x.weighDue=isWeighDue(x.a);
   if(x.assessment.level==='control')x.state='control';
   else if(x.saleReady&&x.assessment.level==='watch')x.state='saleWarn';
   else if(x.saleReady)x.state='saleReady';
@@ -1943,7 +1949,7 @@ function renderAll(){
  let duplicateIds=[...idCounts.values()].filter(n=>n>1).length,duplicateTags=[...tagCounts.values()].filter(x=>x.count>1).map(x=>x.tag).slice(0,3);
  if(herdIntegrity){let issue=A.length!==e+r+l?'type':duplicateIds?'id':duplicateTags.length?'tag':'';herdIntegrity.hidden=!issue;herdIntegrity.textContent=issue==='type'?(appLanguage==='en'?'⚠ Type counts do not match the total':'⚠ Tür sayıları toplamla uyuşmuyor'):issue==='id'?(appLanguage==='en'?'⚠ Duplicate animal record':'⚠ Tekrarlı hayvan kaydı'):issue==='tag'?(appLanguage==='en'?'⚠ Repeated ear tag: ':'⚠ Tekrarlı küpe: ')+duplicateTags.join(', '):(appLanguage==='en'?'✓ Flock count matches':'✓ Sürü sayımı tutarlı');herdIntegrity.style.color=issue?'#ffe2b4':'#cce6d2'}
  sEwe.textContent=e;sRam.textContent=r;sLamb.textContent=l;sFollow.textContent=f;
- let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span data-no-i18n>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
+ let rem=reminderItems().filter(x=>x.days<=7);let manual=db.tasks.map((x,i)=>`<div class="listitem row"><span data-no-i18n>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i})">Yapıldı</button></div>`).join('');let auto=rem.map(x=>{let btn=x.type==='target_weight'?'Tartım yap':x.type==='mating'?'Koçu kattım':x.type==='ram_removal'?'Koçu çıkardım':x.type==='birth_prep'?'Hazırlanıyorum':x.type==='birth_start'?'Gördüm':x.type==='birth_end_info'?'Tamam':'Yapıldı';return `<div class="listitem row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.animalId||x.recordId||x.calendarId}')">${btn}</button></div>`}).join('');todayBox.innerHTML=(auto+manual)||'<div class="muted">Bugün için kayıtlı iş yok.</div>';
  renderHomeUpcoming();renderRamStatus();
  let fin=calcFinance('all'),net=fin.income-fin.expense;homeNet.textContent=money(net);homeNet.className=net<0?'money minus':'money plus';
  let births=db.records.filter(x=>x.kind==='birth'&&x.motherId&&Number.isFinite(+x.count)&&+x.count>0),mothers=new Set(births.map(x=>x.motherId)),born=births.reduce((n,x)=>n+(+x.count),0);
@@ -2156,7 +2162,14 @@ async function refreshSubscription(){
  subscriptionRefreshBusy=true;const epoch=sessionEpoch,farmId=cloudFarmId;
  try{const {data,error}=await sb.from('subscriptions').select('plan,status,trial_ends_at,current_period_end').eq('farm_id',farmId).maybeSingle();if(!error&&data&&epoch===sessionEpoch){currentPlan=data.plan||'free';subscriptionStatus=data.status||'canceled';trialEndsAt=data.trial_ends_at||null;currentPeriodEnd=data.current_period_end||null;persistLocal();renderPlanStatus()}}catch(ignore){}finally{subscriptionRefreshBusy=false}
 }
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshSubscription()});
+let lastRenderedDate=today();
+function refreshDayViews(){
+ const date=today();if(date===lastRenderedDate)return;
+ lastRenderedDate=date;renderAll();
+ if(document.getElementById('sub')?.classList.contains('active')&&currentSub==='today'&&!document.getElementById('modal')?.classList.contains('show'))openSub('today');
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){refreshDayViews();refreshSubscription()}});
+if(typeof setInterval==='function')setInterval(()=>{if(document.visibilityState==='visible')refreshDayViews()},60000);
 window.addEventListener('focus',refreshSubscription);
 if(typeof setInterval==='function')setInterval(()=>{if(document.visibilityState==='visible')refreshSubscription()},300000);
 async function saveAccountFarmName(){if(!canEditData())return;
@@ -2290,7 +2303,8 @@ function animalDataIssues(a){
 function isWeighDue(a){
  if(a.type!=='Kuzu'||!isActiveAnimal(a))return false;
  const wi=latestWeightInfo(a);
- return !wi.latest?.date||dateDiffDays(wi.latest.date,today())>=21;
+ const e=lambTargetEstimate(a,wi);
+ return !wi.latest?.date||dateDiffDays(wi.latest.date,today())>=21||!!(e&&!e.measuredTarget&&e.days===0);
 }
 function missingAnimalData(){
  return db.animals.filter(isActiveAnimal).map(a=>({a,missing:animalDataIssues(a)})).filter(x=>x.missing.length);
@@ -3538,7 +3552,7 @@ function openSub(k,refresh=false){if(!isPro()&&k==='performance')return showProR
  else if(k==='births')body=`<button class="primary" onclick="openAdd('birth')">Yeni Doğum</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='birth').slice().reverse().map(recordHtml).join('');
  else if(k==='health')body=`<button class="primary" onclick="openAdd('health')">Sağlık Kaydı Ekle</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='health').slice().reverse().map(recordHtml).join('');
  else if(k==='weights')body=`<button class="primary" onclick="openAdd('weight')">Tartım Ekle</button><div style="height:8px"></div>`+db.records.filter(x=>x.kind==='weight').slice().reverse().map(recordHtml).join('');
- else if(k==='today'){let rem=reminderItems();body=`<button class="primary" onclick="addTask()">İş Ekle</button><div style="height:8px"></div>`+(rem.map(x=>`<div class="card row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.recordId||x.calendarId}');openSub('today')">Yapıldı</button></div>`).join('')+db.tasks.map((x,i)=>`<div class="card row"><span data-no-i18n>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i});openSub('today')">Yapıldı</button></div>`).join('')||'<div class="card muted">Yaklaşan iş yok.</div>')}
+ else if(k==='today'){let rem=reminderItems();body=`<button class="primary" onclick="addTask()">İş Ekle</button><div style="height:8px"></div>`+(rem.map(x=>`<div class="card row"><div><b>${escHtml(x.text)}</b><div class="muted">${x.date} · ${reminderLabel(x)}</div></div><button class="small" onclick="markReminderDone('${x.type}','${x.animalId||x.recordId||x.calendarId}');${x.type==='target_weight'?'':"openSub('today')"}">${x.type==='target_weight'?'Tartım yap':'Yapıldı'}</button></div>`).join('')+db.tasks.map((x,i)=>`<div class="card row"><span data-no-i18n>${escHtml(x.text)}</span><button class="small" onclick="doneTask(${i});openSub('today')">Yapıldı</button></div>`).join('')||'<div class="card muted">Yaklaşan iş yok.</div>')}
  else if(k==='calendar'){if(!db.ramCalendar)db.ramCalendar=[];body='<div class="card"><b>Koç & üreme takvimi</b><p class="muted">Koç katım ve çıkarma tarihini planla. Gerçek tarih, sen onay verdiğin gün kaydedilir; doğum başlangıç ve bitiş tarihleri buna göre otomatik hesaplanır.</p><button class="primary" onclick="openRamMating()">Üreme Dönemi Ekle</button></div>'+((db.ramCalendar||[]).length?(db.ramCalendar||[]).slice().reverse().map(x=>{
  let actualIn=x.actualMatingDate||'',actualOut=x.actualRemovalDate||'';
  let birthStart=actualIn?addDaysISO(actualIn,147):'Koç katımı onaylanınca hesaplanır';
