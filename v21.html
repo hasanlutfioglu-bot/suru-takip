@@ -551,7 +551,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
  <button class="menuBtn" onclick="openAccount()">👤<br><b>Hesabım / İşletmem</b></button>
  <button class="menuBtn" onclick="go('chat')">◉<br><b>Sesli Komutlar</b></button>
  </div>
- <div class="card languageSettings"><label for="appLanguage" data-no-i18n>Dil / Language</label><select id="appLanguage" data-no-i18n onchange="setAppLanguage(this.value)"><option value="tr">Türkçe</option><option value="en">English</option></select></div>
+ <div class="card"><b>🌍 Bölgesel Tercihler</b><p class="muted">Cihaz dili ve bölgesi başlangıçta önerilir. Finans kayıtları TL olarak saklanır; döviz kuru olmadan tutarlar dönüştürülmez.</p><div class="muted">Algılanan bölge: <b id="detectedCountry">—</b></div><label for="displayCurrency">Tercih edilen para birimi (bilgilendirme)</label><select id="displayCurrency" onchange="setDisplayCurrency(this.value)"><option value="TRY">TRY · Türk lirası</option><option value="EUR">EUR · Euro</option><option value="GBP">GBP · Sterlin</option><option value="USD">USD · ABD doları</option></select></div>\n <div class="card languageSettings"><label for="appLanguage" data-no-i18n>Dil / Language</label><select id="appLanguage" data-no-i18n onchange="setAppLanguage(this.value)"><option value="tr">Türkçe</option><option value="en">English</option></select></div>
  <div class="card" id="installCard" hidden><b>📲 Sürü Takip’i Telefona Kur</b><p class="muted">Ana ekranından uygulama olarak aç.</p><button class="primary" id="installAppBtn" type="button" onclick="installApp()">Uygulamayı Kur</button></div>
  <div class="card" id="cloudCard">
   <div class="row"><div><b>☁️ Bulut Senkronizasyonu</b><div class="muted" id="cloudText">Yerel kayıtlar açık. Google hesabınla giriş yapınca telefon ve bilgisayar eşitlenir.</div></div><span class="tag" id="netBadge">Hazır</span></div>
@@ -586,7 +586,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <div class="toast" id="toast"></div>
 <script>
 // UI language is device-local; stored flock values remain in their original format.
-let appLanguage='tr';try{appLanguage=localStorage.getItem('suru-language')==='en'?'en':'tr'}catch(e){}
+let appLanguage='tr';try{const saved=localStorage.getItem('suru-language');appLanguage=saved==='en'||saved==='tr'?saved:(/^tr(?:-|$)/i.test(navigator.language||'')?'tr':'en')}catch(e){}
+// Locale preferences are device-only: never alter flock records or accounting amounts.
+const DEVICE_COUNTRY=(function(){try{const locale=new Intl.Locale(navigator.language||'tr-TR');return locale.region||(/\\btr\\b/i.test(navigator.language||'')?'TR':'CY')}catch(e){return 'CY'}})();
+let displayCurrency='TRY';try{displayCurrency=localStorage.getItem('suru-display-currency')||({TR:'TRY',CY:'EUR',GB:'GBP',US:'USD'}[DEVICE_COUNTRY]||'TRY')}catch(e){}
+function setDisplayCurrency(value){if(!['TRY','EUR','GBP','USD'].includes(value))return;displayCurrency=value;try{localStorage.setItem('suru-display-currency',value)}catch(e){};const el=document.getElementById('displayCurrency');if(el)el.value=value;toast('Para birimi tercihi kaydedildi. Finans tutarları TL olarak korunur; kur dönüşümü yapılmaz.')}
+function initRegionalPreferences(){const c=document.getElementById('detectedCountry');if(c)c.textContent=DEVICE_COUNTRY;const el=document.getElementById('displayCurrency');if(el)el.value=displayCurrency}
+
 function appLocale(){return appLanguage==='en'?'en-GB':'tr-TR'}
 const UI_EN={
  "Tahmini kuzu satış değeri": "Estimated lamb sale value",
@@ -4093,6 +4099,7 @@ async function toggleVoice(){
 if(typeof MutationObserver!=='undefined'){let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;observer.disconnect();refreshLanguage();observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})})});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['placeholder','title','aria-label']})}
 if(!db._meta)db._meta={updatedAt:'1970-01-01T00:00:00.000Z'};
 restoreDeviceContext();
+initRegionalPreferences();
 installBackNavigation();
 renderAll();
 initCloud();if(/(?:^|[?&])action=delete-account(?:&|$)/.test(location.search||''))setTimeout(openDeleteAccount,0);
