@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.4.9</title>
+<title>Sürü Takip V21.4.10</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#245c3b">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -66,6 +66,7 @@ header{background:#edf3f0f2;padding:20px 18px 14px}.brand h1{font-size:23px}
 .weightDetail{font-size:12px;color:var(--muted);line-height:1.55;margin-top:6px}.weightDetail b{color:var(--ink)}.weightLegend{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
 .growthHero{background:linear-gradient(120deg,#123c2e,#227653);color:#fff;border-radius:22px;padding:18px;margin-bottom:12px}.growthHero .row{align-items:flex-start}.growthHero b{font-size:20px}.growthHero .muted{color:#e5f1ea}
 .growthStats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px}.growthStat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px}.growthStat b{display:block;font-size:24px}.growthStat span{font-size:12px;color:var(--muted)}
+.growthToolbar{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px}.growthToolbar .growthFilters{flex:1;min-width:0;margin:0}.growthSort{position:relative;flex:none}.growthSort summary{list-style:none;cursor:pointer;border:1px solid #c8d9cd;border-radius:10px;padding:8px 10px;background:#f3f8f4;color:#28563d;font-size:12px;font-weight:700;white-space:nowrap}.growthSort summary::-webkit-details-marker{display:none}.growthSort summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}.growthSortPanel{position:absolute;right:0;top:calc(100% + 6px);z-index:20;width:210px;box-sizing:border-box;padding:12px;background:white;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 26px #173d2926}.growthSortPanel label{font-size:11px;margin:0 0 5px;color:var(--muted)}.growthSortPanel select{margin:0 0 10px;padding:8px;font-size:13px}.growthSortPanel select:last-child{margin-bottom:0}
 .growthFilters{display:flex;gap:7px;overflow:auto;margin:0 0 10px}.growthFilters button{white-space:nowrap}.growthFilters .active{background:var(--green);color:#fff}
 .growthTableWrap{overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.growthTable{border-collapse:collapse;width:100%;table-layout:fixed;font-size:11px}.growthTable th{position:sticky;top:0;background:#eef4ef;color:#365543;text-align:center;padding:9px 3px;border-bottom:1px solid var(--line);white-space:nowrap}.growthTable td{padding:10px 3px;border-bottom:1px solid #edf1ee;vertical-align:middle;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.growthTable tr:last-child td{border-bottom:0}.growthTable tr.saleReadyRow{background:#edf8f0}.growthTable tr.saleLightRow{background:#fff6dc}.growthTable tr.saleLowRow{background:#fdeaea}.growthTable .tagcell{font-weight:800}.growthNote{font-size:11px;color:var(--muted);margin-top:3px}.growthStatus{display:inline-block;border-radius:99px;padding:5px 8px;font-size:11px;font-weight:800}.growthStatus.ok{background:#e3f2e8;color:#17623a}.growthStatus.warn{background:#fff0c7;color:#815a00}.growthStatus.bad{background:#f7dddd;color:#9a2f2f}.growthStatus.neutral{background:#edf0ee;color:#5d6962}.growthTable th:nth-child(1),.growthTable td:nth-child(1){width:18%;text-align:left;padding-left:8px}.growthTable th:nth-child(2),.growthTable td:nth-child(2){width:14%}.growthTable th:nth-child(3),.growthTable td:nth-child(3){width:15%}.growthTable th:nth-child(4),.growthTable td:nth-child(4){width:16%}.growthTable th:nth-child(5),.growthTable td:nth-child(5){width:15%}.growthTable th:nth-child(6),.growthTable td:nth-child(6){width:22%}.growthTable .tagcell{font-size:12px}.growthStatus{max-width:100%;overflow:hidden;text-overflow:ellipsis}.growthTapHint{text-align:center;font-size:11px;color:var(--muted);margin:8px 0 0}.growthDetailGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}.growthDetailMetric{background:#f6f9f7;border-radius:14px;padding:11px}.growthDetailMetric b{display:block;font-size:18px}.growthDetailMetric span{font-size:11px;color:var(--muted)}
 .growthMarket{display:grid;grid-template-columns:106px 1fr 1fr;gap:8px;align-items:stretch;margin:0 0 10px}.growthPriceBox,.growthMoneyBox{background:#fff;border:1px solid var(--line);border-radius:15px;padding:10px;min-width:0}.growthPriceBox label,.growthMoneyBox span{display:block;font-size:10px;color:var(--muted);line-height:1.2}.growthPriceEdit{display:flex;align-items:center;gap:3px;margin-top:3px}.growthPriceEdit input{min-height:30px;height:30px;margin:0;padding:4px 5px;font-size:14px;font-weight:800;width:58px}.growthPriceEdit small{font-size:10px;white-space:nowrap}.growthMoneyBox b{display:block;font-size:15px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -149,7 +150,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.9</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.4.10</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -517,7 +518,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
   <div class="moneySub" id="growthCurrentHint">30 kg üzerindeki erkek kuzular · mevcut kilo × TL/kg</div>
  </div>
  <div class="growthGroupAlert" id="growthGroupAlert"></div>
- <div class="growthFilters" id="growthFilters"></div>
+ <div class="growthToolbar">
+  <div class="growthFilters" id="growthFilters"></div>
+  <details class="growthSort" id="growthSortMenu"><summary aria-label="Kuzu listesini sırala">Sırala ▾</summary><div class="growthSortPanel">
+   <label for="growthSortField">Sıralama</label><select id="growthSortField" onchange="setGrowthSort(this.value,document.getElementById('growthSortDirection').value)"><option value="tag">Küpe numarası</option><option value="age">Yaş</option><option value="weight">Kilo</option><option value="eta">50 kg’a kalan gün</option></select>
+   <label for="growthSortDirection">Sıra yönü</label><select id="growthSortDirection" onchange="setGrowthSort(document.getElementById('growthSortField').value,this.value)"><option value="asc">Küçükten büyüğe ↑</option><option value="desc">Büyükten küçüğe ↓</option></select>
+  </div></details>
+ </div>
  <div class="growthTableWrap"><table class="growthTable">
   <thead><tr><th>Küpe</th><th>Yaş</th><th>Son kg</th><th>Artış</th><th>g/gün</th><th>Durum</th></tr></thead>
   <tbody id="growthTableBody"></tbody>
@@ -584,6 +591,13 @@ function appLocale(){return appLanguage==='en'?'en-GB':'tr-TR'}
 const UI_EN={
  "Tahmini kuzu satış değeri": "Estimated lamb sale value",
  "Tahmini Kuzu Satış Değeri": "Estimated Lamb Sale Value",
+ "Sırala ▾": "Sort ▾",
+ "Kuzu listesini sırala": "Sort lamb list",
+ "Sıra yönü": "Sort direction",
+ "Kilo": "Weight",
+ "50 kg’a kalan gün": "Days to 50 kg",
+ "Küçükten büyüğe ↑": "Ascending ↑",
+ "Büyükten küçüğe ↓": "Descending ↓",
  "Sıralama": "Sort by",
  "Küpe numarası": "Ear tag number",
  "Yaş · büyükten küçüğe": "Age · oldest first",
@@ -1672,6 +1686,27 @@ function saveLambPrice(v){if(!canEditData())return;
  db.lambPricePerKg=n;save();toast('Kuzu fiyatı güncellendi');
 }
 let growthFilter='Tümü';
+const GROWTH_SORT_KEY='suru_growth_sort';
+function readGrowthSort(){
+ try{const s=JSON.parse(localStorage.getItem(GROWTH_SORT_KEY)||'null');if(s&&['tag','age','weight','eta'].includes(s.field)&&['asc','desc'].includes(s.direction))return s}catch(ignore){}
+ return {field:'tag',direction:'asc'};
+}
+let growthSort=readGrowthSort();
+function setGrowthSort(field,direction){
+ if(!['tag','age','weight','eta'].includes(field)||!['asc','desc'].includes(direction))return;
+ growthSort={field,direction};try{localStorage.setItem(GROWTH_SORT_KEY,JSON.stringify(growthSort))}catch(ignore){}
+ renderGrowth();
+}
+function compareGrowthRows(x,y){
+ const field=growthSort.field,sign=growthSort.direction==='desc'?-1:1;
+ const value=x=>field==='tag'?(String(x.a.tag||'').trim()||null):field==='age'?(validDate(x.a.birth)?x.months:null):field==='weight'?(x.wi.weight>0?x.wi.weight:null):lambTargetEstimate(x.a,x.wi)?.days??null;
+ const a=value(x),b=value(y);
+ // Missing values stay at the end in either direction.
+ if(a===null&&b!==null)return 1;if(b===null&&a!==null)return -1;
+ const natural=(a,b)=>String(a).localeCompare(String(b),appLocale(),{numeric:true,sensitivity:'base'});
+ const diff=a===null?0:field==='tag'?natural(a,b):a-b;
+ return sign*diff||natural(x.a.tag||'',y.a.tag||'')||natural(x.a.id,y.a.id);
+}
 function latestWeightInfo(a){
  let rows=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id&&r.date).slice().reverse().sort((x,y)=>String(y.date).localeCompare(String(x.date)));
  let latest=rows[0]||null,prev=rows.find(r=>r.date<latest?.date)||null;
@@ -1917,11 +1952,9 @@ function renderGrowth(){
 
  let fs=['Tümü','Satışa hazır','Koçlukta','Yaklaşan','Takip'];
  filters.innerHTML=fs.map(f=>`<button class="small ${growthFilter===f?'active':''}" onclick="growthFilter='${f}';renderGrowth()">${f}</button>`).join('');
+ document.getElementById('growthSortField').value=growthSort.field;document.getElementById('growthSortDirection').value=growthSort.direction;
  let shown=infos.filter(x=>growthFilter==='Tümü'||(growthFilter==='Satışa hazır'&&x.saleReady)||(growthFilter==='Koçlukta'&&x.a.breedingReserve)||(growthFilter==='Yaklaşan'&&x.saleNear)||(growthFilter==='Takip'&&(x.assessment.level!=='normal'||x.weighDue)));
- shown.sort((a,b)=>{
-  let rank={control:0,saleWarn:1,saleReady:2,watch:3,near:4,normal:5};
-  return (rank[a.state]??9)-(rank[b.state]??9)||b.months-a.months;
- });
+ shown.sort(compareGrowthRows);
  body.innerHTML=shown.length?shown.map(x=>{
   let rowCls=x.state==='control'?'growthControlRow':x.state==='saleReady'?'saleReadyRow':x.state==='saleWarn'||x.state==='watch'?'saleLightRow':x.state==='near'?'growthNearRow':'';
   let statusClass=x.state==='saleReady'?'ok':x.state==='saleWarn'||x.state==='watch'?'warn':x.state==='control'?'bad':x.state==='near'?'near':'neutral';
