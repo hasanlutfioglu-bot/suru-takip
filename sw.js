@@ -1,9 +1,9 @@
-const CACHE='suru-v2150-feed-allocation-20261012';
+const CACHE='suru-v2150-light-meadow-20261012';
 const APP=new URL('./v21.html',self.location.href).href;
 const ASSETS=['./manifest.webmanifest','./icons/app.svg','./icons/app-192.png','./icons/app-512.png'].map(path=>new URL(path,self.location.href).href);
 const SDK='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2';
 self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.add(APP);for(const asset of ASSETS)await cache.add(asset);try{const response=await fetch(SDK,{mode:'cors'});if(response.ok)await cache.put(SDK,response)}catch(e){}await self.skipWaiting()})()));
-self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('suru-v21-')&&key!==CACHE)await caches.delete(key);await self.clients.claim()})()));
+self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('suru-v21')&&key!==CACHE)await caches.delete(key);await self.clients.claim()})()));
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
  if(request.method!=='GET')return;
