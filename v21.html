@@ -586,7 +586,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 <div class="toast" id="toast"></div>
 <script>
 // UI language is device-local; stored flock values remain in their original format.
-let appLanguage='tr';try{const saved=localStorage.getItem('suru-language');appLanguage=saved==='en'||saved==='tr'?saved:(/^tr(?:-|$)/i.test(navigator.language||'')?'tr':'en')}catch(e){}
+let appLanguage='tr';try{const saved=localStorage.getItem('suru-language');appLanguage=saved==='en'||saved==='tr'?saved:(!navigator.language||/^tr(?:-|$)/i.test(navigator.language)?'tr':'en')}catch(e){}
 // Locale preferences are device-only: never alter flock records or accounting amounts.
 const DEVICE_COUNTRY=(function(){try{const locale=new Intl.Locale(navigator.language||'tr-TR');return locale.region||(/\\btr\\b/i.test(navigator.language||'')?'TR':'CY')}catch(e){return 'CY'}})();
 let displayCurrency='TRY';try{displayCurrency=localStorage.getItem('suru-display-currency')||({TR:'TRY',CY:'EUR',GB:'GBP',US:'USD'}[DEVICE_COUNTRY]||'TRY')}catch(e){}
