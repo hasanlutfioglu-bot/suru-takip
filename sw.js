@@ -1,4 +1,4 @@
-const CACHE='suru-v2151-light-fix-20261012';
+const CACHE='suru-v2152-nav-refresh-20261012';
 const APP=new URL('./v21.html',self.location.href).href;
 const ASSETS=['./manifest.webmanifest','./icons/app.svg','./icons/app-192.png','./icons/app-512.png'].map(path=>new URL(path,self.location.href).href);
 const SDK='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2';
@@ -8,7 +8,7 @@ self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
  if(request.method!=='GET')return;
  if(request.mode==='navigate'&&url.origin===self.location.origin&&(url.pathname.endsWith('/v21.html')||url.pathname.endsWith('/index.html')||url.pathname===new URL('./',APP).pathname)){
-  event.respondWith((async()=>{const cache=await caches.open(CACHE);try{const response=await fetch(request);if(response.ok&&!response.redirected&&url.pathname===new URL(APP).pathname)await cache.put(APP,response.clone());return response}catch(e){const cached=await cache.match(APP);return cached||Response.error()}})());
+  event.respondWith((async()=>{const cache=await caches.open(CACHE);try{const response=await fetch(request,{cache:'no-store'});if(response.ok&&!response.redirected&&url.pathname===new URL(APP).pathname)await cache.put(APP,response.clone());return response}catch(e){const cached=await cache.match(APP);return cached||Response.error()}})());
  }else if(ASSETS.includes(request.url)){event.respondWith((async()=>{const cache=await caches.open(CACHE);const cached=await cache.match(request.url);if(cached)return cached;const response=await fetch(request);if(response.ok)await cache.put(request.url,response.clone());return response})())
  }else if(request.url===SDK){event.respondWith((async()=>{const cache=await caches.open(CACHE);const cached=await cache.match(SDK);if(cached)return cached;const response=await fetch(request);if(response.ok)await cache.put(SDK,response.clone());return response})())}
  // Auth, database requests and user data are never cached here.
