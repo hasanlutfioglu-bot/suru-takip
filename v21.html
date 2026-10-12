@@ -2,9 +2,10 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.5.1 — Açık Tema</title>
+<title>Sürü Takip V21.5.3 — Açık Tema</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#218052">
+<meta name="color-scheme" content="light">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
 <style>
 :root{--bg:#f4f7f3;--card:#fff;--ink:#172018;--muted:#68736a;--green:#245c3b;--green2:#347a50;--line:#dfe7df;--warn:#b77716;--bad:#a53d3d;--shadow:0 8px 24px #1b3b2614}
@@ -171,7 +172,8 @@ button:not(.primary):not(.danger):not(.nav):not(.summaryCard):not(.menuBtn):not(
 
 
 /* v21.5.1 force light palette for Samsung/browser dark-mode compatibility */
-:root,html,body{color-scheme:light!important;background-color:#f9fcfa!important;color:#20372a!important}
+:root,html,body,.app,.app *{color-scheme:light!important}
+:root,html,body{background-color:#f9fcfa!important;color:#20372a!important}
 .app,main,.screen{background-color:#f9fcfa}
 header,.bottom{background-color:#ffffff!important}
 .card,.summaryCard,.menuBtn,.reportKpi,.growthStat,.weightRow,.weightSummary,.weightResult,.growthTableWrap,.reportViz,.herdAnimal,.herdSearchCard,.sheet{background-color:#ffffff!important;color:#20372a}
@@ -180,7 +182,7 @@ header,.bottom{background-color:#ffffff!important}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.5.2</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.5.3</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
