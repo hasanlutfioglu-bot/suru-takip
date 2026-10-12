@@ -1235,6 +1235,15 @@ Object.assign(UI_EN,{
  "kilo yok": "no weight",
  "Koçluk / damızlık ayrılanlar": "Lambs reserved for breeding"
 });
+// Individual lamb growth and finance labels must translate in dynamically-created modals.
+Object.assign(UI_EN,{
+ "İlk tartımdan beri artış":"Gain since first weighing",
+ "Tahmini satış tutarı":"Estimated sale value",
+ "Yeterli tartım yok":"Insufficient weighing data",
+ "Damızlık / satış dışı":"Breeding reserve / not for sale",
+ "Kilo gerekli":"Weight required",
+ "Kuzu başına yem tüketimi ve maliyeti kaydedilmediğinden net kâr hesaplanamaz. Tahmini satış tutarı gerçekleşmiş gelir değildir.":"Net profit cannot be calculated without recorded feed intake and cost for this lamb. Estimated sale value is not realised income."
+});
 const uiTextSources=new WeakMap(),uiAttributeSources=new WeakMap();
 function uiTranslate(text){
  if(appLanguage!=='en')return text;
