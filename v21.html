@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.5.0 BETA</title>
+<title>Sürü Takip V21.5.1 — Açık Tema</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#218052">
 <link rel="icon" href="./icons/app.svg" type="image/svg+xml">
@@ -169,6 +169,13 @@ button:not(.primary):not(.danger):not(.nav):not(.summaryCard):not(.menuBtn):not(
 .moneyMeter{background:#cfe8d6}.moneyMeter>span{background:#2c965d}
 @media(prefers-reduced-motion:reduce){button,.btn{transition:none}}
 
+
+/* v21.5.1 force light palette for Samsung/browser dark-mode compatibility */
+:root,html,body{color-scheme:light!important;background-color:#f9fcfa!important;color:#20372a!important}
+.app,main,.screen{background-color:#f9fcfa}
+header,.bottom{background-color:#ffffff!important}
+.card,.summaryCard,.menuBtn,.reportKpi,.growthStat,.weightRow,.weightSummary,.weightResult,.growthTableWrap,.reportViz,.herdAnimal,.herdSearchCard,.sheet{background-color:#ffffff!important;color:#20372a}
+.hero,.growthHero,.reportHero,.pricingHero,.moneyViz{background:#e6f6eb!important;color:#19492d!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
