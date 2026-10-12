@@ -1244,6 +1244,24 @@ Object.assign(UI_EN,{
  "Kilo gerekli":"Weight required",
  "Kuzu başına yem tüketimi ve maliyeti kaydedilmediğinden net kâr hesaplanamaz. Tahmini satış tutarı gerçekleşmiş gelir değildir.":"Net profit cannot be calculated without recorded feed intake and cost for this lamb. Estimated sale value is not realised income."
 });
+Object.assign(UI_EN,{
+ "Yem Gideri Payı":"Feed Expense Allocation",
+ "Kuzuya düşen tahmini yem payı":"Estimated feed expense share for this lamb",
+ "Yem gideri kaydı yok":"No feed expense recorded",
+ "Doğum tarihi gerekli":"Birth date required",
+ "Geçerli dönem bulunamadı":"No valid period available",
+ "Satıştan yem payı çıkınca":"Sale value less feed expense share",
+ "Yem hesabını göster":"View feed allocation",
+ "Kuzu detayına dön":"Back to lamb details",
+ "Dönemdeki yem alışları":"Feed purchases during this period",
+ "Kuzuya düşen tahmini pay":"Estimated share for this lamb",
+ "Yem alışlarının dağılımı":"Feed purchase allocation",
+ "Bu dönemde yem gideri kaydı yok.":"No feed expenses recorded in this period.",
+ "Kuzu yem stoku":"Lamb feed stock",
+ "Genel sürü yem gideri":"Whole-flock feed expense",
+ "Gider tarihi kuzunun doğumundan bugüne kadar olmalıdır. Genel yem giderleri o tarihte kayıtlı koyun, koç ve kuzuların yaklaşık beslenme ağırlığına göre paylaşılır. Kuzu besi yemi stoku yalnız kuzulara dağıtılır. Gerçek yem tüketimi veya net kâr değildir.":"Expense dates must fall between the lamb's birth and today. Whole-flock feed costs are allocated by estimated feeding units among ewes, rams and lambs recorded at purchase time. Lamb-finishing feed stock is allocated only among lambs. This is not measured feed consumption or net profit.",
+ "Bu tutar yem satın alma kayıtlarına göre tahmindir; stok tüketimi ve diğer giderler bilinmediğinden net kâr değildir. Tahmini satış gerçekleşmiş gelir değildir.":"Based on dated feed purchases only, not measured stock consumption or other costs. This is not net profit, and projected sales are not realised income."
+});
 const uiTextSources=new WeakMap(),uiAttributeSources=new WeakMap();
 function uiTranslate(text){
  if(appLanguage!=='en')return text;
@@ -2142,6 +2160,46 @@ function toggleLambBreedingReserve(id){
  save();
  toast(a.breedingReserve?'Koçluk için ayrıldı; satış hesabından çıkarıldı':'Koçluk ayırması kaldırıldı');
  showGrowthDetail(id);
+}
+// Read-only attribution of purchase expenses, not measured feed consumption.
+function isFeedPurchase(r){
+ if(!r||!validDate(r.date)||!Number.isFinite(+r.amount)||+r.amount<=0)return false;
+ if(r.kind==='expense')return String(r.category||'').trim().toLocaleLowerCase('tr-TR')==='yem';
+ return r.kind==='stock'&&/yem|arpa|balya|saman|silaj|küspe|kuspe|kepek|yonca|alfalfa|hay|straw|barley|feed/.test(String(r.stockItem||'').toLocaleLowerCase('tr-TR'));
+}
+function estimatedLambFeedAllocation(lamb,asOf=today()){
+ if(!lamb||lamb.type!=='Kuzu'||!validDate(lamb.birth))return {available:false,amount:0,total:0,entries:[],reason:'Doğum tarihi gerekli'};
+ if(!validDate(asOf)||asOf<lamb.birth)return {available:false,amount:0,total:0,entries:[],reason:'Geçerli dönem bulunamadı'};
+ const departures=new Map(),markEnd=(id,date)=>{if(!id||!validDate(date))return;const prev=departures.get(id);if(!prev||date<prev)departures.set(id,date)};
+ db.records.forEach(r=>{if(r.kind==='sale'&&Array.isArray(r.animalIds))r.animalIds.forEach(id=>markEnd(id,r.date));if(r.kind==='death')markEnd(r.animalId,r.date)});
+ db.animals.forEach(a=>{if(a.status==='Öldü')markEnd(a.id,a.deathDate);if(a.status==='Kesildi')markEnd(a.id,a.slaughterDate)});
+ const unitAt=(a,date)=>{
+  if(!a||!['Kuzu','Koyun','Koç'].includes(a.type)||a.birth&&(!validDate(a.birth)||a.birth>date)||a.type==='Kuzu'&&!validDate(a.birth)||departures.has(a.id)&&date>departures.get(a.id))return 0;
+  if(a.type==='Koç')return 1.2;
+  if(a.type==='Koyun')return 1;
+  return Math.min(.85,.2+Math.max(0,dateDiffDays(a.birth,date))*.65/180);
+ };
+ const entries=[];let total=0,amount=0;
+ db.records.filter(r=>isFeedPurchase(r)&&r.date>=lamb.birth&&r.date<=asOf).forEach(r=>{
+  const onlyLambs=r.kind==='stock'&&/kuzu|lamb/i.test(String(r.stockItem||''));
+  const units=db.animals.filter(a=>!onlyLambs||a.type==='Kuzu').reduce((sum,a)=>sum+unitAt(a,r.date),0),own=unitAt(lamb,r.date);
+  if(units<=0||own<=0||onlyLambs&&lamb.type!=='Kuzu')return;
+  const sum=+r.amount,share=own/units,part=sum*share;
+  total+=sum;amount+=part;entries.push({id:r.id,date:r.date,amount:sum,share,allocated:part,onlyLambs});
+ });
+ return {available:true,amount,total,entries,count:entries.length};
+}
+function showLambFeedCostBreakdown(id){
+ const a=db.animals.find(x=>x.id===id);if(!a)return;
+ const calc=estimatedLambFeedAllocation(a);
+ if(!calc.available)return showModal('Yem Gideri Payı','<p>'+escHtml(calc.reason)+'</p><button onclick="showGrowthDetail(\''+id+'\')">Kuzu detayına dön</button>');
+ const entries=calc.entries.map(r=>'<div class="listitem"><div class="row"><b>'+escHtml(r.date)+'</b><span>'+money(r.amount)+'</span></div><div class="muted">'+(r.onlyLambs?'Kuzu yem stoku':'Genel sürü yem gideri')+' · '+(r.share*100).toFixed(1)+'% → '+money(r.allocated)+'</div></div>').join('');
+ showModal('Yem Gideri Payı',
+  '<div class="card"><div class="listitem row"><span>Dönemdeki yem alışları</span><b>'+money(calc.total)+'</b></div>'+
+  '<div class="listitem row"><span>Kuzuya düşen tahmini pay</span><b>'+money(calc.amount)+'</b></div>'+
+  '<div class="muted" style="padding:8px 0">Gider tarihi kuzunun doğumundan bugüne kadar olmalıdır. Genel yem giderleri o tarihte kayıtlı koyun, koç ve kuzuların yaklaşık beslenme ağırlığına göre paylaşılır. Kuzu besi yemi stoku yalnız kuzulara dağıtılır. Gerçek yem tüketimi veya net kâr değildir.</div></div>'+
+  '<h3>Yem alışlarının dağılımı</h3>'+(entries||'<div class="empty">Bu dönemde yem gideri kaydı yok.</div>')+
+  '<button class="small" onclick="showGrowthDetail(\''+id+'\')">Kuzu detayına dön</button>');
 }
 function showGrowthDetail(id){
  let a=db.animals.find(x=>x.id===id);if(!a)return;
