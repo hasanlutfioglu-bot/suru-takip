@@ -146,6 +146,29 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 
 .herdPrimaryFilters button b{display:block;font-size:18px;margin-top:3px}.herdShortcuts,.herdIssueFilters{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.herdIssueFilters:empty{display:none}.herdIssueFilters button{background:#fff3db;color:#775a19}.herdIssueFilters button.active{background:var(--green);color:white}.herdSortRow{display:flex;align-items:center;gap:10px;margin:6px 0 12px}.herdSortRow label{white-space:nowrap}.herdSortRow select{margin:0;flex:1;padding:9px;font-size:13px}.herdWarning{font-size:11px;color:#805b00;margin-top:7px;line-height:1.5}.herdAnimalActions{flex-wrap:wrap}.herdAnimalActions button{min-height:40px}.herdAnimalActions .openCard{background:#eef4ef;color:var(--green)}
 .targetEta{display:block;margin-top:5px;font-size:11px;font-weight:700;line-height:1.35;white-space:normal;overflow-wrap:normal;color:#d4eadd}.growthTable .targetEta{color:#466d59}.growthTable tr.saleLowRow .targetEta,.growthTable tr.growthControlRow .targetEta{color:#b6c9bc}.growthTable td:last-child{white-space:normal;overflow:visible;text-overflow:clip;vertical-align:middle}
+/* Light meadow theme: appearance only, no behavior or stored data changes. */
+:root{--bg:#f9fcfa;--card:#ffffff;--ink:#20372a;--muted:#58705f;--green:#218052;--green2:#319b66;--line:#deeae1;--shadow:0 3px 14px #204d2c0d}
+body{background:var(--bg);color:var(--ink)}
+header{background:#fffffff2;border-bottom-color:var(--line)}
+.brand .pill{background:#e8f5ec;color:#236a42;border-color:#d1e9d9}
+.bottom{background:#fffffff2}
+.card,.summaryCard,.menuBtn,.reportKpi,.weightRow,.weightSummary,.weightResult,.growthStat,.growthTableWrap,.reportViz,.reportActionCard,.growthMoneyBox,.growthPriceBox,.homeUpcoming,.homeDataQuality,.herdAnimal,.herdSearchCard{background:#fff;border-color:var(--line)}
+.summaryCard,.menuBtn,.growthStat{box-shadow:var(--shadow)}
+.hero,.growthHero,.reportHero,.pricingHero,.moneyViz{background:linear-gradient(130deg,#effaf2 0%,#e0f3e6 100%);color:#19492d;border:1px solid #d0e8d7;box-shadow:none}
+.hero small,.hero #heroSub,.growthHero .muted,.reportHero .muted,.pricingHero .muted,.moneyViz .muted,.moneyViz .moneySub,.moneyViz .moneyMeterText{color:#426c50;opacity:1}
+.primary,.talkBtn,.homeMenu{background:var(--green);color:#fff}
+button,.btn{transition:background-color .15s ease,border-color .15s ease}
+button:not(.primary):not(.danger):not(.nav):not(.summaryCard):not(.menuBtn):not(.growthMoneyBox):not(.growthStat):not(.reportKpi):not(.growthBreakRow):not(.reportActionCard):not(.moneySegment):not(.pulseRow){background-color:#e9f5ed;color:#236842}
+.tab.active,.herdPrimaryFilters button.active,.reportNav button.active,.growthFilters button.active{background:var(--green)!important;color:#fff!important}
+.herdAnimalActions .openCard{background:#e3f4e9;color:#1b7043}
+.nav.active{background:#e4f4e9;color:#1e7649}
+.dailyActions span,.upcomingIcon{background:#e8f7ed}
+.summaryCard b{color:#1b6f43}
+.moneySegment{background:#ffffffd9;border-color:#d1e7d8}
+.moneySegment span,.moneySegment small{color:#52765c}
+.moneyMeter{background:#cfe8d6}.moneyMeter>span{background:#2c965d}
+@media(prefers-reduced-motion:reduce){button,.btn{transition:none}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
