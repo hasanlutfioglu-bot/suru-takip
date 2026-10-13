@@ -6,4 +6,5 @@ const state={animals:[{id:'a',type:'Koyun',status:'Aktif'},{id:'b',type:'Kuzu',s
 assert.equal(dueCount(state,'2026-10-12'),0);assert.equal(dueCount(state,'2026-10-13'),1);state.records[0].reminderDone=true;assert.equal(dueCount(state,'2026-10-13'),0);
 state.records.push({kind:'pregnancy',animalId:'a',date:'2026-10-01',result:'pregnant',expectedDate:'2026-10-17'});assert.equal(dueCount(state,'2026-10-13'),1);state.records.push({kind:'birth',motherId:'a',date:'2026-10-13'});assert.equal(dueCount(state,'2026-10-13'),0);
 state.animals.push({id:'l',type:'Kuzu',status:'Aktif'});assert.equal(dueCount(state,'2026-10-13'),1);state.records.push({kind:'weight',animalId:'l',date:'2026-10-01'});assert.equal(dueCount(state,'2026-10-13'),0);
+assert.equal(dueCount({animals:[{id:'e',type:'Koyun',status:'Aktif'}],records:[{kind:'breeding',animalId:'e',date:'2026-10-13',expectedDate:'2026-10-17'},{kind:'pregnancy',animalId:'e',date:'2026-10-13',result:'open'}]},'2026-10-13'),0);
 console.log('PASS: push endpoint allowlist, timezone, due tasks, completed/terminal exclusions and breeding birth resolution');
