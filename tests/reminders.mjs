@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import {validPushEndpoint,dateAt,dueCount} from '../supabase/functions/flock-reminders/domain.mjs';
+assert(validPushEndpoint('https://fcm.googleapis.com/fcm/send/abc'));assert(validPushEndpoint('https://web.push.apple.com/abc'));assert(!validPushEndpoint('https://fcm.googleapis.com.evil.test/'));assert(!validPushEndpoint('https://localhost/'));assert(!validPushEndpoint('http://fcm.googleapis.com/'));assert(!validPushEndpoint('https://user@fcm.googleapis.com/'));assert(!validPushEndpoint('https://fcm.googleapis.com:444/'));
+assert.equal(dateAt(new Date('2026-10-13T22:30:00Z'),'Europe/Nicosia'),'2026-10-14');
+const state={animals:[{id:'a',type:'Koyun',status:'Aktif'},{id:'b',type:'Kuzu',status:'Satıldı'}],records:[{id:'h',kind:'health',animalId:'a',date:'2026-10-01',reminderDate:'2026-10-13'},{id:'b',kind:'health',animalId:'b',reminderDate:'2026-10-13'}],tasks:[],ramCalendar:[]};
+assert.equal(dueCount(state,'2026-10-12'),0);assert.equal(dueCount(state,'2026-10-13'),1);state.records[0].reminderDone=true;assert.equal(dueCount(state,'2026-10-13'),0);
+state.records.push({kind:'pregnancy',animalId:'a',date:'2026-10-01',result:'pregnant',expectedDate:'2026-10-17'});assert.equal(dueCount(state,'2026-10-13'),1);state.records.push({kind:'birth',motherId:'a',date:'2026-10-13'});assert.equal(dueCount(state,'2026-10-13'),0);
+state.animals.push({id:'l',type:'Kuzu',status:'Aktif'});assert.equal(dueCount(state,'2026-10-13'),1);state.records.push({kind:'weight',animalId:'l',date:'2026-10-01'});assert.equal(dueCount(state,'2026-10-13'),0);
+console.log('PASS: push endpoint allowlist, timezone, due tasks, completed/terminal exclusions and breeding birth resolution');

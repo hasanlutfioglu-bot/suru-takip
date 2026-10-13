@@ -1,4 +1,4 @@
-const CACHE='suru-v2160-herd-20261013';
+const CACHE='suru-v2170-operations-20261013';
 const APP=new URL('./v21.html',self.location.href).href;
 const ASSETS=['./manifest.webmanifest','./icons/app.svg','./icons/app-192.png','./icons/app-512.png'].map(path=>new URL(path,self.location.href).href);
 const SDK='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2';
@@ -14,3 +14,7 @@ self.addEventListener('fetch',event=>{
  // Auth, database requests and user data are never cached here.
 });
 
+
+// A push wakes the installed app's service worker even when its window is closed.
+self.addEventListener('push',event=>{event.waitUntil((async()=>{let data={};try{data=event.data?.json()||{}}catch(e){}await self.registration.showNotification(data.title||'Sürü Takip',{body:data.body||'Kontrol edilecek işler var.',icon:new URL('./icons/app-192.png',APP).href,badge:new URL('./icons/app-192.png',APP).href,tag:data.tag||'flock-daily',data:{url:APP+'?action=today'}})})())});
+self.addEventListener('notificationclick',event=>{event.notification.close();event.waitUntil((async()=>{const url=APP+'?action=today';for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true})){if(client.url.startsWith(APP)){await client.navigate(url);return client.focus()}}return self.clients.openWindow(url)})())});
