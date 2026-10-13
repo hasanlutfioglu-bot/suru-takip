@@ -1585,8 +1585,8 @@ function promoteAgedBreederLambs(){
  let changed=false;
  db.animals.forEach(a=>{
   if(a.type!=='Kuzu'||!isActiveAnimal(a)||!a.birth||ageMonths(a.birth)<12)return;
-  if(a.sex==='Dişi'&&a.breedingStatus==='Anaç Adayı'){a.type='Koyun';changed=true}
-  else if(a.sex==='Erkek'){a.type='Koç';changed=true}
+  if(a.sex==='Dişi'){a.type='Koyun';a.breedingStatus='Anaç Adayı';changed=true}
+  else if(a.sex==='Erkek'&&a.breedingReserve===true){a.type='Koç';changed=true}
  });
  return changed;
 }
