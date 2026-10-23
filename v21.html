@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.7.0 — Açık Tema</title>
+<title>Sürü Takip V21.7.1 — Açık Tema</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#218052">
 <meta name="color-scheme" content="light">
@@ -209,7 +209,7 @@ body:has(#herd.active) .bottom{width:100vw;max-width:100%;right:auto}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.7.0</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.7.1</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -2294,6 +2294,7 @@ function showGrowthDetail(id){
     <button class="small" onclick="openAddForAnimal('weight','${a.id}')">⚖️ Tartım Ekle</button>
     <button class="small" onclick="openAddForAnimal('health','${a.id}')">💉 Sağlık Kaydı</button>
     <button class="small" onclick="editAnimal('${a.id}')">✏️ Bilgileri Düzenle</button>
+    ${isActiveAnimal(a)&&!a.breedingReserve?`<button class="small primary" onclick="openAnimalSale('${a.id}')">${tx('💰 Satış Yap','💰 Sell Animal')}</button>`:''}
   </div></div>
   ${weighDue?`<div class="card" style="border-color:#e0b04a;background:#fff8e8"><b>⏱️ Tartım zamanı</b><div class="muted" style="margin-top:3px">${lastDays===null?'Henüz tartım yapılmadı.':'Son tartım '+lastDays+' gün önce.'}</div></div>`:''}
   ${warning}
@@ -2459,7 +2460,7 @@ function renderGrowth(){
   let statusClass=x.state==='saleReady'?'ok':x.state==='saleWarn'||x.state==='watch'?'warn':x.state==='control'?'bad':x.state==='near'?'near':'neutral';
   let status=x.state==='control'?'Kontrol':x.state==='saleReady'?'Satış':x.state==='saleWarn'||x.state==='watch'?'Takip':x.state==='near'?'Yakın':'Normal';
   let gain=x.wi.prevWeight&&x.wi.days?`${x.wi.gain>=0?'+':''}${x.wi.gain.toFixed(1)}`:'—';
-  return `<tr class="${rowCls}" onclick="showGrowthDetail('${x.a.id}')" style="cursor:pointer">
+  return `<tr class="${rowCls}" onclick="${growthFilter==='Satışa hazır'&&x.saleReady?'openAnimalSale':'showGrowthDetail'}('${x.a.id}')" style="cursor:pointer">
    <td class="tagcell">${escHtml(x.a.tag?'#'+x.a.tag:'—')}${x.a.breedingReserve?'<div class="muted">🐏 Koçlukta</div>':''}</td>
    <td>${compactLambAge(x.a)}</td>
    <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}</td>
@@ -2894,9 +2895,27 @@ function animalCard(id){
 
 function openAnimalSale(id){
  const a=db.animals.find(x=>x.id===id);if(!a||!isActiveAnimal(a)||a.breedingReserve)return;
- openAdd('sale');
- document.querySelectorAll('.saleAnimal').forEach(x=>{x.toggleAttribute('checked',x.value===id);x.checked=x.value===id});
+ if(!canEditData())return;
+ const wi=latestWeightInfo(a),weight=wi.weight>0?wi.weight:'',price=+db.lambPricePerKg||450;
+ showModal(tx('Hayvan Satışı','Animal Sale'),`
+  <div class="card"><b data-no-i18n>${escHtml(animalName(a))}</b><p class="muted">${wi.latest?tx('Son tartım: ','Last weighing: ')+escHtml(wi.latest.date):weight?tx('Hayvan kartındaki kilo; tartım tarihi yok.','Weight from animal card; no weighing date.'):tx('Son tartı yok. Kiloyu veya toplam satış tutarını elle gir.','No recorded weight. Enter a weight or total sale amount.')}</p>${withdrawalWarning(a)}</div>
+  <input type="checkbox" class="saleAnimal" value="${escHtml(id)}" checked hidden>
+  <label for="salePricing">${tx('Satış hesabı','Sale pricing')}</label><select id="salePricing" onchange="updateAnimalSaleTotal()"><option value="weight">${tx('Kilo × birim fiyat','Weight × unit price')}</option><option value="manual" ${weight?'':'selected'}>${tx('Toplam tutarı elle gir','Enter total manually')}</option></select>
+  <div id="saleWeightFields"><label for="saleWeight">${tx('Satış kilosu (kg)','Sale weight (kg)')}</label><input id="saleWeight" type="number" min="0.01" step="0.01" inputmode="decimal" value="${weight}" oninput="updateAnimalSaleTotal()"><label for="saleUnitPrice">${tx('Birim fiyat (TL/kg)','Unit price (TL/kg)')}</label><input id="saleUnitPrice" type="number" min="0.01" step="0.01" inputmode="decimal" value="${price}" oninput="updateAnimalSaleTotal()"></div>
+  <label for="amount">${tx('Toplam satış tutarı (TL)','Total sale amount (TL)')}</label><input id="amount" type="number" min="0.01" step="0.01" inputmode="decimal">
+  <label for="date">${tx('Tarih','Date')}</label><input id="date" type="date" value="${today()}">
+  <label for="note">${tx('Açıklama','Note')}</label><input id="note">
+  <p class="muted">${tx('Kaydedince hayvan satıldı olarak işaretlenir ve tutar gelire bir kez eklenir.','Saving marks the animal as sold and adds the amount to income once.')}</p>
+  <button class="primary" onclick="submitSale()">${tx('Satışı Kaydet','Save Sale')}</button>`);
+ updateAnimalSaleTotal();
 }
+function updateAnimalSaleTotal(){
+ const mode=document.getElementById('salePricing');if(!mode)return;
+ const amount=document.getElementById('amount'),manual=mode.value==='manual';
+ document.getElementById('saleWeightFields').hidden=manual;amount.readOnly=!manual;
+ if(!manual){const weight=Number(document.getElementById('saleWeight').value),price=Number(document.getElementById('saleUnitPrice').value);amount.value=Number.isFinite(weight)&&weight>0&&Number.isFinite(price)&&price>0?String(Math.round(weight*price*100)/100):'';}
+}
+
 function herdDetailSections(a,records){
  const section=(title,html)=>`<details><summary>${title}</summary>${html}</details>`;
  const weights=records.filter(r=>r.kind==='weight'),health=records.filter(r=>r.kind==='health');
@@ -3319,7 +3338,35 @@ function submitBirth(){if(!canEditData())return;const count=document.getElementB
 function addDaysISO(base,days){let d=new Date((base||today())+'T00:00:00');d.setDate(d.getDate()+(+days||0));return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
 function submitAnimal(kind){if(!canEditData())return;const animal=document.getElementById('animal'),weight=document.getElementById('weight'),date=document.getElementById('date'),note=document.getElementById('note');let a=db.animals.find(x=>x.id===animal.value);if(!a||!isActiveAnimal(a))return toast('Aktif hayvan seç');if(!validRecordDate(date.value,a.birth))return toast('Geçerli işlem tarihi seç');if(kind==='weight'){if(db.records.some(r=>r.kind==='weight'&&r.animalId===a.id&&r.date===date.value))return toast('Aynı gün tartım var; mevcut kaydı düzenle');if(!Number.isFinite(+weight.value)||+weight.value<=0)return toast('Sıfırdan büyük kilo gir');let prev=previousWeightRecord(a.id,date.value),pw=prev?weightValueFromRecord(prev):0,days=prev?.date?Math.max(1,dateDiffDays(prev.date,date.value)):0,gain=pw?(+weight.value-pw):0,adg=pw&&days?Math.round(gain*1000/days):'',ageDays=lambAgeDaysAt(a,date.value),band=expectedAdgBand(ageDays);a.weight=+weight.value;db.records.push({id:uid('rec'),kind,label:'Tartım · '+animalName(a),date:date.value,animalId:a.id,note:weight.value+' kg',weight:+weight.value,previousWeight:pw||'',gainKg:pw?+gain.toFixed(2):'',gainDays:days||'',adg,ageDays,ageMonth:Math.floor(ageDays/30.44),expectedMin:band.min,expectedMax:band.max})}else{if(!note.value.trim())return toast('Sağlık işlemini yaz');let rd=document.getElementById('reminderDays')?.value||'0',due='';if(rd==='custom')due=document.getElementById('reminderDate')?.value||'';else if(+rd>0)due=addDaysISO(date.value,+rd);if(rd==='custom'&&(!validDate(due)||due<date.value))return toast('Hatırlatma tarihi işlem tarihinden önce olamaz');let extra;try{extra=healthValues(date.value)}catch(e){return toast(e.message)}db.records.push({...extra,id:uid('rec'),kind,label:'Sağlık · '+animalName(a),date:date.value,animalId:a.id,note:note.value,reminderDate:due,reminderDone:false});}save();closeModal();toast('Kayıt işlendi')}
 function selectedSaleAnimals(){return [...document.querySelectorAll('.saleAnimal:checked')].map(x=>db.animals.find(a=>a.id===x.value)).filter(Boolean).filter(a=>isActiveAnimal(a)&&!a.breedingReserve)}
-function submitSelectedSale(source){if(!canEditData())return;const amount=document.getElementById('amount'),date=document.getElementById('date'),note=document.getElementById('note');if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir satış tutarı gir');if(!validRecordDate(date.value))return toast('Geçerli işlem tarihi seç');if(!canAddFinance(1,date.value))return showFinancePlusRequired();let arr=selectedSaleAnimals();if(!arr.length)return toast('En az bir hayvan seç');if(arr.some(a=>withdrawalUntil(a.id,date.value)))return toast(tx('Seçilen hayvanda et arınma süresi devam ediyor; sağlık kaydını kontrol et','A selected animal is in meat withdrawal; check its health record'));let names=arr.map(animalName),ids=arr.map(a=>a.id),previousStatuses={};arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});db.records.push({id:uid('rec'),kind:'sale',label:`Satış · ${arr.length} hayvan`,category:'Kuzu/Hayvan satışı',amount:+amount.value,date:date.value,note:(typeof note!=='undefined'&&note?.value)||'',animalIds:ids,animalNames:names,previousStatuses,source:source||'sale'});save();closeModal();toast(arr.length+' hayvan satıldı; gelir kaydına bağlandı')}
+function submitSelectedSale(source){
+ if(!canEditData())return;
+ const amount=document.getElementById('amount'),date=document.getElementById('date'),note=document.getElementById('note'),mode=document.getElementById('salePricing');
+ if(!amount||!date)return;
+ let pricing={};
+ if(mode){
+  if(!['weight','manual'].includes(mode.value))return;
+  pricing.pricingMode=mode.value;
+  if(mode.value==='weight'){
+   const weight=Number(document.getElementById('saleWeight').value),price=Number(document.getElementById('saleUnitPrice').value);
+   if(!Number.isFinite(weight)||weight<=0||!Number.isFinite(price)||price<=0)return toast(tx('Sıfırdan büyük kilo ve birim fiyat gir','Enter a positive weight and unit price'));
+   pricing.saleWeight=weight;pricing.unitPrice=price;amount.value=String(Math.round(weight*price*100)/100);
+  }
+ }
+ if(!Number.isFinite(+amount.value)||+amount.value<=0)return toast('Sıfırdan büyük bir satış tutarı gir');
+ if(!validRecordDate(date.value))return toast('Geçerli işlem tarihi seç');
+ if(!canAddFinance(1,date.value))return showFinancePlusRequired();
+ const arr=selectedSaleAnimals();if(!arr.length)return toast('En az bir hayvan seç');
+ if(mode&&arr.length!==1)return toast(tx('Tek hayvan seç','Select one animal'));
+ if(arr.some(a=>!validRecordDate(date.value,a.birth)))return toast('Geçerli işlem tarihi seç');
+ if(arr.some(a=>withdrawalUntil(a.id,date.value)))return toast(tx('Seçilen hayvanda et arınma süresi devam ediyor; sağlık kaydını kontrol et','A selected animal is in meat withdrawal; check its health record'));
+ if(pricing.pricingMode==='weight'){const latest=latestWeightInfo(arr[0]).latest;if(latest?.date>date.value)return toast(tx('Satış tarihi son tartımdan önce olamaz','Sale date cannot be before the latest weighing'));pricing.weightRecordId=latest?.id||'';}
+ const total=+amount.value,saleDate=date.value,saleNote=note?.value||'';
+ if(opCommit(()=>{
+  const previousStatuses={};arr.forEach(a=>{previousStatuses[a.id]=a.status;a.status='Satıldı'});
+  db.records.push({id:uid('rec'),kind:'sale',label:`Satış · ${arr.length} hayvan`,category:'Kuzu/Hayvan satışı',amount:total,date:saleDate,note:saleNote,animalIds:arr.map(a=>a.id),animalNames:arr.map(animalName),previousStatuses,source:source||'sale',...pricing});
+ })){closeModal();toast(arr.length+' hayvan satıldı; gelir kaydına bağlandı');}
+}
+
 function submitSale(){return submitSelectedSale('sale')}
 function stockUnits(){return ['birim','kg','ton','adet','balya']}
 function stockUnit(item){
