@@ -1,9 +1,9 @@
 {
   "name": "suru-takip",
-  "version": "21.7.0",
+  "version": "21.7.1",
   "private": true,
   "scripts": {
-    "test": "node tests/sync-audit.cjs v21.html && node tests/offline-shell.cjs && node tests/offline-herd.cjs && node tests/menu-flows.cjs && node tests/full-audit.cjs && node tests/billing-audit.cjs && node tests/payment-ui.cjs && node tests/readiness.cjs && node tests/server-readiness.cjs && node tests/flock-mcp.mjs && node tests/language.cjs && node tests/back-navigation.cjs && node tests/herd-usability.cjs && node tests/target-weighing.cjs && node tests/growth-sort.cjs && node tests/feed-allocation.cjs && node tests/herd-redesign.cjs && node tests/operations.cjs && node tests/reminders.mjs && node tests/push-security.cjs"
+    "test": "node tests/sync-audit.cjs v21.html && node tests/offline-shell.cjs && node tests/offline-herd.cjs && node tests/menu-flows.cjs && node tests/full-audit.cjs && node tests/billing-audit.cjs && node tests/payment-ui.cjs && node tests/readiness.cjs && node tests/server-readiness.cjs && node tests/flock-mcp.mjs && node tests/language.cjs && node tests/back-navigation.cjs && node tests/herd-usability.cjs && node tests/target-weighing.cjs && node tests/growth-sort.cjs && node tests/feed-allocation.cjs && node tests/herd-redesign.cjs && node tests/operations.cjs && node tests/reminders.mjs && node tests/push-security.cjs && node tests/lamb-sale.cjs"
   },
   "devDependencies": {
     "linkedom": "0.18.13"
