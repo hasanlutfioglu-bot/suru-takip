@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.7.1 — Açık Tema</title>
+<title>Sürü Takip V21.7.2 — Açık Tema</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#218052">
 <meta name="color-scheme" content="light">
@@ -76,7 +76,7 @@ button.growthStat,button.growthMoneyBox{font:inherit;color:inherit;text-align:le
 .growthGroupAlert{display:none;background:#fff7e6;border:1px solid #ead08f;border-radius:16px;padding:12px 13px;margin:0 0 10px}.growthGroupAlert.show{display:block}.growthGroupAlert b{font-size:13px}.growthGroupAlert .muted{font-size:11px;margin-top:3px}
 .growthControlRow{background:#fdeaea}.growthReason{background:#f8faf8;border-radius:14px;padding:11px 12px;margin:8px 0;font-size:12px;line-height:1.5}.growthReason strong{display:block;margin-bottom:2px}
 .reportHead{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:15px 0 10px}.reportHead h3{margin:0;font-size:24px}.reportHead .muted{font-size:12px}
-.reportPeriodTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.reportPeriodTabs .tab{justify-content:center;margin:0}
+.reportPeriodTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}.reportPeriodTabs .tab{justify-content:center;margin:0;white-space:normal;min-width:0;padding:11px 6px;line-height:1.3}
 .reportHero{background:linear-gradient(125deg,#163f31,#246f51);color:#fff;border-radius:22px;padding:17px;margin-bottom:10px}.reportHero .muted{color:#dcebe3}.reportHeroNet{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:10px}.reportHeroNet b{font-size:28px;line-height:1}.reportHeroNet span{font-size:11px;opacity:.88}
 .reportKpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}.reportKpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;min-width:0}.reportKpi b{display:block;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.reportKpi span{display:block;font-size:11px;color:var(--muted);margin-top:2px}button.reportKpi{font:inherit;color:inherit;text-align:left;width:100%;cursor:pointer}.reportKpi.clickcard:hover,.reportActionCard:hover{border-color:#9ab9a7}.reportHero[role="button"]{cursor:pointer;transition:transform .12s ease}.reportHero[role="button"]:active,.reportKpi.clickcard:active,.reportActionCard:active,.moneySegment:active{transform:scale(.99)}
 .reportNav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 12px}.reportNav button{padding:9px 4px;border-radius:13px;font-size:11px;line-height:1.2;background:#edf2ef}.reportNav button.active{background:var(--green);color:#fff}.reportNav button b{display:block;font-size:17px;margin-bottom:3px}
@@ -205,11 +205,12 @@ body:has(#herd.active) .bottom{width:100vw;max-width:100%;right:auto}
 
 /* Compact, consistent controls for field use. */
 [hidden]{display:none!important}.animalTabBar{display:flex;gap:4px;position:sticky;top:0;background:white;padding:8px 0;z-index:2}.animalTabBar button{flex:1;min-height:44px}.animalTabBar .active{background:var(--green);color:white}.opActionGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.opWarning{background:#fff4d9;color:#775719;border-radius:9px;padding:8px;font-size:12px;margin:6px 0}.opPills{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.opPills span{background:#edf5ef;border-radius:15px;padding:5px 10px;font-size:12px}.opFamily>div{padding:5px 0}.opSelectionTools{display:flex;gap:8px;margin:8px 0}.animalPortrait{width:96px;height:96px;object-fit:cover;border-radius:16px;float:right;margin:0 0 10px 10px}.herdControlFold{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px}.herdControlFold summary,details.card>summary{cursor:pointer;font-weight:650;min-height:30px}.homeSecondary .summaryCard{display:block;width:100%;margin-top:10px}.reportExtra{margin-top:12px}.animalDetailSections details{padding:10px 0;border-bottom:1px solid var(--line)}.animalDetailSections summary{min-height:36px;cursor:pointer}.opWeanWeights:empty{display:none}.weightSaveButton{position:sticky;bottom:0;box-shadow:0 -3px 10px #fff}.sheet button{min-height:44px}.bottomin{grid-template-columns:repeat(5,minmax(0,1fr))}.nav{min-width:0;overflow-wrap:anywhere}.sheet{overflow-x:hidden}.sheet p{overflow-wrap:anywhere}.sheet input[type="file"]{width:100%;min-width:0}.sheet select,.sheet input{max-width:100%;box-sizing:border-box}.opActionGrid button{min-width:0}.homeSecondary{clear:both}
+.birthSummaryGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.birthSummaryGrid .reportKpi{padding:12px 8px;text-align:center}.birthSummaryGrid .reportKpi b{font-size:25px;color:var(--green)}.birthSummaryGrid .reportKpi span{white-space:normal;line-height:1.4}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.7.1</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.7.2</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -310,7 +311,19 @@ body:has(#herd.active) .bottom{width:100vw;max-width:100%;right:auto}
  <div id="reportCurrencyInfo" class="muted"></div><div class="reportPeriodTabs" data-report-summary="overview finance herd">
   <button class="tab active" data-report="monthly" onclick="setReport('monthly',this)">Bu Ay</button>
   <button class="tab" data-report="yearly" onclick="setReport('yearly',this)">Bu Yıl</button>
+  <button class="tab" data-report="birthperiod" onclick="setReport('birthperiod',this)">Doğum Dönemi</button>
  </div>
+
+ <section class="card" data-report-summary="overview herd" id="reportBirthSummary">
+  <div class="reportSectionTitle" style="margin-top:0"><b>Doğum Özeti</b></div>
+  <p class="muted" id="reportBirthPeriod"></p>
+  <div class="birthSummaryGrid">
+   <button type="button" class="reportKpi clickcard" onclick="openReportDetail('births')"><b id="rBirths">0</b><span>Yeni doğan kuzu</span></button>
+   <button type="button" class="reportKpi clickcard" onclick="openReportDetail('lambedEwes')"><b id="rBirthSummaryLambed">0</b><span>Doğuran koyun</span></button>
+   <button type="button" class="reportKpi clickcard" onclick="openReportDetail('nonLambing')"><b id="rBirthSummaryNonLambing">0</b><span>Doğurmayan koyun</span></button>
+  </div>
+  <p class="muted" id="reportBirthScope" style="margin-bottom:0"></p>
+ </section>
 
  <div class="reportHero" data-report-summary="overview finance" role="button" tabindex="0" onclick="openReportDetail('net')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReportDetail('net')}">
   <div class="muted" id="reportLabel">Bu ay</div>
@@ -324,7 +337,6 @@ body:has(#herd.active) .bottom{width:100vw;max-width:100%;right:auto}
   <button type="button" class="reportKpi clickcard" data-report-summary="overview finance" onclick="openReportDetail('income')"><b id="rIncome">0</b><span>Gelir</span></button>
   <button type="button" class="reportKpi clickcard" data-report-summary="overview finance" onclick="openReportDetail('expense')"><b id="rExpense">0</b><span>Gider</span></button>
   <button type="button" class="reportKpi clickcard" data-report-summary="overview herd" onclick="openGrowthBreakdown('readyValue')"><b id="rSaleReadyTop">0</b><span>Satışa hazır kuzu</span></button>
-  <button type="button" class="reportKpi clickcard" data-report-summary="overview herd" onclick="openReportDetail('births')"><b id="rBirths">0</b><span>Yeni doğan kuzu</span></button>
  </div>
 
  <div class="reportInsight" data-report-summary="overview finance">
@@ -733,6 +745,10 @@ const UI_EN={
  "Önceki döneme göre": "Compared with the previous period",
  "Satışa hazır kuzu": "Lambs ready for sale",
  "Yeni doğan kuzu": "Newborn lambs",
+ "Doğum Özeti": "Lambing Summary",
+ "Doğum Dönemi": "Lambing Period",
+ "Doğuran koyun": "Ewes that lambed",
+ "Doğurmayan koyun": "Ewes without lambing records",
  "Dönem özeti hazırlanıyor…": "Preparing period summary…",
  "Kayıtlar analiz ediliyor.": "Analysing records.",
  "İşletme Özeti": "Farm Overview",
@@ -3635,14 +3651,17 @@ function ewePerformanceHtml(mode){
 }
 
 function birthMetrics(mode){
- let ewes=activeBreedingEwes(), eweIds=new Set(ewes.map(a=>a.id)), births=reportRecords(mode).filter(x=>x.kind==='birth'&&eweIds.has(x.motherId));
- let lambedIds=[...new Set(births.map(x=>x.motherId).filter(Boolean))];
- let lambs=births.reduce((s,x)=>s+(+x.count||0),0);
- let prolificacy=lambedIds.length?(lambs/lambedIds.length*100):0;
- let lambingRate=ewes.length?(lambedIds.length/ewes.length*100):0;
- let lambedSet=new Set(lambedIds), nonLambing=ewes.filter(a=>!lambedSet.has(a.id));
- return {ewes,births,lambs,lambedIds,prolificacy,lambingRate,nonLambing}
+ const activeEwes=activeBreedingEwes();
+ const births=reportRecords(mode).filter(x=>x.kind==='birth'&&Number.isFinite(+x.count)&&+x.count>0);
+ const lambedIds=[...new Set(births.map(x=>x.motherId).filter(Boolean))];
+ // Birth history must survive a mother's later sale, death or missing imported card.
+ const ewes=activeEwes.slice(),seen=new Set(ewes.map(a=>a.id));
+ lambedIds.forEach(id=>{if(!seen.has(id)){ewes.push(db.animals.find(a=>a.id===id)||{id,tag:'',type:'Koyun',sex:'Dişi',status:'Kart bulunamadı'});seen.add(id)}});
+ const lambs=births.reduce((n,x)=>n+(+x.count),0),lambedSet=new Set(lambedIds);
+ const nonLambing=activeEwes.filter(a=>!lambedSet.has(a.id));
+ return {ewes,activeEwes,births,lambs,lambedIds,prolificacy:lambedIds.length?lambs/lambedIds.length*100:0,lambingRate:ewes.length?lambedIds.length/ewes.length*100:0,nonLambing};
 }
+
 function pct(n){return new Intl.NumberFormat(appLocale(),{maximumFractionDigits:1}).format(n||0)+'%'}
 function showReportPlusRequired(){
  showModal('Sürü Takip PRO',`
@@ -3699,7 +3718,7 @@ function openReportDetail(kind){
  }else if(kind==='births'){
   title='Yeni Doğan Kuzular';summary=metrics.lambs+' kuzu';note=period+' · '+metrics.births.length+' doğum kaydı';body=reportBirthListHtml(metrics.births);
  }else if(kind==='lambedEwes'||kind==='prolificacy'){
-  const mothers=metrics.lambedIds.map(id=>db.animals.find(a=>a.id===id)).filter(Boolean);
+  const mothers=metrics.ewes.filter(a=>metrics.lambedIds.includes(a.id));
   title=kind==='prolificacy'?'Kuzu Verimi Detayı':'Doğuran Anaçlar';
   summary=kind==='prolificacy'?pct(metrics.prolificacy):mothers.length+' anaç';
   note=kind==='prolificacy'?(metrics.lambs+' kuzu ÷ '+metrics.lambedIds.length+' doğuran anaç × 100'):(period+' · '+metrics.lambs+' doğan kuzu');
@@ -3708,8 +3727,8 @@ function openReportDetail(kind){
    return br.length+' doğum · '+born+' kuzu · son '+last;
   });
  }else if(kind==='lambingRate'){
-  const mothers=metrics.lambedIds.map(id=>db.animals.find(a=>a.id===id)).filter(Boolean);
-  title='Anaç Sürü Doğum Oranı';summary=pct(metrics.lambingRate);note=metrics.lambedIds.length+' doğuran anaç ÷ '+metrics.ewes.length+' aktif anaç × 100';
+  const mothers=metrics.ewes.filter(a=>metrics.lambedIds.includes(a.id));
+  title='Anaç Sürü Doğum Oranı';summary=pct(metrics.lambingRate);note=tx(metrics.lambedIds.length+' doğuran anaç ÷ '+metrics.ewes.length+' dönem anaçları × 100',metrics.lambedIds.length+' ewes that lambed ÷ '+metrics.ewes.length+' ewes in the period × 100');
   body='<div class="reportSectionTitle"><b>Doğuran anaçlar · '+mothers.length+'</b></div>'+reportAnimalListHtml(mothers)+
        '<div class="reportSectionTitle"><b>Bu dönemde doğurmayanlar · '+metrics.nonLambing.length+'</b></div>'+reportAnimalListHtml(metrics.nonLambing,a=>{
         const last=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id&&r.date).map(r=>r.date).sort().pop()||'Hiç doğum kaydı yok';
@@ -4026,7 +4045,7 @@ function renderReportVisuals(){renderFinanceViz();renderHerdViz();}
 function renderReports(){
  let m=db.report||'monthly';
  
- let f=calcFinance(m), metrics=birthMetrics(m), births=f.arr.filter(x=>x.kind==='birth').reduce((s,x)=>s+(+x.count||0),0);
+ let f=calcFinance(m), metrics=birthMetrics(m), births=metrics.lambs;
  renderBusinessPulse(f);renderReportVisuals();
  let range=m==='birthperiod'?latestBirthPeriodRange():null;
  reportLabel.textContent=reportDateLabel(m);
@@ -4036,11 +4055,15 @@ function renderReports(){
  reportTabs.forEach(x=>x.classList.toggle('active',x.dataset.report===m));
  rIncome.textContent=money(f.income);rExpense.textContent=money(f.expense);rNet.textContent=money(f.income-f.expense);rBirths.textContent=births;
  if(document.getElementById('rSaleReadyTop'))rSaleReadyTop.textContent=db.animals.filter(a=>isActiveAnimal(a)&&isSaleCandidate(a)).length;
+ document.getElementById('rBirthSummaryLambed').textContent=metrics.lambedIds.length;
+ document.getElementById('rBirthSummaryNonLambing').textContent=metrics.nonLambing.length;
+ document.getElementById('reportBirthPeriod').textContent=reportDateLabel(m);
+ document.getElementById('reportBirthScope').textContent=tx('Kuzu sayısı bu dönemde kaydedilen tüm doğumları kapsar. Doğuran koyunlar birer kez sayılır; doğurmayanlar, bu dönemde doğum kaydı olmayan aktif anaçlardır.','Lambs include all births recorded in this period. Each mother is counted once; non-lambing ewes are active breeding ewes without a birth record in this period.');
  rLambedEwes.textContent=metrics.lambedIds.length;rProlificacy.textContent=pct(metrics.prolificacy);rLambingRate.textContent=pct(metrics.lambingRate);rNonLambingCount.textContent=metrics.nonLambing.length;
  if(document.getElementById('rLambedEwesHerd'))rLambedEwesHerd.textContent=metrics.lambedIds.length;
  if(document.getElementById('rProlificacyHerd'))rProlificacyHerd.textContent=pct(metrics.prolificacy);
  if(document.getElementById('rLambingRateHerd'))rLambingRateHerd.textContent=pct(metrics.lambingRate);
- nonLambingHint.textContent=`${metrics.ewes.length} aktif anaçtan ${metrics.lambedIds.length} tanesi bu seçili dönemde doğurdu; ${metrics.nonLambing.length} tanesinin doğum kaydı yok.`;
+ nonLambingHint.textContent=tx(`${metrics.lambedIds.length} koyun bu dönemde doğurdu; ${metrics.nonLambing.length} aktif anacın bu dönemde doğum kaydı yok. Doğuranların sayısına sonradan sürüden çıkan anneler de dahildir.`,`${metrics.lambedIds.length} ewes lambed in this period; ${metrics.nonLambing.length} active breeding ewes have no birth record in this period. Mothers that later left the flock are included in the lambed count.`);
  nonLambingList.innerHTML=metrics.nonLambing.length?metrics.nonLambing.map(a=>{let last=db.records.filter(r=>r.kind==='birth'&&r.motherId===a.id&&r.date).map(r=>r.date).sort().pop()||'Hiç doğum kaydı yok';return `<div class="listitem row"><div><b>${escHtml(animalName(a))}</b><div class="muted">Bu dönemde doğurmadı · son doğum: ${last}</div></div><button class="small" onclick="animalCard('${a.id}')">Kartı Aç</button></div>`}).join(''):'<div class="muted">Bu dönemde doğurmayan aktif anaç yok.</div>';
  let cats={};f.arr.filter(x=>x.amount).forEach(x=>cats[x.category||x.label]=(cats[x.category||x.label]||0)+(+x.amount||0));
  let deathRows=f.arr.filter(x=>x.kind==='death');
