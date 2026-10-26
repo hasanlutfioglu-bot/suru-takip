@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),make=require('./audit-harness.cjs');
 const a=make();a.pro();
-a.run(`let testDate='2026-10-10';localDateISO=()=>testDate;lastRenderedDate=testDate;
+a.run(`let testDate='2026-10-10';const actualLocalDateISO=localDateISO;localDateISO=d=>d?actualLocalDateISO(d):testDate;lastRenderedDate=testDate;
  db=seed();db.animals=[{id:'target',tag:'245',type:'Kuzu',sex:'Erkek',status:'Aktif',birth:'2026-06-01',weight:49}];
  db.records=[{id:'old',kind:'weight',animalId:'target',date:'2026-10-01',weight:48},{id:'last',kind:'weight',animalId:'target',date:'2026-10-06',weight:49}];
  renderAll();`);

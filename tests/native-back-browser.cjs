@@ -8,6 +8,7 @@ const {chromium}=require('playwright');
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',route=>route.request().url()==='https://flock.test/v21.html'?route.fulfill({contentType:'text/html',body:fs.readFileSync('v21.html','utf8')}):route.abort());
   await page.goto('https://flock.test/v21.html');
+  await page.evaluate(()=>{history.replaceState(null,'');installBackNavigation(true)});
   assert(await page.evaluate(()=>nativeBackEnabled),'CloseWatcher must be exercised in Chromium');
   await page.evaluate(()=>{currentPlan='pro';subscriptionStatus='active';currentPeriodEnd=addDaysISO(today(),365)+'T23:59:59Z';
    for(const [id,action] of [['testFinance',()=>openSub('finance')],['testModal',()=>showModal('Test','<p>Details</p>')]]){
@@ -30,7 +31,7 @@ const {chromium}=require('playwright');
   assert.equal(await page.evaluate(()=>history.state),null);
   await page.locator('.nav[data-go="herd"]').click();await back();assert.equal(await screen(),'home');
   assert.equal(await page.evaluate(()=>screenBackWatchers.length),0);
-  await page.reload();assert(await page.evaluate(()=>nativeBackEnabled));
+  await page.reload();await page.evaluate(()=>{history.replaceState(null,'');installBackNavigation(true)});assert(await page.evaluate(()=>nativeBackEnabled));
   await page.locator('.nav[data-go="herd"]').click();await back();assert.equal(await screen(),'home');
   assert.deepEqual(errors,[]);
   console.log('PASS: real Chromium close requests: screen, nested screen, modal, exit handoff, new interaction and reload');

@@ -1,11 +1,21 @@
 {
   "name": "suru-takip",
-  "version": "21.7.2",
+  "version": "21.8.0",
   "private": true,
   "scripts": {
-    "test": "node tests/sync-audit.cjs v21.html && node tests/offline-shell.cjs && node tests/offline-herd.cjs && node tests/menu-flows.cjs && node tests/full-audit.cjs && node tests/billing-audit.cjs && node tests/payment-ui.cjs && node tests/readiness.cjs && node tests/server-readiness.cjs && node tests/flock-mcp.mjs && node tests/language.cjs && node tests/back-navigation.cjs && node tests/herd-usability.cjs && node tests/target-weighing.cjs && node tests/growth-sort.cjs && node tests/feed-allocation.cjs && node tests/herd-redesign.cjs && node tests/operations.cjs && node tests/reminders.mjs && node tests/push-security.cjs && node tests/lamb-sale.cjs && node tests/birth-report-summary.cjs"
+    "test": "node scripts/sync-web.cjs --check && node tests/sync-audit.cjs v21.html && node tests/offline-shell.cjs && node tests/offline-herd.cjs && node tests/menu-flows.cjs && node tests/full-audit.cjs && node tests/billing-audit.cjs && node tests/payment-ui.cjs && node tests/readiness.cjs && node tests/server-readiness.cjs && node tests/flock-mcp.mjs && node tests/language.cjs && node tests/back-navigation.cjs && node tests/herd-usability.cjs && node tests/target-weighing.cjs && node tests/growth-sort.cjs && node tests/feed-allocation.cjs && node tests/herd-redesign.cjs && node tests/operations.cjs && node tests/reminders.mjs && node tests/push-security.cjs && node tests/lamb-sale.cjs && node tests/birth-report-summary.cjs && node tests/reliability.cjs && node tests/business-tools.cjs",
+    "test:browser": "node tests/browser.cjs && node tests/native-back-browser.cjs && node tests/preview-server.cjs",
+    "test:all": "npm test && npm run test:browser",
+    "build": "node scripts/sync-web.cjs --write && node scripts/stage-site.cjs",
+    "check:environment": "node scripts/check-environment.cjs",
+    "start": "node scripts/dev-server.cjs",
+    "benchmark": "node scripts/benchmark.cjs"
   },
   "devDependencies": {
-    "linkedom": "0.18.13"
+    "linkedom": "0.18.13",
+    "playwright": "1.62.1"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

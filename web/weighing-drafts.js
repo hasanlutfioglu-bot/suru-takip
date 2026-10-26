@@ -1,0 +1,11 @@
+function weightDraftKey(){return activeStorageKey+'_weightDraft'}
+function updateWeightProgress(){const inputs=[...document.querySelectorAll('.bulkWeightInput')],done=inputs.filter(x=>x.value.trim()!=='').length,el=document.getElementById('weightProgress');if(el)el.textContent=done+' / '+inputs.length+tx(' tartım girildi',' weights entered')}
+function saveWeightDraft(){
+ if(!document.getElementById('bulkWeightDate')||!deviceCanWrite())return;
+ const values={};document.querySelectorAll('.bulkWeightInput,.bulkTagInput').forEach(x=>{if(x.value.trim())values[(x.classList.contains('bulkTagInput')?'tag:':'weight:')+x.dataset.id]=x.value});
+ try{if(Object.keys(values).length)localStorage.setItem(weightDraftKey(),JSON.stringify({date:document.getElementById('bulkWeightDate').value,values}));else localStorage.removeItem(weightDraftKey());updateWeightProgress()}catch(e){toast(tx('Taslak saklanamadı; pencereyi kapatma','Draft could not be saved; keep this window open'))}
+}
+function restoreWeightDraft(){try{const draft=JSON.parse(localStorage.getItem(weightDraftKey())||'null');if(!draft)return;if(validRecordDate(draft.date))document.getElementById('bulkWeightDate').value=draft.date;document.querySelectorAll('.bulkWeightInput,.bulkTagInput').forEach(x=>{const key=(x.classList.contains('bulkTagInput')?'tag:':'weight:')+x.dataset.id;if(typeof draft.values?.[key]==='string')x.value=draft.values[key]})}catch(e){toast(tx('Tartım taslağı okunamadı','Weighing draft could not be read'))}}
+function clearWeightDraft(ask=true){if(ask&&!confirm(tx('Kaydedilmemiş tartım girişleri temizlensin mi?','Clear unsaved weighing entries?')))return;try{localStorage.removeItem(weightDraftKey())}catch(e){}document.querySelectorAll('.bulkWeightInput,.bulkTagInput').forEach(x=>x.value='');updateWeightProgress()}
+function filterWeightGroup(){const group=document.getElementById('bulkWeightGroup')?.value||'';document.querySelectorAll('.weightRow').forEach(row=>{const id=row.querySelector('.bulkWeightInput')?.dataset.id;row.hidden=!!group&&db.animals.find(a=>a.id===id)?.group!==group})}
+document.addEventListener('input',event=>{if(event.target?.matches?.('.bulkWeightInput,.bulkTagInput'))saveWeightDraft()});

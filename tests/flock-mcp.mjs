@@ -35,4 +35,11 @@ assert.match(JSON.stringify(await (await handler(request('commit_farm_record',{.
 assert.match(JSON.stringify(await (await handler(request('commit_farm_record',{...args,confirmed:false}))).json()),/confirmation_required/);
 const preview=await (await handler(request('preview_farm_record',args))).json();assert.equal(preview.result.structuredContent.saved,false);assert.equal(writes,0);
 assert.equal((await (await handler(request('commit_farm_record',args))).json()).result.structuredContent.saved,true);assert.equal(writes,1);
-console.log('Flock MCP: domain, isolation, consent, retry, chronology and concurrency checks passed.');
+for(const extra of [{breedingReserve:true},{}]){
+ const state=structuredClone(base);state.animals.find(a=>a.id==='lamb').breedingReserve=!!extra.breedingReserve;
+ if(!extra.breedingReserve)state.records.push({id:'withdrawal',kind:'health',animalId:'lamb',date,withdrawalUntil:'2026-10-10'});
+ const before=JSON.stringify(state);
+ assert.throws(()=>applyOperation(state,{kind:'sale',date,animal_ids:['lamb'],amount:100},'policyrequest',user,date),new RegExp(extra.breedingReserve?'breeding_reserved':'withdrawal_active'));
+ assert.equal(JSON.stringify(state),before,'rejected sales never mutate the source');
+}
+console.log('Flock MCP: domain, isolation, consent, retry, chronology, sale policies and concurrency checks passed.');

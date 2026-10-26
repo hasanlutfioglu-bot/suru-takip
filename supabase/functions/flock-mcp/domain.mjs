@@ -1,3 +1,5 @@
+import {appendChangeHistory} from '../_shared/change-history.mjs';
+import {salePolicyError} from '../_shared/sales-policy.mjs';
 // Pure domain operations shared by the edge function and security tests.
 const active=a=>!['Satıldı','Öldü','Kesildi'].includes(a.status);
 const fail=m=>{throw new Error(m)};
@@ -55,6 +57,7 @@ export function applyOperation(original,op,requestId,userId,today){
  }
  else if(kind==='sale'){
   if(!Array.isArray(op.animal_ids)||!op.animal_ids.length||op.animal_ids.length>200||new Set(op.animal_ids).size!==op.animal_ids.length)fail('invalid_animals');
+  const policyError=salePolicyError(db,op.animal_ids,date);if(policyError)fail(policyError);
   const animals=op.animal_ids.map(id=>animal(db,id,date));rec.amount=number(op.amount);rec.animalIds=animals.map(a=>a.id);rec.animalNames=animals.map(name);rec.previousStatuses=Object.fromEntries(animals.map(a=>[a.id,a.status]));animals.forEach(a=>a.status='Satıldı');rec.category='Kuzu/Hayvan satışı';rec.label='Satış · '+animals.length+' hayvan';rec.note=op.note?text(op.note):'';
  }
  else fail('unsupported_operation');
@@ -63,5 +66,6 @@ export function applyOperation(original,op,requestId,userId,today){
   const a=db.animals.find(a=>a.id===rec.animalId),rows=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id).sort((a,b)=>a.date.localeCompare(b.date));let prev;
   for(const r of rows){const w=+r.weight||+(String(r.note||'').replace(',','.').match(/([\d.]+)\s*kg/i)?.[1]||0),pw=prev?.weight||0,days=prev?(Date.parse(r.date)-Date.parse(prev.date))/864e5:0,ageDays=a.birth?Math.max(0,(Date.parse(r.date)-Date.parse(a.birth))/864e5):0,m=ageDays/30.44,band=m<2?[180,300]:m<4?[200,320]:m<6?[220,300]:m<8?[180,280]:[140,240];Object.assign(r,{weight:w,previousWeight:pw||'',gainDays:days||'',gainKg:pw?+(w-pw).toFixed(2):'',adg:pw&&days?Math.round((w-pw)*1000/days):'',ageDays,ageMonth:Math.floor(m),expectedMin:band[0],expectedMax:band[1]});prev=r}a.weight=rows.at(-1).weight;
  }
+ appendChangeHistory(original,db,userId,new Date().toISOString(),'audit_'+id);
  return {state:db,record:rec,replayed:false};
 }

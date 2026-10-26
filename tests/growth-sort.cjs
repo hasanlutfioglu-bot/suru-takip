@@ -5,7 +5,7 @@ a.run(`db=seed();db.animals=[
  {id:'two',tag:'2',type:'Kuzu',sex:'Erkek',status:'Aktif',birth:addDaysISO(today(),-150),weight:40},
  {id:'one',tag:'1',type:'Kuzu',sex:'Erkek',status:'Aktif',birth:addDaysISO(today(),-90),weight:45},
  {id:'missing',tag:'',type:'Kuzu',sex:'Dişi',status:'Aktif',birth:'',weight:''}
-];db.records=db.animals.filter(x=>x.weight).map(x=>({id:'w'+x.id,kind:'weight',animalId:x.id,date:today(),weight:x.weight}));renderAll()`);
+];db.records=db.animals.filter(x=>x.weight).map(x=>({id:'w'+x.id,kind:'weight',animalId:x.id,date:today(),weight:x.weight}));go('growth')`);
 const order=()=>[...a.document.querySelectorAll('#growthTableBody tr')].map(x=>x.getAttribute('onclick')?.match(/showGrowthDetail\('([^']+)'\)/)?.[1]);
 const unchanged=a.run('JSON.stringify(db)');
 assert.deepEqual(order(),['one','two','ten','missing'],'numeric ear tags, missing last');

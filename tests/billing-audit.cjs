@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),{stripTypeScriptTypes}=require('node:module');
-let source=stripTypeScriptTypes((fs.readFileSync('supabase/functions/_shared/play.ts','utf8')+'\n'+fs.readFileSync('supabase/functions/verify-play-subscription/index.ts','utf8')).replace(/^import .*;\n/gm,'').replace(/export /g,''));
+let source=stripTypeScriptTypes((fs.readFileSync('supabase/functions/_shared/play.ts','utf8')+'\n'+fs.readFileSync('supabase/functions/verify-play-subscription/index.ts','utf8')).replace(/^import .*;\r?\n/gm,'').replace(/export /g,''));
 async function scenario(options={}){
  let handler,events=[],claims=new Map(options.claims||[]),writes=[];
  const purchase={subscriptionState:'SUBSCRIPTION_STATE_ACTIVE',lineItems:[{productId:'suru_pro_monthly',expiryTime:'2099-01-01T00:00:00Z'}],acknowledgementState:'ACKNOWLEDGEMENT_STATE_PENDING',...options.purchase};
