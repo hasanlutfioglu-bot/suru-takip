@@ -15,10 +15,11 @@ assert.equal(h.document.querySelectorAll('[data-species="ram"]').length,1,'rare 
 assert.equal(h.document.querySelectorAll('[data-species="lamb"]').length,1);
 assert.match(h.document.getElementById('pastureCaption').textContent,/Temsili/);assert.match(h.document.getElementById('pastureCaption').textContent,/10.000/);
 assert.equal(h.run("pastureModel([{type:'__proto__',status:'Aktif'}]).counts.unknown"),1,'unexpected imported type stays unknown');
+assert.equal(h.run("pastureModel(Array.from({length:40},(_,i)=>({type:i===38?'Koç':i===39?'Kuzu':'Koyun',status:'Aktif'}))).visible.ram"),1,'representation never invents a second rare animal');
 for(let n=0;n<90;n++){
  const model=h.run(`pastureModel(Array.from({length:${n}},(_,i)=>({type:['Koyun','Koç','Kuzu','Other'][i%4],status:'Aktif'})))`);
  assert.equal(Object.values(model.visible).reduce((s,n)=>s+n,0),Math.min(n,24));
  for(const key of Object.keys(model.counts))assert(model.visible[key]<=model.counts[key]);
 }
-h.run("appLanguage='en';renderVisualContext()");assert.match(h.document.getElementById('pastureCaption').textContent,/Representative view/);assert.equal(h.document.getElementById('pastureTitle').textContent,'Your flock at pasture');
+h.run("appLanguage='en';renderVisualContext()");assert.match(h.document.getElementById('pastureCaption').textContent,/Representative view/);assert.equal(h.document.getElementById('pastureTitle').textContent,'Your living farm');
 console.log('PASS: current status counts/types, sales/empty refresh, proportional bounded representation, stable DOM, motion preference, unchanged records and English labels');
