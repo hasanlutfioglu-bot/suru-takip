@@ -1,0 +1,28 @@
+const assert=require('node:assert/strict'),make=require('./audit-harness.cjs');
+const app=make();app.pro();
+app.run(`db=seed();db.animals=['a','b','c','single','old'].map((id,i)=>({id,tag:id,type:'Kuzu',sex:i===1?'Dişi':'Erkek',group:'Besi',status:'Aktif',birth:addDaysISO(today(),-120)}));
+db.records=[];
+function w(id,days,weight,suffix=''){db.records.push({id:id+days+suffix,kind:'weight',animalId:id,date:addDaysISO(today(),days),weight})}
+w('a',-20,30);w('a',-10,31);w('a',-10,34,'corrected');w('a',1,90);w('a',-130,1);
+w('b',-20,40);w('b',-10,39);w('c',-20,30);w('c',-10,33);w('single',-5,25);w('old',-110,10);w('old',-100,12);
+invalidateRecordIndex();growthReportPeriod=90;growthReportSex='all';go('growth')`);
+const original=app.run('JSON.stringify(db)');
+assert.equal(app.run("growthMeasurements(db.animals[0]).length"),2,'same-day consolidated, future and pre-birth excluded');
+assert.equal(app.run("measuredGrowthInfo(db.animals[0]).adg"),400);
+assert.equal(app.run("measuredGrowthInfo(db.animals[1]).adg"),-100,'loss remains a negative observation');
+assert.equal(app.run("lambTargetEstimate({...db.animals[1],sex:'Erkek'},measuredGrowthInfo(db.animals[1]))"),null,'recorded loss must not fall back to a positive default forecast');
+assert.equal(app.run("lambTargetEstimate(db.animals[0],{...measuredGrowthInfo(db.animals[0]),gain:0})"),null,'zero gain must not produce a positive-rate forecast');
+assert.equal(app.run("growthPeerSummary(db.animals[0],measuredGrowthInfo(db.animals[0]),growthPeerIndex(db.animals.map(a=>({a,wi:measuredGrowthInfo(a)})))).count"),2,'exclude self, other sex, and stale weights from peer comparison');
+assert.equal(app.run("growthReportData().filter(x=>x.included).length"),3,'single and out-of-period pairs excluded');
+assert.match(app.document.getElementById('growthScientificReport').textContent,/200\s*g\/gün/,'equal-lamb mean includes loss');
+assert.match(app.document.getElementById('growthScientificReport').textContent,/300\s*g\/gün/,'median is separate');
+app.run("growthReportSex='Erkek';renderGrowthReport()");
+assert.equal(app.run('growthReportData().filter(x=>x.included).length'),2,'sex filter scopes report');
+app.run("growthReportPeriod=0;renderGrowthReport()");
+assert.equal(app.run('growthReportData().filter(x=>x.included).length'),3,'all-time admits older pairs');
+app.run("showGrowthDetail('a')");assert.equal(app.document.querySelectorAll('.growthChart circle').length,2,'chart uses actual valid measurements');
+app.run("db.animals[0].tag='<img src=x onerror=alert(1)>';db.animals[0].group='<script>alert(1)</script>';invalidateRecordIndex();renderGrowthReport()");
+assert.equal(app.document.querySelectorAll('#growthScientificReport script').length,0,'group label escaped');
+app.run("db.animals[0].tag='a';db.animals[0].group='Besi'");
+assert.equal(app.run('JSON.stringify(db)'),original,'report, filters and chart preserve all records');
+console.log('PASS: measured ADG, losses, same-day/future/pre-birth handling, period/sex filters, mean/median, chart, escaping and unchanged records');

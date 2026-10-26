@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.8.1 — Açık Tema</title>
+<title>Sürü Takip V21.8.2 — Açık Tema</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#294f3f">
 <meta name="color-scheme" content="light">
@@ -382,13 +382,25 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
 @media(min-width:1150px){.app{margin-left:235px;margin-right:auto;max-width:1190px;padding-bottom:30px}.app>header{padding:26px 35px 18px}.brand h1{font-size:23px}.brandMark{width:43px;height:43px}.headerMeta{margin-top:13px}#syncHealth.card{font-size:11px!important}.bottom{left:0;top:0;bottom:0;right:auto;transform:none;width:215px;border-radius:0;border:0;border-right:1px solid #e1e6d7;box-shadow:none;background:#f0f2e9;align-items:flex-start;padding-top:160px;overflow:visible}.bottom:before{content:"ÇİFTLİK ALANI";position:absolute;left:27px;top:123px;font-size:9px;font-weight:650;letter-spacing:.17em;color:#a4ad97}.bottomin{display:flex;flex-direction:column;gap:9px;padding:0 17px;width:100%}.nav{flex-direction:row;justify-content:flex-start;gap:14px;padding:15px 17px;font-size:12px;min-height:50px;border-radius:13px;color:#909d83}.nav.active{background:#e2e9d7;color:#577047}.nav[data-go="add"] b{width:25px;height:25px;border-radius:8px}.nav[data-go="add"].active{background:#e2e9d7}.homeDashboard.active{display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:0 22px}.homeIntro,.screen .hero,.homeSectionLabel,#homeQuickActions{grid-column:1/-1}.homeUpcoming{grid-column:1;grid-row:5/8}.homeSummary{grid-column:2;grid-row:5}.homeSecondary{grid-column:2;grid-row:6}.homeDataQuality{grid-column:2;grid-row:7}#welcomeAccountCard{grid-column:1/-1}.homeMenu{grid-column:1/-1}.opPills,#homeRamStatus{grid-column:1/-1}.screen .hero{min-height:235px}.heroGraphic{width:34%}.homeSummary .summaryCard{min-height:160px}.homeSummary .summaryCard>b{font-size:27px}#homeQuickActions{grid-template-columns:repeat(4,1fr)!important;gap:15px!important}#homeQuickActions .shortcutTile{background:#fff;flex-direction:row;justify-content:center;min-height:82px;gap:13px;border:1px solid var(--line);border-radius:18px}.shortcutIcon{width:46px;height:46px}.homeUpcoming{margin-bottom:23px}.modal .sheet{width:620px}}
 @media(prefers-reduced-motion:reduce){button,.shortcutIcon{transition:none}button:active{transform:none}}
 @media(min-width:1150px){html[lang="en"] .bottom:before{content:"FARM WORKSPACE"}}
+
+/* Growth: calm overview, explicit evidence, readable cards on small screens. */
+.growthHero{background:#e8eee0;border:1px solid #e0e6d5;border-radius:23px;padding:25px 22px;margin-bottom:16px;color:#31553e;box-shadow:none}
+.growthEyebrow,.growthReportHead small,.growthChart>small{font-size:9px;letter-spacing:.14em;font-weight:650;color:#7a8c68}
+.growthHero h2{font-size:30px;letter-spacing:-.055em;line-height:1.2;margin:9px 0 12px;font-weight:600}.growthHero .muted{font-size:12px;line-height:1.6;max-width:240px}.growthHero .row{align-items:center;gap:12px}.growthHero button{background:#31553e;color:#fff;flex-shrink:0}
+.growthStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:15px 0}.growthStat{background:#fff;border:1px solid #e6e9dc;padding:18px;text-align:left;min-height:105px;color:#38573e}.growthStat b{font-size:29px;font-weight:600;letter-spacing:-.045em}.growthStat span{font-size:11px;color:#849374;display:block;margin-top:9px}.growthStat:nth-child(2){background:#edf2e5}.growthStat:nth-child(3){background:#f5efdf}
+.growthMarket{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.growthPriceBox,.growthMoneyBox{padding:13px 10px;border:1px solid #e5e8da;background:#fff;border-radius:15px;min-width:0}.growthPriceBox label,.growthMoneyBox span{font-size:10px;color:#7e8c71;margin:0 0 8px}.growthPriceEdit{gap:3px}.growthPriceEdit input{min-width:0;width:100%;padding:6px;font-size:16px;min-height:35px}.growthPriceEdit small{font-size:9px}.growthMoneyBox b{font-size:16px;overflow-wrap:anywhere}
+#growth .moneyViz{background:#31533f;border:0;border-radius:19px;color:#fff;padding:20px;margin:12px 0 20px}#growth .moneyVizHead{font-size:11px}#growth .moneyBig{font-size:30px;color:#f5f5df;letter-spacing:-.04em}#growth .moneySub{font-size:10px;color:#d2dec7;line-height:1.7}#growth .pulseBadge{background:#ffffff18;color:#e7eddf;border:0;font-size:10px}
+.growthScientificReport{background:#fff;border:1px solid #e5e9dc;border-radius:22px;padding:21px;margin:20px 0}.growthReportHead{display:flex;justify-content:space-between;gap:12px}.growthReportHead>svg{width:36px;height:36px;flex-shrink:0;color:#80936f}.growthReportHead h3{margin:8px 0;font-size:22px;font-weight:600;letter-spacing:-.045em}.growthReportHead p,.growthReportNote,.growthChart p{font-size:11px;color:#7c8874;line-height:1.7;margin:6px 0}.growthReportControls{display:flex;gap:12px;margin:15px 0}.growthReportControls label{flex:1;min-width:0;margin:0}.growthReportControls select{display:block;width:100%;margin-top:6px;font-size:12px;padding:10px}.growthEvidence{display:grid;grid-template-columns:1fr 1fr;border-radius:15px;background:#f2f5ec;padding:16px 12px;gap:12px}.growthEvidence>div{min-width:0}.growthEvidence span{display:block;font-size:10px;color:#798a6c}.growthEvidence b{display:block;font-size:27px;letter-spacing:-.04em;font-weight:600;margin:9px 0;color:#3d6145}.growthEvidence b small{font-size:10px;letter-spacing:0;font-weight:500}.growthEvidence em{display:block;font-style:normal;font-size:10px;color:#7d8b70;line-height:1.6}.growthCoverage{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;font-size:11px;gap:10px;margin:21px 0 12px;color:#7d8d6e}.growthCoverage progress{width:100%;height:7px;accent-color:#6f8e59;border:0;border-radius:8px}.growthScientificReport h4{font-size:13px;font-weight:600;margin:22px 0 8px}.growthCohorts>div{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:13px 0;border-bottom:1px solid #eef0e6;font-size:11px}.growthCohorts span{min-width:0;overflow-wrap:anywhere}.growthCohorts span small{display:block;color:#95a085;margin-top:5px}.growthCohorts b{white-space:nowrap;font-size:17px;font-weight:600;color:#4c6744}.growthCohorts b small{font-size:9px;font-weight:400}.growthMethods{margin-top:18px;border-top:1px solid #e7ebde;padding-top:15px;font-size:11px;line-height:1.8;color:#6e7f65}.growthMethods summary{cursor:pointer;font-weight:600;color:#4d6846}.growthMethods a{color:#426747;text-decoration:underline}.growthMethods p{font-size:11px;color:#6e7f65;line-height:1.8}.growthFilters{display:flex;overflow:auto;gap:7px;margin:19px 0 10px;padding:3px 0 8px}.growthFilters button{flex-shrink:0;min-height:38px}.growthFilters .active{background:#31573e;color:#fff}.growthTableWrap{background:#fff;border:1px solid #e6eadc;overflow:hidden}.growthTable{width:100%;font-size:12px}.growthTable th{background:#edf2e6;color:#7a8d6b;font-weight:500;font-size:11px;padding:15px 10px}.growthTable td{padding:17px 10px;border-bottom:1px solid #edf0e4}.growthStatus{border-radius:8px;font-size:10px;padding:5px 8px}.targetEta{font-size:9px;line-height:1.6;color:#7d8d6f;margin-top:7px}.growthTapHint,#growth .weightLegend{font-size:10px;line-height:1.7;color:#86947a}.growthChart{background:#f0f4e9;border-radius:18px;padding:20px;margin:16px 0}.growthChart h3{font-size:21px;font-weight:600;letter-spacing:-.04em;margin:7px 0 12px}.growthChart svg{display:block;width:100%;height:auto}.growthChart svg text{font-size:10px;fill:#798a6d}.growthDetailMetric{border:1px solid #e4e9db;background:#fff;border-radius:15px;padding:18px 12px}.growthDetailMetric b{font-size:21px;color:#486641;font-weight:600}.growthDetailMetric span{font-size:10px;color:#87977a}.growthReportLink{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;background:#eaf0e1;border:1px solid #dfe6d2;border-radius:17px;padding:18px;margin-bottom:18px;color:#47623c;font-size:14px}.growthReportLink small{display:block;font-size:10px;color:#839374;margin-top:7px}.growthReportLink b{font-size:25px}
+@media(max-width:599px){.growthTable thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.growthTable,.growthTable tbody{display:block;width:100%}.growthTableWrap{background:transparent;border:0;overflow:visible}.growthTable tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid #e3e8d8;background:#fff;border-radius:17px;margin-bottom:12px;padding:15px;gap:14px 8px}.growthTable td{display:block;min-width:0;border:0;padding:0;background:transparent;text-align:left;font-size:17px;color:#47653f}.growthTable td:before{content:attr(data-label);display:block;font-size:9px;color:#8e9c80;margin-bottom:7px;font-weight:400}.growthTable .tagcell{font-size:18px;font-weight:650}.growthTable td:last-child{font-size:11px}.growthTable tr.growthControlRow{border-left:4px solid #c28a77}.growthTable tr.saleReadyRow{border-left:4px solid #80a365}.growthTable tr.saleLightRow{border-left:4px solid #d4b96d}.growthTable td.empty{grid-column:1/-1;font-size:12px}.growthHero h2{font-size:27px}.growthHero .row>div{min-width:0}.growthHero button{padding:10px;font-size:10px}}
+@media(min-width:700px){.growthStats{grid-template-columns:repeat(4,minmax(0,1fr))}.growthHero h2{font-size:36px}.growthHero .muted{max-width:none}.growthScientificReport{padding:27px}.growthEvidence{padding:22px}.growthEvidence b{font-size:34px}.growthMarket{gap:14px}.growthMoneyBox b{font-size:22px}.growthReportHead h3{font-size:27px}.growthCohorts>div{font-size:12px}}
+@media(max-width:599px){.growthTable td{width:auto;white-space:normal;overflow:visible;text-overflow:clip}.growthTable .growthStatus{max-width:none;overflow:visible}.growthTable .targetEta{overflow-wrap:anywhere}.growthTable .tagcell{overflow-wrap:anywhere}}
 /* END WEB THEME */
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
 <div id="syncHealth" class="card" role="status" aria-live="polite" style="margin:8px 14px;font-size:12px"></div>
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.8.1</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.8.2</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -476,6 +488,7 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
 </section>
 
 <section id="reports" class="screen" data-report-context="overview">
+ <button class="growthReportLink" onclick="go('growth');document.getElementById('growthScientificReport').scrollIntoView({behavior:'smooth'})"><span>Gelişim raporu<small>Ölçülen artış · örneklem · grup karşılaştırması</small></span><b>↗</b></button>
  <div class="reportHead">
   <div><h3>Raporlar</h3><div class="muted">İşletmenin durumunu tek bakışta gör.</div></div>
   </div>
@@ -747,7 +760,7 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
 <section id="growth" class="screen">
  <div class="growthHero">
   <div class="row">
-   <div><b>📈 Kuzu Gelişim</b><div class="muted" style="margin-top:4px">Yaş, son kilo ve kilo alma hızını birlikte takip et.</div></div>
+   <div><small class="growthEyebrow">SÜRÜNÜN GELECEĞİ</small><h2>Kuzu Gelişim</h2><div class="muted" style="margin-top:4px">Her tartım bir adım. Büyümeyi izle, zamanında karar ver.</div></div>
    <button class="small" onclick="openBulkWeight()">Tartım Yap</button>
   </div>
  </div>
@@ -767,6 +780,7 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
   <div class="moneyBig" id="growthCurrentValue">0 TL</div>
   <div class="moneySub" id="growthCurrentHint">30 kg üzerindeki erkek kuzular · mevcut kilo × TL/kg</div>
  </div>
+ <div id="growthScientificReport" class="growthScientificReport"></div>
  <div class="growthGroupAlert" id="growthGroupAlert"></div>
  <div class="growthFilters" id="growthFilters"></div>
  <div class="growthToolbar">
@@ -779,7 +793,7 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
   <thead><tr><th>Küpe</th><th>Yaş</th><th>Son kg</th><th>Artış</th><th>g/gün</th><th>Durum</th></tr></thead>
   <tbody id="growthTableBody"></tbody>
  </table></div>
- <div class="growthTapHint">Satıra dokun: uyarının nedeni, yaş grubu karşılaştırması, hedef ve tartım geçmişi açılsın.</div><div class="weightLegend" style="margin:8px 2px">Normal · Takip · Kontrol · Satış. ⏱ = tartım zamanı. Kontrol yalnız kilo kaybı veya iki dönem üst üste düşük gelişimde çıkar.</div>
+ <div class="growthTapHint">Satıra dokun: uyarının nedeni, yaş grubu karşılaştırması, hedef ve tartım geçmişi açılsın.</div><div class="weightLegend" style="margin:8px 2px">İzleniyor · Takip · Kontrol · Satış. ⏱ = tartım zamanı. Etiketler uygulamanın takip eşiklerine dayanır; tanı değildir.</div>
 </section>
 
 <section id="chat" class="screen"><h3>Sesli Komutlar</h3>
@@ -846,6 +860,8 @@ function initRegionalPreferences(){const c=document.getElementById('detectedCoun
 
 function appLocale(){return appLanguage==='en'?'en-GB':'tr-TR'}
 const UI_EN={
+ 'Benzer kuzuların ort.':'Similar lambs mean','En az 3 benzer kuzu gerekli':'At least 3 comparable lambs required','Uygulama takip bandı':'Application monitoring band','SÜRÜNÜN GELECEĞİ':'THE FUTURE OF YOUR FLOCK','Her tartım bir adım. Büyümeyi izle, zamanında karar ver.':'Every weighing is a step. Track growth and act in time.','Gelişim raporu':'Growth report','Ölçülen artış · örneklem · grup karşılaştırması':'Measured gain · sample size · group comparison','Veri eksik':'Missing data','İzleniyor':'Monitoring','Günlük artış uygulama takip eşiğinin altında':'Daily gain is below the application monitoring threshold',
+
 "Filtre ve sıralama":"Filter and sort","Grup":"Group","Tüm gruplar":"All groups","Toplu Sağlık":"Group Health","Gruplar":"Groups","CSV İçe Aktar":"Import CSV","Üreme / Gebelik":"Breeding / Pregnancy","Sütten Kesim":"Weaning","Yem Tüketimi":"Feed Consumption","Bölgesel Tercihler":"Regional Preferences","Para birimi ve kur":"Currency and rate","Telefon bildirimleri":"Phone notifications","Bu ay · gelir − gider":"This month \u00b7 income \u2212 expenses","Gelir − gider":"Income \u2212 expenses","Diğer göstergeler":"Other indicators","Ayrıntıları göster":"Show details",
  "Tahmini kuzu satış değeri": "Estimated lamb sale value",
  "Tahmini Kuzu Satış Değeri": "Estimated Lamb Sale Value",
@@ -1339,7 +1355,7 @@ Object.assign(UI_EN,{
  "Aynı yaş grubunun %20’den fazla altında": "More than 20% below the same age group average",
  "Aynı yaş grubunun ortalamasının altında": "Below the same age group average",
  "İki tartım dönemi üst üste gelişim düşük": "Low growth in two consecutive weighing periods",
- "Günlük kilo alımı yaşına göre düşük": "Daily gain is low for age",
+ "Günlük artış uygulama takip eşiğinin altında": "Daily gain is low for age",
  "Onay bekliyor": "Awaiting confirmation",
  "Onay": "Confirmed",
  "Belirtilmedi": "Not specified",
@@ -1563,7 +1579,7 @@ function uiTranslate(text){
  [/^bugün (.+)$/, 'today $1'],[/^50 kg hedef (.+)$/, '50 kg target $1'],
  [/^Gelir (.+)$/, 'Income $1'],[/^Gider (.+)$/, 'Expense $1'],
  [/^son (\d{4}-\d{2}-\d{2})$/, 'latest $1'],
- [/^(\d+)–(\d+) aylık grubun gelişimi genel olarak düşük$/, 'Growth is generally low in the $1–$2 month age group'],
+ [/^(\d+)–(\d+) aylık grup takip eşiğinin altında$/, 'Growth is generally low in the $1–$2 month age group'],
  [/^(\d+) kuzuda ortalama (.+) g\/gün$/, 'Average $2 g/day across $1 lambs'],
  [/^beklenen (.+) g\/gün\. Tek tek hayvan alarmı yerine önce grup besleme ve bakımını kontrol et\.$/, 'expected $1 g/day. Check group feeding and care first.'],
 
@@ -2555,14 +2571,14 @@ function growthAssessment(a,wi,groupAvg){
 function growthGroupWarnings(infos){
  let groups={};
  infos.forEach(x=>{
-  if(!Number.isFinite(x.wi.adg)||!x.a.birth)return;
-  let m=Math.floor(x.months);(groups[m]||(groups[m]=[])).push(x);
+  if(!Number.isFinite(x.wi.adg)||!validDate(x.a.birth)||!x.wi.latest||dateDiffDays(x.wi.latest.date,today())>=21)return;
+  let m=Math.floor(lambAgeDaysAt(x.a,x.wi.latest.date)/30.44),key=m+'|'+(x.a.sex||'')+'|'+(x.a.group||'');(groups[key]||(groups[key]=[])).push(x);
  });
  return Object.entries(groups).map(([m,arr])=>{
   if(arr.length<3)return null;
   let avg=Math.round(arr.reduce((s,x)=>s+x.wi.adg,0)/arr.length);
-  let band=expectedAdgBand((+m+.5)*30.44);
-  return avg<band.min?{month:+m,count:arr.length,avg,band}:null;
+  let month=+m.split('|')[0],band=expectedAdgBand((month+.5)*30.44);
+  return avg<band.min?{month,count:arr.length,avg,band,sex:arr[0].a.sex,group:arr[0].a.group}:null;
  }).filter(Boolean);
 }
 function toggleLambBreedingReserve(id){
@@ -2616,8 +2632,9 @@ function showLambFeedCostBreakdown(id){
 }
 function showGrowthDetail(id){
  let a=db.animals.find(x=>x.id===id);if(!a)return;
- let wi=latestWeightInfo(a),months=ageMonths(a.birth),same=db.animals.filter(x=>x.type==='Kuzu'&&isActiveAnimal(x)&&x.id!==a.id&&Math.floor(ageMonths(x.birth))===Math.floor(months)).map(x=>latestWeightInfo(x).weight).filter(v=>v>0);
- let groupAvg=same.length?(same.reduce((s,v)=>s+v,0)/same.length):0;
+ let wi=measuredGrowthInfo(a),months=ageMonths(a.birth);
+ let peers=db.animals.filter(x=>x.type==='Kuzu'&&isActiveAnimal(x)).map(a=>({a,wi:measuredGrowthInfo(a)}));
+ let same=growthPeerSummary(a,wi,growthPeerIndex(peers)),groupAvg=same.count>=3?same.mean:0;
  let assessment=growthAssessment(a,wi,groupAvg),pct=assessment.pct,band=assessment.band;
  let lastDays=wi.latest?.date?Math.max(0,dateDiffDays(wi.latest.date,today())):null,weighDue=lastDays===null||lastDays>=21;
  let weightReady=a.sex==='Erkek'&&wi.weight>=50,ageReady=a.sex==='Erkek'&&months>=5.5,ready=!a.breedingReserve&&(weightReady||ageReady||a.status==='Satılacak');
@@ -2641,11 +2658,12 @@ function showGrowthDetail(id){
   ${weighDue?`<div class="card" style="border-color:#e0b04a;background:#fff8e8"><b>⏱️ Tartım zamanı</b><div class="muted" style="margin-top:3px">${lastDays===null?'Henüz tartım yapılmadı.':'Son tartım '+lastDays+' gün önce.'}</div></div>`:''}
   ${warning}
   ${(()=>{let e=lambTargetEstimate(a,wi);return e?'<div class="card" style="margin:8px 0"><b>🎯 50 kg hedefine kalan: '+(e.measuredTarget?'hedef tamam':e.days?e.days+' gün (tahmini)':'tahmini süre doldu; tekrar tart')+'</b><div class="muted">'+e.remaining.toFixed(1)+' kg kaldı · '+(e.measuredRate?'Son iki tartıma göre '+Math.round(e.rate*1000)+' g/gün':'230 g/gün tahmini artış')+' · yeni tartımda otomatik güncellenir</div></div>':''})()}
+  ${growthWeightChart(a)}
   <div class="growthDetailGrid">
    <div class="growthDetailMetric"><b>${compactLambAge(a)}</b><span>Yaş</span></div>
    <div class="growthDetailMetric"><b>${wi.weight?wi.weight.toFixed(1)+' kg':'—'}</b><span>Son kilo</span></div>
    <div class="growthDetailMetric"><b>${wi.prevWeight?(wi.gain>=0?'+':'')+wi.gain.toFixed(1)+' kg':'—'}</b><span>Son dönem artış</span></div>
-   <div class="growthDetailMetric"><b>${Number.isFinite(wi.adg)?wi.adg+' g':'—'}</b><span>Günlük artış</span></div>
+   <div class="growthDetailMetric"><b>${Number.isFinite(wi.adg)?Math.round(wi.adg)+' g':'—'}</b><span>Günlük artış</span></div>
   </div>
   <div class="card">
    <div class="listitem row"><span>Satış durumu</span><b>${a.breedingReserve?'Koçluk için ayrıldı':ready?'Hazır':'Henüz değil'}</b></div>
@@ -2653,10 +2671,11 @@ function showGrowthDetail(id){
    <div class="listitem row"><span>50 kg hedefe kalan</span><b>${targetRemain?targetRemain.toFixed(1)+' kg':'Hedef tamam'}</b></div>
     ${(()=>{const sale=wi.weight>0?wi.weight*price:0;const weights=db.records.filter(r=>r.kind==='weight'&&r.animalId===a.id&&r.date).slice().sort((x,y)=>String(x.date).localeCompare(String(y.date)));const first=weights[0];const gain=first&&wi.weight>0?Math.max(0,wi.weight-weightValueFromRecord(first)):null;const feed=estimatedLambFeedAllocation(a);const margin=feed.available&&feed.count&&sale&&!a.breedingReserve?sale-feed.amount:null;return '<div class="listitem row"><span>İlk tartımdan beri artış</span><b>'+(gain===null?'Yeterli tartım yok':gain.toFixed(1)+' kg')+'</b></div><div class="listitem row"><span>Tahmini satış tutarı</span><b>'+(a.breedingReserve?'Damızlık / satış dışı':sale?money(sale):'Kilo gerekli')+'</b></div><div class="listitem row"><span>Kuzuya düşen tahmini yem payı</span><b>'+(feed.available?(feed.count?money(feed.amount):'Yem gideri kaydı yok'):feed.reason)+'</b></div><div class="listitem row"><span>Satıştan yem payı çıkınca</span><b>'+(margin===null?'—':money(margin))+'</b></div><button class="small" onclick="showLambFeedCostBreakdown(\''+a.id+'\')">Yem hesabını göster</button><div class="muted" style="padding:8px 0">Bu tutar yem satın alma kayıtlarına göre tahmindir; stok tüketimi ve diğer giderler bilinmediğinden net kâr değildir. Tahmini satış gerçekleşmiş gelir değildir.</div>'})()}
    <div class="listitem row"><span>Tahmini mevcut değer</span><b>${a.breedingReserve?'Satış hesabı dışında':wi.weight?money(wi.weight*price):'—'}</b></div>
-   <div class="listitem row"><span>Aynı yaş grubu ort.</span><b>${groupAvg?groupAvg.toFixed(1)+' kg':'Yeterli veri yok'}</b></div>
+   <div class="listitem row"><span>Benzer kuzuların ort.</span><b>${groupAvg?groupAvg.toFixed(1)+' kg · n='+same.count:'En az 3 benzer kuzu gerekli'}</b></div>
    <div class="listitem row"><span>Ortalamaya göre</span><b>${pct===null?'—':(pct>=0?'+':'')+Math.round(pct)+'%'}</b></div>
-   <div class="listitem row"><span>Normal günlük artış bandı</span><b>${band.min}–${band.max} g/gün</b></div>
+   <div class="listitem row"><span>Uygulama takip bandı</span><b>${band.min}–${band.max} g/gün</b></div>
   </div>
+  ${growthMethodology()}
   <h3 style="margin:14px 0 6px">Tartım Geçmişi</h3>${history}
   <div style="display:flex;gap:8px;flex-wrap:wrap">
    <button class="primary" style="flex:1" onclick="closeModal();setTimeout(()=>openAddForAnimal('weight','${a.id}'),60)">Yeni Tartım</button>
@@ -2683,7 +2702,7 @@ function setGrowthView(filter){
 function openGrowthBreakdown(kind){
  const price=+db.lambPricePerKg||450;
  const active=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a));
- const infos=active.map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
+ const infos=active.map(a=>({a,wi:measuredGrowthInfo(a),months:ageMonths(a.birth)}));
  let title='Kuzu Gelişim Detayı',summary='',items=[];
  if(kind==='adg'){
   items=infos.filter(x=>Number.isFinite(x.wi.adg)).sort((a,b)=>b.wi.adg-a.wi.adg).map(x=>({
@@ -2691,7 +2710,7 @@ function openGrowthBreakdown(kind){
    line:(x.wi.weight?x.wi.weight.toFixed(1)+' kg · ':'')+compactLambAge(x.a),
    value:Math.round(x.wi.adg)+' g/gün'
   }));
-  const avg=items.length?Math.round(items.reduce((sum,x)=>sum+(latestWeightInfo(x.a).adg||0),0)/items.length):0;
+  const avg=items.length?Math.round(items.reduce((sum,x)=>sum+(measuredGrowthInfo(x.a).adg||0),0)/items.length):0;
   title='Ortalama Günlük Artış';
   summary=items.length?avg+' g/gün':'Veri yok';
  }else if(kind==='readyValue'){
@@ -2736,6 +2755,7 @@ function lambTargetEstimate(a,wi){
  // initial weight or a stored historical gain must not become a growth rate.
  const actualRate=wi.prev&&wi.prev.date<wi.latest.date&&wi.prevWeight>0&&wi.gain>0&&wi.days>0
    ?wi.gain/wi.days:null;
+ if(wi.prev&&wi.prev.date<wi.latest.date&&wi.days>0&&wi.gain<=0&&remaining>0)return null;
  const rate=actualRate||defaultRate;
  const measuredRate=actualRate!==null;
  const elapsed=Math.max(0,dateDiffDays(wi.latest.date,today()));
@@ -2743,16 +2763,75 @@ function lambTargetEstimate(a,wi){
  const estimatedDays=Math.max(0,dateDiffDays(today(),targetDate));
  return {target,remaining,days:estimatedDays,targetDate,rate,elapsed,measuredRate,measuredTarget:remaining===0};
 }
+// BEGIN WEB growth-report
+// Descriptive growth reporting: recorded weights only; never writes farm data.
+let growthReportPeriod=90,growthReportSex='all';
+function growthMeasurements(a){
+ const days=new Map();
+ for(const r of indexedRecords().weights.get(a.id)||[]){
+  const weight=weightValueFromRecord(r);
+  if(validDate(r.date)&&r.date<=today()&&(!validDate(a.birth)||r.date>=a.birth)&&Number.isFinite(weight)&&weight>0)days.set(r.date,{date:r.date,weight});
+ }
+ return [...days.values()].sort((a,b)=>a.date.localeCompare(b.date));
+}
+function measuredGrowthInfo(a){
+ const wi=latestWeightInfo(a),rows=growthMeasurements(a),last=rows.at(-1),prev=rows.at(-2);
+ const days=prev?dateDiffDays(prev.date,last.date):0;
+ return {...wi,latest:last||null,prev:prev||null,weight:last?.weight||wi.weight,prevWeight:prev?.weight||0,days,gain:days>0?last.weight-prev.weight:0,adg:days>0?(last.weight-prev.weight)*1000/days:null};
+}
+function growthPeerKey(a,wi){return JSON.stringify([Math.floor(lambAgeDaysAt(a,wi.latest.date)/30),a.sex||'',a.group||''])}
+function growthPeerIndex(infos){
+ const groups=new Map();
+ for(const x of infos){if(!validDate(x.a.birth)||!x.wi.latest||dateDiffDays(x.wi.latest.date,today())>=21||!(x.wi.weight>0))continue;const key=growthPeerKey(x.a,x.wi),g=groups.get(key)||{sum:0,count:0};g.sum+=x.wi.weight;g.count++;groups.set(key,g)}
+ return groups;
+}
+function growthPeerSummary(a,wi,groups){
+ if(!validDate(a.birth)||!wi.latest||dateDiffDays(wi.latest.date,today())>=21)return {count:0,mean:0};
+ const g=groups.get(growthPeerKey(a,wi));return g?{count:g.count-1,mean:g.count>1?(g.sum-wi.weight)/(g.count-1):0}:{count:0,mean:0};
+}
+function growthReportData(){
+ const cutoff=growthReportPeriod?addDaysISO(today(),-growthReportPeriod):'';
+ return db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a)&&(growthReportSex==='all'||a.sex===growthReportSex)).map(a=>{
+  const rows=growthMeasurements(a),last=rows.at(-1),prev=rows.at(-2),days=prev?dateDiffDays(prev.date,last.date):0;
+  const included=!!(days>0&&(!cutoff||prev.date>=cutoff));
+  return {a,last,prev,days,included,adg:included?(last.weight-prev.weight)*1000/days:null,stale:!last||dateDiffDays(last.date,today())>=21};
+ });
+}
+function growthMethodology(){
+ return `<details class="growthMethods"><summary>${tx('Hesaplama yöntemi ve kaynaklar','Methods and sources')}</summary><p>${tx('Günlük canlı ağırlık artışı (ADG) = (son kg − önceki kg) × 1000 / iki tartım arasındaki gün. Her kuzu son iki farklı tarihli, pozitif tartımıyla bir kez temsil edilir. Aynı günün son kaydı kullanılır; gelecek tarihli ve doğum öncesi kayıtlar dışlanır. Negatif artışlar korunur.','Average daily gain (ADG) = (latest kg − previous kg) × 1000 / days between weighings. Each lamb contributes its last two positive weights on different dates once. The last entry per day is used; future and pre-birth records are excluded. Negative gains are retained.')}</p><p>${tx('Seçilen dönemde iki tartımın da bulunması gerekir. Ortalama kuzuların ADG değerlerinin aritmetik ortalamasıdır; ortanca sıralı dağılımın orta değeridir. Güncel tartım: son 21 günden daha yeni kayıt; bu uygulamanın iş takip aralığıdır. Gruplar son tartımdaki 30 günlük yaş aralığı, cinsiyet ve kayıtlı sürü grubuna göre ayrılır. Küçük örneklemler genellenemez.','Both weighings must fall within the selected period. The mean weights each lamb equally; the median is the middle of the sorted values. A recent weight is less than 21 days old, an application scheduling interval. Groups use 30-day age bands at last weighing, sex and recorded flock group. Small samples cannot be generalized.')}</p><p>${tx('Irk, doğum tipi, anne yaşı ve besleme koşulları için düzeltme yapılmaz. Grup farkları genetik üstünlük veya hastalık tanısı değildir. Yaşa göre sabit bantlar uygulamanın takip eşikleridir; evrensel bilimsel normal aralık değildir. 50 kg işletme hedefidir. Hedef tarihi artışın aynı hızda sürdüğü varsayımına dayanır; tek tartımda 230 g/gün senaryosu kullanılır ve kesin sonuç değildir.','No adjustment is made for breed, birth type, dam age or feeding conditions. Group differences do not establish genetic merit or a diagnosis. Fixed age bands are application monitoring thresholds, not universal scientific norms. 50 kg is a business target. Target dates assume a constant gain; with one weighing a 230 g/day scenario is used, not a certain outcome.')}</p><p><a href="https://www.sheep.ie/weighing-report/" target="_blank" rel="noopener noreferrer">Sheep Ireland · Weighing Report</a> · <a href="https://teagasc.ie/news--events/daily/maximising-lamb-thrive/" target="_blank" rel="noopener noreferrer">Teagasc · Maximising lamb thrive</a></p></details>`;
+}
+function renderGrowthReport(){
+ const el=document.getElementById('growthScientificReport');if(!el)return;
+ const rows=growthReportData(),valid=rows.filter(x=>x.included),vals=valid.map(x=>x.adg).sort((a,b)=>a-b),n=vals.length;
+ const mean=n?vals.reduce((s,v)=>s+v,0)/n:null,median=n?(vals[Math.floor(n/2)]+vals[Math.ceil(n/2)-1])/2:null;
+ const fmt=v=>v===null?'—':Math.round(v).toLocaleString(appLocale());
+ const groups=new Map();
+ for(const x of valid){const age=validDate(x.a.birth)?Math.floor(lambAgeDaysAt(x.a,x.last.date)/30):null;const label=(age===null?tx('Yaş bilinmiyor','Unknown age'):age*30+'–'+(age*30+29)+tx(' gün',' days'))+' · '+(x.a.sex||tx('Cinsiyet yok','Unknown sex'))+' · '+(x.a.group||tx('Grupsuz','No group'));if(!groups.has(label))groups.set(label,[]);groups.get(label).push(x.adg)}
+ el.innerHTML=`<div class="growthReportHead"><div><small>${tx('ÖLÇÜME DAYALI RAPOR','MEASUREMENT REPORT')}</small><h3>${tx('Büyümeyi verilerle izle','Understand their growth')}</h3><p>${tx('Aktif kuzular · her hayvanın son iki tartımı','Active lambs · last two weighings per animal')} · ${escHtml(today())}</p></div>${uiIcon('growth')}</div>
+ <div class="growthReportControls"><label>${tx('Tartım dönemi','Weighing period')}<select aria-label="${tx('Rapor dönemi','Report period')}" onchange="growthReportPeriod=+this.value;renderGrowthReport()">${[[30,tx('Son 30 gün','Last 30 days')],[90,tx('Son 90 gün','Last 90 days')],[0,tx('Tüm tarihler','All dates')]].map(([v,t])=>`<option value="${v}" ${v===growthReportPeriod?'selected':''}>${t}</option>`).join('')}</select></label><label>${tx('Cinsiyet','Sex')}<select aria-label="${tx('Rapor cinsiyeti','Report sex')}" onchange="growthReportSex=this.value;renderGrowthReport()">${[['all',tx('Tümü','All')],['Erkek',tx('Erkek','Male')],['Dişi',tx('Dişi','Female')]].map(([v,t])=>`<option value="${v}" ${v===growthReportSex?'selected':''}>${t}</option>`).join('')}</select></label></div>
+ <div class="growthEvidence"><div><span>${tx('Ortalama artış','Mean gain')}</span><b>${fmt(mean)} <small>g/${tx('gün','day')}</small></b><em>n = ${n} / ${rows.length} ${tx('kuzu','lambs')}</em></div><div><span>${tx('Ortanca artış','Median gain')}</span><b>${fmt(median)} <small>g/${tx('gün','day')}</small></b><em>${n?tx('En düşük / en yüksek: ','Min / max: ')+fmt(vals[0])+' / '+fmt(vals.at(-1)):tx('İki tarihli tartım gerekli','Two dated weights required')}</em></div></div>
+ <div class="growthCoverage"><span>${tx('Güncel tartımı olan','Recently weighed')}</span><b>${rows.filter(x=>!x.stale).length} / ${rows.length}</b><progress max="${Math.max(1,rows.length)}" value="${rows.filter(x=>!x.stale).length}"></progress></div>
+ <p class="growthReportNote">${rows.length-n} ${tx('kuzu dönem hesabı dışında: dönemde iki farklı tarihli tartım yok. Eski tartımlar artış hesabında kalabilir; güncellik göstergesini birlikte değerlendir.','lambs excluded: fewer than two dated weights in the period. Older weights may contribute to gain; consider recency alongside it.')}</p>
+ <h4>${tx('Benzer grupların görünümü','Comparable groups')}</h4><div class="growthCohorts">${[...groups].sort((a,b)=>a[0].localeCompare(b[0],appLocale(),{numeric:true})).map(([name,vs])=>`<div><span data-no-i18n>${escHtml(name)}<small>n = ${vs.length}${vs.length<3?' · '+tx('az veri','small sample'):''}</small></span><b>${fmt(vs.reduce((s,v)=>s+v,0)/vs.length)} <small>g/${tx('gün','day')}</small></b></div>`).join('')||`<p>${tx('Bu seçimde karşılaştırma için yeterli tartım yok.','No paired weighings for this selection.')}</p>`}</div>${growthMethodology()}`;
+}
+function growthWeightChart(a){
+ const rows=growthMeasurements(a);if(!rows.length)return `<div class="growthChart"><h3>${tx('Kilo yolculuğu','Weight journey')}</h3><p>${tx('İlk tartımla grafik başlayacak.','Record a weighing to start the chart.')}</p></div>`;
+ const min=Math.max(0,Math.floor(Math.min(...rows.map(x=>x.weight))/5)*5-5),max=Math.max(min+10,Math.ceil(Math.max(...rows.map(x=>x.weight))/5)*5+5);
+ const span=Math.max(1,dateDiffDays(rows[0].date,rows.at(-1).date)),x=r=>44+dateDiffDays(rows[0].date,r.date)/span*292,y=r=>146-(r.weight-min)/(max-min)*115;
+ const points=rows.map(r=>x(r).toFixed(1)+','+y(r).toFixed(1)).join(' ');
+ return `<div class="growthChart"><small>${tx('GERÇEK TARTIMLAR','RECORDED WEIGHTS')}</small><h3>${tx('Kilo yolculuğu','Weight journey')}</h3><svg viewBox="0 0 360 184" role="img" aria-label="${tx('Tarihe göre ölçülen canlı ağırlık grafiği','Recorded live weight over time')}">${[0,.5,1].map(t=>`<path d="M44 ${146-t*115}H336" stroke="#e3e9dc"/><text x="4" y="${150-t*115}">${(min+(max-min)*t).toFixed(0)} kg</text>`).join('')}<polyline points="${points}" fill="none" stroke="#477253" stroke-width="3"/>${rows.map(r=>`<circle cx="${x(r)}" cy="${y(r)}" r="4" fill="#477253"><title>${r.date}: ${r.weight.toFixed(1)} kg</title></circle>`).join('')}<text x="44" y="174">${rows[0].date}</text><text x="336" y="174" text-anchor="end">${rows.at(-1).date}</text></svg><p>${rows.length} ${tx('tartım · noktalar ölçümdür; aradaki çizgi yalnız görsel bağlantıdır.','weighings · dots are measurements; connecting lines are visual guides.')}</p></div>`;
+}
+// END WEB growth-report
 function renderGrowth(){
+ renderGrowthReport();
  let body=document.getElementById('growthTableBody'),filters=document.getElementById('growthFilters');
  if(!body||!filters)return;
  let lambs=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a));
- let infos=lambs.map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
- let groupWeights={};
- infos.filter(x=>x.wi.weight>0).forEach(x=>{let g=Math.floor(x.months);(groupWeights[g]||(groupWeights[g]=[])).push(x.wi.weight)});
+ let infos=lambs.map(a=>({a,wi:measuredGrowthInfo(a),months:ageMonths(a.birth)}));
+ const peerIndex=growthPeerIndex(infos);
  infos.forEach(x=>{
-  let vals=groupWeights[Math.floor(x.months)]||[];
-  x.groupAvg=vals.length?vals.reduce((s,v)=>s+v,0)/vals.length:0;
+  let peers=growthPeerSummary(x.a,x.wi,peerIndex);
+  x.groupAvg=peers.count>=3?peers.mean:0;
   x.assessment=growthAssessment(x.a,x.wi,x.groupAvg);
   x.saleByAge=x.a.sex==='Erkek'&&x.months>=5.5;
   x.saleByWeight=x.a.sex==='Erkek'&&x.wi.weight>=50;
@@ -2780,6 +2859,7 @@ function renderGrowth(){
  growthSaleReady.textContent=ready.length;
  growthBelowAvg.textContent=infos.filter(x=>x.assessment.level!=='normal'||x.weighDue).length;
  growthAvgAdg.textContent=adgs.length?avgAdg+' g':'—';
+ growthAvgAdg.parentElement.querySelector('span').textContent=tx('Ort. artış','Mean gain')+' · n='+adgs.length;
  let priceInput=document.getElementById('growthPriceInput');if(priceInput&&document.activeElement!==priceInput)priceInput.value=price;
  let rv=document.getElementById('growthReadyValue'),tv=document.getElementById('growthTargetValue');if(rv)rv.textContent=money(readyValue);if(tv)tv.textContent=money(targetValue);
 
@@ -2788,7 +2868,7 @@ function renderGrowth(){
   if(groupWarnings.length){
    let g=groupWarnings[0];
    ga.classList.add('show');
-   ga.innerHTML=`<b>⚠️ ${g.month}–${g.month+1} aylık grubun gelişimi genel olarak düşük</b><div class="muted">${g.count} kuzuda ortalama ${g.avg} g/gün · beklenen ${g.band.min}–${g.band.max} g/gün. Tek tek hayvan alarmı yerine önce grup besleme ve bakımını kontrol et.</div>`;
+   ga.innerHTML=`<b>${tx("Grup takip eşiğinin altında","Group below monitoring threshold")}</b><div class="muted" data-no-i18n>${g.month}–${g.month+1} ${tx("ay","months")} · ${escHtml(g.sex||"—")} · ${escHtml(g.group||"—")} · n=${g.count} · ${g.avg} g/${tx("gün","day")}</div><div class="muted">${tx("Uygulama takip bandı","Application monitoring band")}: ${g.band.min}–${g.band.max} g/${tx("gün","day")} · ${tx("Önce tartım doğruluğunu ve grubun ortak koşullarını değerlendir.","First review weighing accuracy and the group’s shared conditions.")}</div>`;
   }else{ga.classList.remove('show');ga.innerHTML=''}
  }
 
@@ -2800,15 +2880,15 @@ function renderGrowth(){
  body.innerHTML=shown.length?shown.map(x=>{
   let rowCls=x.state==='control'?'growthControlRow':x.state==='saleReady'?'saleReadyRow':x.state==='saleWarn'||x.state==='watch'?'saleLightRow':x.state==='near'?'growthNearRow':'';
   let statusClass=x.state==='saleReady'?'ok':x.state==='saleWarn'||x.state==='watch'?'warn':x.state==='control'?'bad':x.state==='near'?'near':'neutral';
-  let status=x.state==='control'?'Kontrol':x.state==='saleReady'?'Satış':x.state==='saleWarn'||x.state==='watch'?'Takip':x.state==='near'?'Yakın':'Normal';
+  let status=x.state==='control'?'Kontrol':x.state==='saleReady'?'Satış':x.state==='saleWarn'||x.state==='watch'?'Takip':x.state==='near'?'Yakın':!Number.isFinite(x.wi.adg)?'Veri eksik':'İzleniyor';
   let gain=x.wi.prevWeight&&x.wi.days?`${x.wi.gain>=0?'+':''}${x.wi.gain.toFixed(1)}`:'—';
-  return `<tr class="${rowCls}" onclick="${growthFilter==='Satışa hazır'&&x.saleReady?'openAnimalSale':'showGrowthDetail'}('${x.a.id}')" style="cursor:pointer">
-   <td class="tagcell">${escHtml(x.a.tag?'#'+x.a.tag:'—')}${x.a.breedingReserve?'<div class="muted">🐏 Koçlukta</div>':''}</td>
-   <td>${compactLambAge(x.a)}</td>
-   <td>${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}</td>
-   <td>${gain}</td>
-   <td>${Number.isFinite(x.wi.adg)?x.wi.adg:'—'}</td>
-   <td><span class="growthStatus ${statusClass}">${status}</span>${(()=>{let e=lambTargetEstimate(x.a,x.wi);return e?`<div class="targetEta">${e.measuredTarget?"🎯 50 kg tamam":e.days?"🎯 "+e.days+" gün kaldı":"🎯 Yeniden tart"}</div>`:""})()}</td>
+  return `<tr class="${rowCls}" onclick="${growthFilter==='Satışa hazır'&&x.saleReady?'openAnimalSale':'showGrowthDetail'}('${x.a.id}')" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" style="cursor:pointer">
+   <td class="tagcell" data-label="${tx('Küpe','Tag')}">${escHtml(x.a.tag?'#'+x.a.tag:'—')}${x.a.breedingReserve?'<div class="muted">🐏 Koçlukta</div>':''}</td>
+   <td data-label="${tx('Yaş','Age')}">${compactLambAge(x.a)}</td>
+   <td data-label="${tx('Son kg','Latest kg')}">${x.wi.weight?x.wi.weight.toFixed(1):'—'}${x.weighDue?'<span class="weighDue">⏱</span>':''}</td>
+   <td data-label="${tx('Artış kg','Gain kg')}">${gain}</td>
+   <td data-label="${tx('g/gün','g/day')}">${Number.isFinite(x.wi.adg)?Math.round(x.wi.adg):'—'}</td>
+   <td data-label="${tx('Durum','Status')}"><span class="growthStatus ${statusClass}">${status}</span>${(()=>{let e=lambTargetEstimate(x.a,x.wi);return e?`<div class="targetEta">${e.measuredTarget?"🎯 50 kg tamam":e.days?"🎯 "+"~"+e.days+" gün · "+(e.measuredRate?"ölçülen hız":"varsayım"):"🎯 Yeniden tart"}</div>`:""})()}</td>
   </tr>`;
  }).join(''):'<tr><td colspan="6" class="empty">Bu filtrede kuzu yok.</td></tr>';
 }
@@ -4118,7 +4198,7 @@ function openReportDetail(kind){
   title=names[kind];summary=arr.length+' hayvan';note='Mevcut aktif sürü';
   body=reportAnimalListHtml(arr);
  }else if(kind==='saleNear'||kind==='saleGrow'){
-  const males=lambs.filter(a=>a.sex==='Erkek').map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
+  const males=lambs.filter(a=>a.sex==='Erkek').map(a=>({a,wi:measuredGrowthInfo(a),months:ageMonths(a.birth)}));
   males.forEach(x=>{x.ready=isSaleCandidate(x.a);x.near=!x.ready&&(x.months>=5||x.wi.weight>=45)});
   const chosen=kind==='saleNear'?males.filter(x=>x.near):males.filter(x=>!x.ready&&!x.near);
   title=kind==='saleNear'?'Satışa Yaklaşan Kuzular':'Gelişimdeki Erkek Kuzular';summary=chosen.length+' kuzu';
@@ -4217,7 +4297,7 @@ function monthNetSeries(count=6){
  return out;
 }
 function currentGrowthPulse(){
- let lambs=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a)),infos=lambs.map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)})),groups={};
+ let lambs=db.animals.filter(a=>a.type==='Kuzu'&&isActiveAnimal(a)),infos=lambs.map(a=>({a,wi:measuredGrowthInfo(a),months:ageMonths(a.birth)})),groups={};
  infos.filter(x=>x.wi.weight>0).forEach(x=>{let g=Math.floor(x.months);(groups[g]||(groups[g]=[])).push(x.wi.weight)});
  let normal=0,watch=0,control=0,adgs=[],due=0,withTrend=0;
  infos.forEach(x=>{
@@ -4313,7 +4393,7 @@ function isLambValueCandidate(a){
 }
 function financeOpportunityData(){
  let price=+db.lambPricePerKg||450,males=db.animals.filter(isLambValueCandidate);
- let rows=males.map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
+ let rows=males.map(a=>({a,wi:measuredGrowthInfo(a),months:ageMonths(a.birth)}));
  rows.forEach(x=>{x.ready=isSaleCandidate(x.a);x.near=!x.ready&&(x.months>=5||x.wi.weight>=45)});
  let ready=rows.filter(x=>x.ready),near=rows.filter(x=>x.near),grow=rows.filter(x=>!x.ready&&!x.near);
  let value=arr=>arr.reduce((s,x)=>s+(x.wi.weight||0)*price,0),current=value(rows),target=males.length*50*price;
@@ -4367,7 +4447,7 @@ function renderFinanceViz(){
 }
 function renderHerdViz(){
  let set=(id,v)=>{let e=document.getElementById(id);if(e)e.textContent=v};
- let males=db.animals.filter(a=>a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a)).map(a=>({a,wi:latestWeightInfo(a),months:ageMonths(a.birth)}));
+ let males=db.animals.filter(a=>a.type==='Kuzu'&&a.sex==='Erkek'&&isActiveAnimal(a)).map(a=>({a,wi:measuredGrowthInfo(a),months:ageMonths(a.birth)}));
  males.forEach(x=>{x.ready=isSaleCandidate(x.a);x.near=!x.ready&&(x.months>=5||x.wi.weight>=45)});
  let ready=males.filter(x=>x.ready),near=males.filter(x=>x.near),grow=males.filter(x=>!x.ready&&!x.near);
  set('herdReadyStage',ready.length);set('herdNearStage',near.length);set('herdGrowStage',grow.length);set('herdReadinessHint',males.length+' aktif erkek kuzu');
