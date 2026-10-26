@@ -1,4 +1,4 @@
-const CACHE='suru-v2182-growth-report-20261027';
+const CACHE='suru-v2183-reports-20261027';
 const APP=new URL('./v21.html',self.location.href).href;
 const ASSETS=['./manifest.webmanifest','./icons/app.svg','./icons/app-192.png','./icons/app-512.png'].map(path=>new URL(path,self.location.href).href);
 const SDK='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2';

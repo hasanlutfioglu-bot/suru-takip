@@ -49,6 +49,8 @@ function setupVisualDesign(){
  const account=document.getElementById('welcomeAccountCard');dataQuality.after(account);account.after(document.getElementById('homeRamStatus'));document.getElementById('homeRamStatus').after(document.getElementById('homeOperations'));
  const menus=home.querySelector('.homeMenu');menus.innerHTML=uiIcon('grid')+'<span>'+"Tüm menüler"+'</span>';
  for(const nav of document.querySelectorAll('.nav[data-go]'))nav.querySelector('b').innerHTML=uiIcon({home:'home',herd:'sheep',add:'plus',reports:'reports',growth:'growth'}[nav.dataset.go]);
+ for(const button of document.querySelectorAll('.reportNav button')){const icon=button.querySelector('b');if(icon)icon.innerHTML=uiIcon({overview:'grid',finance:'finance',herd:'sheep',archive:'history'}[button.dataset.reportView])}
+ document.querySelector('.reportHead')?.insertAdjacentHTML('beforeend',uiIcon('reports'));
  decorateMenuButtons();renderVisualContext();
 }
 function renderVisualContext(){
