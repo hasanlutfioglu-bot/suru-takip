@@ -40,7 +40,7 @@ function setupVisualDesign(){
  const brand=document.querySelector('.brand h1');brand.innerHTML='<span class="brandMark">'+uiIcon('sheep')+'</span><span>Sürü Takip<small>'+"İŞLETME YÖNETİMİ"+'</small></span>';
  const home=document.getElementById('home'),hero=home.querySelector('.hero');home.classList.add('homeDashboard');
  const intro=document.createElement('div');intro.className='homeIntro';intro.innerHTML='<span class="eyebrow" id="dashboardDate"></span><h2 id="dashboardTitle"></h2><p id="dashboardCaption"></p>';home.prepend(intro);intro.after(hero);
- hero.querySelector('small').textContent="SÜRÜ ÖZETİ";hero.insertAdjacentHTML('beforeend',landscapeGraphic());
+ hero.querySelector('small').textContent="SÜRÜ ÖZETİ";setupLivePasture(hero);
  const shortcuts=document.getElementById('homeQuickActions'),label=document.createElement('div');label.className='homeSectionLabel';label.id='quickActionLabel';label.innerHTML='<span>'+"Hızlı işlemler"+'</span><small>'+"Günün işini kolaylaştır"+'</small>';hero.after(label);label.after(shortcuts);
  const upcoming=home.querySelector('.homeUpcoming');shortcuts.after(upcoming);upcoming.querySelector('.homeUpcomingHead b').textContent="Yaklaşan işler";upcoming.querySelector('.upcomingMore').insertAdjacentHTML('beforeend',uiIcon('arrow'));
  const summary=home.querySelector('.homeSummary');upcoming.after(summary);const fold=home.querySelector('.homeSecondary');summary.after(fold);
@@ -54,6 +54,7 @@ function setupVisualDesign(){
  decorateMenuButtons();renderVisualContext();
 }
 function renderVisualContext(){
+ renderLivePasture();
  const date=document.getElementById('dashboardDate');if(date)date.textContent=new Date(today()+'T12:00:00').toLocaleDateString(appLocale(),{weekday:'long',day:'numeric',month:'long'});
  const title=document.getElementById('dashboardTitle');if(title)title.textContent=tx('Çiftliğin, bir bakışta.','Your farm, at a glance.');
  const caption=document.getElementById('dashboardCaption');if(caption)caption.textContent=tx('Bugünkü işler ve sürünün genel durumu.','Today’s tasks and the state of your flock.');

@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.8.3 — Açık Tema</title>
+<title>Sürü Takip V21.8.4 — Açık Tema</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#294f3f">
 <meta name="color-scheme" content="light">
@@ -409,13 +409,21 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
 @media(min-width:700px){.reportReadingGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:21px}.reportReadingGuide{padding:24px}.reportHead{padding:30px}.reportHead h3{font-size:37px}.reportNav button{display:flex;align-items:center;justify-content:center;gap:11px;font-size:12px;min-height:52px}.reportNav button b{margin:0}.reportKpis{grid-template-columns:repeat(3,minmax(0,1fr))}.reportMiniGrid{grid-template-columns:repeat(4,minmax(0,1fr))}.reportHeroNet b{font-size:41px}.reportViz{padding:25px}.reportReadingGrid span{font-size:18px}.reportReadingGrid small{font-size:11px}}
 .reportScopeDetails{margin-top:14px;font-size:11px;color:#829470}.reportScopeDetails>summary{cursor:pointer;color:#6d855a;font-size:11px}.reportScopeDetails[open]>summary{margin-bottom:17px}.reportScopeDetails .reportReadingGrid{margin-top:0}.reportExtra{margin-top:18px}.reportPulseFold .pulseSub{font-size:10px;line-height:1.7}.reportPulseFold .pulseLegend{font-size:10px;line-height:1.7}.reportPulseFold .pulseWrap{padding:12px 4px;border:0}.reportPulseFold .pulseAttention{font-size:11px}.reportPulseFold .pulseAttention .muted{font-size:10px;line-height:1.7}
 .ewePerformanceSummary{padding:22px;background:#edf3e6;border:1px solid #dfe8d5;border-radius:18px;margin:17px 0;color:#668154}.ewePerformanceSummary h3{color:#526f43;font-size:19px;font-weight:600;line-height:1.5}.ewePerformanceSummary p{font-size:11px;line-height:1.9;color:#819470}.reportNav .uiIcon{width:21px;height:21px}
+
+/* A bounded SVG flock; CSS transforms only, no animation timers or network. */
+#home .hasPasture{padding-bottom:18px}#home .hasPasture h2,#home .hasPasture #heroSub,#home .hasPasture #herdIntegrity{max-width:100%}
+.livePasture{position:relative;z-index:1;margin-top:22px}.pastureHeading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 1px 11px}.pastureHeading>span{font-size:12px;font-weight:550;color:#d4dfbf;letter-spacing:-.015em}.pastureHeading>button{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:7px 11px;border:1px solid #a5bc8740;background:#ffffff0d;border-radius:10px;font-size:10px;color:#d3dfbc;font-weight:500;flex-shrink:0}.pastureHeading>button:disabled{opacity:.75;cursor:default}.pastureScene{display:block;width:100%;height:auto;border-radius:15px;overflow:hidden;border:1px solid #abc38a24}.pastureCaption{font-size:9px;color:#b0c6a3;line-height:1.7;margin:9px 2px 0;letter-spacing:0}.pastureAnimal-unknown{opacity:.7}.pastureWander{animation:pasture-walk var(--pace,14s) ease-in-out var(--delay,0s) infinite alternate}.pastureBob{animation:pasture-bob 3.8s ease-in-out var(--delay,0s) infinite;transform-box:fill-box;transform-origin:center bottom}.pastureHead{animation:pasture-graze 8s ease-in-out var(--delay,0s) infinite;transform-box:fill-box;transform-origin:15% 55%}.pastureLeg{animation:pasture-step 1.9s ease-in-out var(--delay,0s) infinite alternate;transform-box:fill-box;transform-origin:center top}.pastureLegBack{animation-direction:alternate-reverse}
+@keyframes pasture-walk{from{transform:translate(-5px,0)}to{transform:translate(7px,2px)}}@keyframes pasture-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.3px)}}@keyframes pasture-graze{0%,30%,80%,100%{transform:rotate(0)}45%,65%{transform:rotate(18deg)}}@keyframes pasture-step{from{transform:rotate(-6deg)}to{transform:rotate(7deg)}}
+.pasturePaused .pastureMotion,.pastureHidden .pastureMotion,.pastureOffscreen .pastureMotion,.screen:not(.active) .pastureMotion{animation-play-state:paused}
+@media(min-width:900px){#home .hasPasture{min-height:300px;padding-top:32px;padding-bottom:29px}#home .hasPasture h2{max-width:34%;font-size:43px;margin-top:22px}#home .hasPasture #heroSub,#home .hasPasture #herdIntegrity{max-width:33%}.hasPasture .livePasture{position:absolute;right:25px;top:20px;bottom:20px;width:59%;margin:0;display:flex;flex-direction:column;justify-content:center}.hasPasture .pastureScene{max-height:210px}.hasPasture .pastureCaption{font-size:10px}.hasPasture .pastureHeading{margin-bottom:10px}}
+@media(prefers-reduced-motion:reduce){.pastureMotion{animation:none}}
 /* END WEB THEME */
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 </head>
 <body><div class="app">
 <div id="syncHealth" class="card" role="status" aria-live="polite" style="margin:8px 14px;font-size:12px"></div>
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.8.3</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.8.4</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -4952,6 +4960,57 @@ function renderHomeShortcuts(){const el=document.getElementById('homeQuickAction
 function openHomeShortcuts(){const selected=homeShortcutIds();showModal(tx('Ana ekran kısayolları','Home shortcuts'),'<p>'+tx('Bir ile dört kısayol seç. Bu tercih yalnız bu cihazda saklanır.','Choose one to four shortcuts, saved on this device only.')+'</p>'+Object.entries(HOME_ACTIONS).map(([id,a])=>'<label class="pickRow"><input type="checkbox" class="homeShortcutChoice" value="'+id+'" '+(selected.includes(id)?'checked':'')+'>'+tx(a.tr,a.en)+'</label>').join('')+opButton('saveHomeShortcuts()','Kaydet','Save',true))}
 function saveHomeShortcuts(){const ids=[...document.querySelectorAll('.homeShortcutChoice:checked')].map(x=>x.value);if(!ids.length||ids.length>4||ids.some(id=>!HOME_ACTIONS[id]))return toast(tx('Bir ile dört kısayol seç','Choose one to four shortcuts'));try{localStorage.setItem(activeStorageKey+'_homeShortcuts',JSON.stringify(ids));renderHomeShortcuts();closeModal()}catch(e){toast(tx('Tercih kaydedilemedi','Preference could not be saved'))}}
 // END WEB lookup
+// BEGIN WEB pasture
+// Decorative flock scene. Counts come from current records; no farm data is written.
+const PASTURE_LIMIT=24;
+let pasturePaused=false,pastureRenderKey='';
+try{pasturePaused=localStorage.getItem('suru_pasture_paused')==='1'}catch{}
+function pastureModel(animals){
+ const counts={ewe:0,ram:0,lamb:0,unknown:0};
+ for(const a of animals)if(isActiveAnimal(a))counts[a.type==='Koyun'?'ewe':a.type==='Koç'?'ram':a.type==='Kuzu'?'lamb':'unknown']++;
+ const total=Object.values(counts).reduce((s,n)=>s+n,0),shown=Math.min(PASTURE_LIMIT,total),visible={...counts};
+ if(total>PASTURE_LIMIT){
+  const types=Object.keys(counts).filter(k=>counts[k]>0),remaining=shown-types.length;
+  const parts=types.map(k=>{const quota=remaining*counts[k]/total;visible[k]=1+Math.floor(quota);return {k,fraction:quota%1}});
+  let extra=shown-Object.values(visible).reduce((s,n)=>s+n,0);
+  parts.sort((a,b)=>b.fraction-a.fraction);for(const part of parts){if(extra<=0)break;visible[part.k]++;extra--}
+ }
+ return {counts,total,shown,visible,representative:total>PASTURE_LIMIT};
+}
+function pastureSheep(type,index){
+ const ram=type==='ram',lamb=type==='lamb',unknown=type==='unknown';
+ const wool=ram?'#d5c7a7':lamb?'#f8edcf':'#f2f0dd',face=ram?'#3f3e32':'#354638';
+ return `<g class="pastureWander pastureMotion" style="--pace:${12+index%5}s;--delay:-${index*1.7}s"><ellipse cx="24" cy="29" rx="25" ry="5" fill="#263f32" opacity=".17"/><g transform="${index%3===0?'translate(52 0) scale(-1 1)':''}"><g class="pastureBob pastureMotion"><g fill="none" stroke="${face}" stroke-width="3.5" stroke-linecap="round"><path class="pastureLeg pastureMotion" d="M12 16v12"/><path class="pastureLeg pastureLegBack pastureMotion" d="M33 16v12"/></g><path d="M5 14C-3 9 0 0 8-1 10-8 20-9 25-5 33-10 43-5 42 2 50 7 45 17 38 17 31 24 13 23 5 14Z" fill="${wool}"/><path d="M4 4-3 0-4 5 2 10" fill="${wool}"/><g class="pastureHead pastureMotion"><path d="M36 0c6-6 17-2 17 6l-1 11-11 2-6-10Z" fill="${face}"/><path d="m48 2 10-2-3 6-6 2" fill="${face}"/>${ram?'<path d="M39 4C25-9 22 11 33 12c7 1 9-7 3-7" fill="none" stroke="#a98d60" stroke-width="4" stroke-linecap="round"/>':''}<circle cx="48" cy="6" r="1.1" fill="#fff7df"/></g>${unknown?'<text x="18" y="12" fill="#718067" font-size="14" font-weight="700">?</text>':''}</g></g></g>`;
+}
+function setupLivePasture(hero){
+ hero.classList.add('hasPasture');hero.insertAdjacentHTML('beforeend',`<div class="livePasture" id="livePasture"><div class="pastureHeading"><span id="pastureTitle"></span><button type="button" id="pastureMotionButton" onclick="togglePastureMotion()"></button></div><svg class="pastureScene" viewBox="0 0 660 238" role="img" aria-labelledby="pastureSvgTitle pastureSvgDesc"><title id="pastureSvgTitle"></title><desc id="pastureSvgDesc"></desc><defs><linearGradient id="pastureSky" x2="0" y2="1"><stop stop-color="#c7d4b1"/><stop offset="1" stop-color="#e3dfbb"/></linearGradient></defs><path d="M0 0H660V238H0Z" fill="url(#pastureSky)"/><circle cx="555" cy="33" r="20" fill="#e8ce8d"/><path d="M0 71Q120 12 261 69T660 43V238H0Z" fill="#8fa678"/><path d="M0 107Q185 55 364 104T660 74V238H0Z" fill="#779360"/><path d="M0 160Q230 94 440 151T660 123V238H0Z" fill="#668751"/><path d="M0 219Q240 153 660 210V238H0Z" fill="#5c7b4a"/><g stroke="#6b7953" stroke-width="3" stroke-linecap="round"><path d="M22 89V56m38 24V48m38 26V45M16 66l88-12m-87 23 87-13"/></g><g fill="#526c44"><path d="M612 17c-15-12-29 14-15 23 12 15 32-2 27-12-1-8-6-10-12-11Z"/><path d="M636 39c-12-11-22 9-15 17 11 12 28-1 24-11Z"/></g><g stroke="#637345" stroke-width="3"><path d="M609 41v27m25-13v19"/></g><g fill="none" stroke="#b6c28a" stroke-width="1.5" opacity=".6"><path d="m26 143 3-7 4 8m107 70 3-8 4 6m177-57 3-7 4 6m181 59 3-6 3 8m96-101 2-6 4 5"/></g><g id="pastureAnimals" aria-hidden="true"></g><text id="pastureEmpty" x="330" y="148" text-anchor="middle" fill="#f4f0dc" font-size="17"></text></svg><p id="pastureCaption" class="pastureCaption"></p></div>`);
+ const scene=document.getElementById('livePasture');
+ const syncVisibility=()=>scene.classList.toggle('pastureHidden',document.hidden===true);
+ document.addEventListener?.('visibilitychange',syncVisibility);syncVisibility();
+ if(typeof IntersectionObserver!=='undefined'){const observer=new IntersectionObserver(entries=>{for(const e of entries)scene.classList.toggle('pastureOffscreen',!e.isIntersecting)},{threshold:0});observer.observe(scene)}
+ window.matchMedia?.('(prefers-reduced-motion: reduce)')?.addEventListener?.('change',()=>renderLivePasture());
+ renderLivePasture();
+}
+function togglePastureMotion(){
+ pasturePaused=!pasturePaused;try{localStorage.setItem('suru_pasture_paused',pasturePaused?'1':'0')}catch{}
+ renderLivePasture();
+}
+function renderLivePasture(){
+ const scene=document.getElementById('livePasture');if(!scene)return;
+ const model=pastureModel(db.animals),reduce=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+ scene.classList.toggle('pasturePaused',pasturePaused||reduce);
+ const button=document.getElementById('pastureMotionButton');button.disabled=reduce;button.setAttribute('aria-pressed',String(pasturePaused||reduce));button.textContent=reduce?tx('Hareket azaltıldı','Reduced motion'):pasturePaused?tx('▶ Hareketi aç','▶ Play'):tx('Ⅱ Durdur','Ⅱ Pause');button.setAttribute('aria-label',reduce?tx('Sistem hareket azaltma tercihi etkin','System reduced-motion preference is on'):pasturePaused?tx('Mera animasyonunu başlat','Play pasture animation'):tx('Mera animasyonunu durdur','Pause pasture animation'));
+ document.getElementById('pastureTitle').textContent=tx('Sürün merada','Your flock at pasture');
+ const key=JSON.stringify([model.counts,appLanguage]);if(key===pastureRenderKey)return;pastureRenderKey=key;
+ const remaining={...model.visible},types=[];while(types.length<model.shown)for(const k of Object.keys(remaining))if(remaining[k]>0){types.push(k);remaining[k]--}
+ const figures=types.map((type,i)=>{const slot=i*7%24,row=Math.floor(slot/6),col=slot%6;return {type,index:i,x:37+col*103+(row%2?12:0),y:66+row*41,scale:(type==='lamb'?.66:type==='ram'?1.02:.88)*(1+row*.045)}}).sort((a,b)=>a.y-b.y);
+ document.getElementById('pastureAnimals').innerHTML=figures.map(x=>`<g class="pastureAnimal pastureAnimal-${x.type}" data-species="${x.type}" transform="translate(${x.x} ${x.y}) scale(${x.scale})">${pastureSheep(x.type,x.index)}</g>`).join('');
+ const description=model.counts.ewe+' '+tx('koyun','ewes')+' · '+model.counts.ram+' '+tx('koç','rams')+' · '+model.counts.lamb+' '+tx('kuzu','lambs')+(model.counts.unknown?' · '+model.counts.unknown+' '+tx('türü belirsiz','unknown type'):'');
+ document.getElementById('pastureSvgTitle').textContent=tx('Güncel sürünün mera görünümü','Pasture view of the current flock');document.getElementById('pastureSvgDesc').textContent=description+'. '+(model.representative?tx('Figürler sürü dağılımını temsilen gösterilir.','Figures represent the flock composition.'):tx('Her figür bir aktif hayvanı temsil eder.','Each figure represents one active animal.'));
+ document.getElementById('pastureEmpty').textContent=model.total?'':tx('İlk hayvanını ekle, meran canlansın.','Add your first animal to bring the pasture to life.');
+ document.getElementById('pastureCaption').textContent=model.representative?tx('Temsili görünüm','Representative view')+' · '+model.shown+' '+tx('figür','figures')+' / '+model.total.toLocaleString(appLocale())+' '+tx('aktif hayvan','active animals'):model.total?tx('Her figür bir aktif hayvan · güncel kayıtlara göre','One figure per active animal · based on current records'):tx('Henüz aktif hayvan kaydı yok.','No active animal records yet.');
+}
+// END WEB pasture
 // BEGIN WEB presentation
 // Presentation only: these helpers never write flock or finance data.
 function uiIcon(name,extra=''){
@@ -4995,7 +5054,7 @@ function setupVisualDesign(){
  const brand=document.querySelector('.brand h1');brand.innerHTML='<span class="brandMark">'+uiIcon('sheep')+'</span><span>Sürü Takip<small>'+"İŞLETME YÖNETİMİ"+'</small></span>';
  const home=document.getElementById('home'),hero=home.querySelector('.hero');home.classList.add('homeDashboard');
  const intro=document.createElement('div');intro.className='homeIntro';intro.innerHTML='<span class="eyebrow" id="dashboardDate"></span><h2 id="dashboardTitle"></h2><p id="dashboardCaption"></p>';home.prepend(intro);intro.after(hero);
- hero.querySelector('small').textContent="SÜRÜ ÖZETİ";hero.insertAdjacentHTML('beforeend',landscapeGraphic());
+ hero.querySelector('small').textContent="SÜRÜ ÖZETİ";setupLivePasture(hero);
  const shortcuts=document.getElementById('homeQuickActions'),label=document.createElement('div');label.className='homeSectionLabel';label.id='quickActionLabel';label.innerHTML='<span>'+"Hızlı işlemler"+'</span><small>'+"Günün işini kolaylaştır"+'</small>';hero.after(label);label.after(shortcuts);
  const upcoming=home.querySelector('.homeUpcoming');shortcuts.after(upcoming);upcoming.querySelector('.homeUpcomingHead b').textContent="Yaklaşan işler";upcoming.querySelector('.upcomingMore').insertAdjacentHTML('beforeend',uiIcon('arrow'));
  const summary=home.querySelector('.homeSummary');upcoming.after(summary);const fold=home.querySelector('.homeSecondary');summary.after(fold);
@@ -5009,6 +5068,7 @@ function setupVisualDesign(){
  decorateMenuButtons();renderVisualContext();
 }
 function renderVisualContext(){
+ renderLivePasture();
  const date=document.getElementById('dashboardDate');if(date)date.textContent=new Date(today()+'T12:00:00').toLocaleDateString(appLocale(),{weekday:'long',day:'numeric',month:'long'});
  const title=document.getElementById('dashboardTitle');if(title)title.textContent=tx('Çiftliğin, bir bakışta.','Your farm, at a glance.');
  const caption=document.getElementById('dashboardCaption');if(caption)caption.textContent=tx('Bugünkü işler ve sürünün genel durumu.','Today’s tasks and the state of your flock.');
