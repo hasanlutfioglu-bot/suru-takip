@@ -5,11 +5,12 @@ const write=process.argv.includes('--write'),check=process.argv.includes('--chec
 if(!write&&!check)throw Error('Use --check or --write');
 const lf=s=>s.replace(/\r\n/g,'\n');
 let html=lf(fs.readFileSync('v21.html','utf8'));
-const files=['device-state','change-history','sync-review','weighing-drafts','management','lookup'].map(name=>({file:'web/'+name+'.js',marker:'WEB '+name}));
+const files=['device-state','change-history','sync-review','weighing-drafts','management','lookup','presentation'].map(name=>({file:'web/'+name+'.js',marker:'WEB '+name}));
+files.push({file:'web/theme.css',marker:'WEB THEME',css:true});
 files.push({file:'supabase/functions/_shared/sales-policy.mjs',marker:'SHARED SALES POLICY',stripExports:true},{file:'supabase/functions/_shared/change-history.mjs',marker:'SHARED CHANGE HISTORY',stripExports:true});
 const stale=[];
-for(const {file,marker,stripExports} of files){
- const start='// BEGIN '+marker+'\n',end='// END '+marker;
+for(const {file,marker,stripExports,css} of files){
+ const start=css?'/* BEGIN '+marker+' */\n':'// BEGIN '+marker+'\n',end=css?'/* END '+marker+' */':'// END '+marker;
  const a=html.indexOf(start),b=html.indexOf(end,a);
  if(a<0||b<0)throw Error('Missing inline source boundary: '+marker);
  let source=lf(fs.readFileSync(file,'utf8')).trimEnd()+'\n';if(stripExports)source=source.replace(/export /g,'');

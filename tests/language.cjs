@@ -1,5 +1,8 @@
 const assert=require('node:assert/strict'),make=require('./audit-harness.cjs');
 const a=make();a.pro();
+const englishFirst=make(new Map([['suru-language','en']]));
+englishFirst.run("setAppLanguage('tr')");
+assert(englishFirst.document.querySelector('.brand').textContent.includes('İŞLETME YÖNETİMİ'),'an English-first launch must restore Turkish presentation labels');
 const original=a.run('JSON.stringify(db)');
 a.run("setAppLanguage('en')");
 assert.equal(a.document.documentElement.lang,'en');

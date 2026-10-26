@@ -41,6 +41,16 @@ const {chromium}=require('playwright');
   await page.close();await second.waitForFunction(()=>deviceCanWrite(),{},{timeout:10000});
   assert.equal(await second.evaluate(()=>db.animals.length),1,'reader observes committed changes before becoming writer');
   assert.equal(await second.evaluate(()=>cloudDirty),true,'takeover preserves pending sync metadata');
+  await second.evaluate(()=>{currentPlan='pro';subscriptionStatus='offline';currentPeriodEnd='2099-01-01T00:00:00Z'});
+  for(const width of [320,768,1440]){
+   await second.setViewportSize({width,height:900});
+   for(const screen of ['home','herd','add','reports','growth']){
+    await second.locator('.nav[data-go="'+screen+'"]').click();
+    const visible=await second.evaluate(()=>[...document.querySelectorAll('.screen')].filter(el=>getComputedStyle(el).display!=='none').map(el=>el.id));
+    assert.deepEqual(visible,[screen],'responsive navigation shows only the chosen screen at '+width+'px');
+    assert.equal(await second.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'no horizontal page overflow at '+width+'px');
+   }
+  }
   await context.close();
   console.log('PASS: real Chromium single-writer lock/takeover, history navigation, dated drafts/reload, atomic quota failures and mobile layout');
  }finally{await browser.close()}

@@ -1,6 +1,6 @@
 # Sürü Takip
 
-Koyun/kuzu kayıtları, tartım, üreme, sağlık, yem ve finans için çevrimdışı çalışabilen web uygulaması. Güncel yerel sürüm: **21.8.0**.
+Koyun/kuzu kayıtları, tartım, üreme, sağlık, yem ve finans için çevrimdışı çalışabilen web uygulaması. Güncel sürüm: **21.8.1**.
 
 ## Kurulum ve yerel önizleme
 
