@@ -6,13 +6,13 @@ const port=portArg?Number(portArg.slice(7)):4173;
 if(!Number.isInteger(port)||port<0||port>65535)throw Error('Invalid port');
 const pages=new Set(['index.html','v21.html','sw.js','manifest.webmanifest','oauth-consent.html','data-info.html','delete-account.html']);
 const legacy=new Set(['v17.html','v18.html','v19.html','v20.html','v215-light.html']);
-const mime={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png'};
+const mime={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp'};
 const server=http.createServer((req,res)=>{
  try{
   if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{'Allow':'GET, HEAD'});return res.end()}
   const url=new URL(req.url,'http://localhost'),name=decodeURIComponent(url.pathname).replace(/^\//,'')||'index.html';
   if(legacy.has(name)){res.writeHead(302,{'Location':'/v21.html'+url.search});return res.end()}
-  if(!pages.has(name)&&!/^icons\/[A-Za-z0-9_-]+\.(png|svg)$/.test(name)){res.writeHead(404);return res.end('Not found')}
+  if(!pages.has(name)&&!/^icons\/[A-Za-z0-9_-]+\.(png|svg)$/.test(name)&&!/^assets\/farm\/[A-Za-z0-9_-]+\.webp$/.test(name)){res.writeHead(404);return res.end('Not found')}
   const target=path.resolve(root,name);
   if(!target.startsWith(root+path.sep)||!fs.existsSync(target)){res.writeHead(404);return res.end('Not found')}
   let body=fs.readFileSync(target);

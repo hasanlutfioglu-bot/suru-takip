@@ -20,16 +20,22 @@ function farmProjection(animals=db.animals,records=db.records,forcedId=farmScene
  }
  const chosenMothers=new Map(),slots={pasture:0,nursery:0,feed:0};
  for(const f of selected.filter(x=>x.type!=='lamb'||!x.mother)){
-  const i=slots[f.zone]++,n=selected.filter(x=>x.zone===f.zone&&(!x.mother||x.type!=='lamb')).length,cols=f.zone==='nursery'?(n>9?4:3):f.zone==='feed'?6:4,col=i%cols,row=Math.floor(i/cols),gap=f.zone==='nursery'?Math.min(48,155/Math.max(1,Math.ceil(n/cols)-1)):0;
-  f.x=f.zone==='nursery'?465+col*(n>9?78:99):f.zone==='feed'?458+col*47:73+col*80;f.y=f.zone==='nursery'?211+row*gap:f.zone==='feed'?425+row*26:227+row*43;
+  const i=slots[f.zone]++,n=selected.filter(x=>x.zone===f.zone&&(!x.mother||x.type!=='lamb')).length,cols=f.zone==='nursery'?(n>9?4:3):f.zone==='feed'?6:4,col=i%cols,row=Math.floor(i/cols),gap=f.zone==='nursery'?Math.min(60,80/Math.max(1,Math.ceil(n/cols)-1)):0;
+  f.x=f.zone==='nursery'?460+col*(n>9?70:90):f.zone==='feed'?465+col*50:73+col*80;f.y=f.zone==='nursery'?205+row*gap:f.zone==='feed'?365+row*Math.min(45,48/Math.max(1,Math.ceil(n/cols)-1)):220+row*Math.min(65,175/Math.max(1,Math.ceil(n/cols)-1));
   if(mothers.has(f.a.id)&&f.zone==='nursery')chosenMothers.set(f.a.id,f);
  }
  const siblingSlots=new Map();
  for(const f of selected.filter(x=>x.type==='lamb'&&x.mother)){
   const parent=chosenMothers.get(f.mother),n=siblingSlots.get(f.mother)||0;siblingSlots.set(f.mother,n+1);
-  if(parent){f.x=parent.x+30+n%4*18;f.y=Math.min(381,parent.y+20+Math.floor(n/4)*17)}else{const i=slots.nursery++;f.x=473+i%5*56;f.y=221+Math.floor(i/5)*34}
+  if(parent){f.x=parent.x+30+n%4*18;f.y=Math.min(285,parent.y+20+Math.floor(n/4)*15)}else{const i=slots.nursery++;f.x=463+i%5*53;f.y=205+Math.floor(i/5)*19}
  }
  const figures=selected.map(f=>{const family=farmHash(f.mother||f.a.id);return {...f,family,scale:f.type==='lamb'?.57:f.type==='ram'?.85:.78,gatherX:(f.zone==='pasture'?230:f.zone==='nursery'?610:590)-f.x,gatherY:(f.zone==='pasture'?325:f.zone==='nursery'?275:465)-f.y}}).sort((a,b)=>a.y-b.y);
+ // Family members share screen-space offsets, even though lambs have a smaller scale.
+ const families=new Map();for(const f of figures){const key=f.zone+':'+(f.mother||f.a.id);if(!families.has(key))families.set(key,[]);families.get(key).push(f)}
+ const bounds={pasture:[65,350,205,410],nursery:[450,720,195,290],feed:[455,720,355,420]};
+ for(const members of families.values()){const first=members[0],b=bounds[first.zone],lx=Math.max(...members.map(f=>b[0]-f.x)),hx=Math.min(...members.map(f=>b[1]-f.x)),ly=Math.max(...members.map(f=>b[2]-f.y)),hy=Math.min(...members.map(f=>b[3]-f.y)),clamp=(v,l,h)=>l>h?0:Math.max(l,Math.min(h,v)),distance=first.zone==='pasture'?58:28,dx=clamp(hx>=-lx?distance:-distance,lx,hx),dy=clamp(hy>=-ly?19:-19,ly,hy);
+  for(const f of members){f.roam={dx,dy,duration:32+first.family%11,delay:-(first.family%29),bounds:b};f.gatherX=0;f.gatherY=0}
+ }
  const zones={pasture:0,nursery:0,feed:0};rows.forEach(r=>zones[r.zone]++);
  const description=base.counts.ewe+' '+tx('koyun','ewes')+' · '+base.counts.ram+' '+tx('koç','rams')+' · '+base.counts.lamb+' '+tx('kuzu','lambs')+'. '+tx('Yerleşim anne, sütten kesim, grup bilgileri ve cihazdaki besi alanı seçimine dayanır.','Placement uses recorded dams, weaning, groups and device pen selections.')+(base.representative?' '+tx('Görünüm temsilidir.','Representative view.'):'');
  return {...base,figures,zones,description,unlinked:rows.filter(r=>r.type==='lamb'&&!r.mother&&r.zone==='pasture').length};
