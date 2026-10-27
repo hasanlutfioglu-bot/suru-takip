@@ -27,3 +27,11 @@ h.run("farmClearEvent();farmScene.queue=[];var birthBefore=cloneState(db);db.ani
 h.run('farmClearEvent();farmScene.queue=[];openFarmSceneSettings()');const settingsData=h.run('JSON.stringify(db)');h.fill('farmHour_dawn','9');h.fill('farmHour_day','8');h.run('saveFarmSceneHours()');assert.equal(h.run('farmSettings.dawn'),6,'invalid hour order rejected');h.fill('farmHour_dawn','5');h.fill('farmHour_day','7');h.run('saveFarmSceneHours()');assert.equal(h.run('farmSettings.dawn'),5);assert.equal(h.run('JSON.stringify(db)'),settingsData,'device clock preferences do not alter farm data');
 h.run("activeStorageKey='different-farm';db=seed();renderLivePasture()");assert.equal(h.run('farmScene.current'),null);assert.equal(h.run('farmScene.queue.length'),0);assert.equal(h.run('farmScene.highlight'),'','farm switch isolates transient state');
 console.log('PASS: recorded family/grower grouping, clock boundaries, missing/conflicting links, lookup, commit-only events, pause/undo, batch replay, imports, escaping and farm isolation');
+h.run(`db.animals=Array.from({length:7},(_,i)=>({id:'pen'+i,tag:'P'+i,type:i%2?'Kuzu':'Koç',sex:'Erkek',status:'Aktif',group:i%2?'BESİ':'Besi grubu'}));db.records=[];renderLivePasture()`);
+assert.equal(projection().zones.feed,7,'all seven explicit finishing animals, including adult rams, use the pen');
+assert.equal(projection().figures.filter(f=>f.zone==='feed').length,7);
+h.run("db.animals.forEach(a=>a.group='');openFarmFeedSelection()");const penBefore=h.run('JSON.stringify(db)');
+for(const e of h.document.querySelectorAll('.farmPenCheck'))e.setAttribute('checked','');
+h.run('saveFarmFeedSelection()');assert.equal(projection().zones.feed,7);assert.equal(h.run('JSON.stringify(db)'),penBefore,'scene selection never changes livestock records');
+h.run("activeStorageKey='another-pen';renderLivePasture()");assert.equal(projection().zones.feed,0,'pen choices are isolated by farm');
+console.log('PASS: seven mixed-type finishing animals and device-only pen selection isolation');
