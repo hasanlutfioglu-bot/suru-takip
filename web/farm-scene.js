@@ -7,28 +7,29 @@ function farmPhaseAt(hour){return hour<farmSettings.dawn||hour>=farmSettings.nig
 function farmHash(s){let n=0;for(const c of String(s))n=(n*31+c.charCodeAt(0))>>>0;return n}
 function farmType(a){return a.type==='Koyun'?'ewe':a.type==='Koç'?'ram':a.type==='Kuzu'?'lamb':'unknown'}
 function openFarmFeedSelection(){openFarmFinishing()}
+function farmPlaceAllFigures(rows){
+ const byId=new Map(rows.map(r=>[r.a.id,r])),areas={pasture:[65,350,205,410],nursery:[450,720,195,290],feed:[455,720,355,420]},groups={pasture:new Map(),nursery:new Map(),feed:new Map()};
+ for(const row of rows){const key=row.zone==='nursery'?(row.mother||row.a.id):row.a.id;if(!groups[row.zone].has(key))groups[row.zone].set(key,[]);groups[row.zone].get(key).push(row)}
+ const figures=[];
+ for(const [zone,map] of Object.entries(groups)){
+  const cells=[...map.values()],n=cells.length;if(!n)continue;const [left,right,top,bottom]=areas[zone],width=right-left,height=bottom-top;
+  const maxKids=cells.reduce((max,m)=>Math.max(max,m.filter(f=>f.mother).length),0),logicalWidth=Math.max(82,30+(Math.min(3,maxKids)-1)*34+44),logicalHeight=65+Math.floor(Math.max(0,maxKids-1)/3)*30;
+  let cols=1,packing=0;for(let c=1;c<=n;c++){const candidate=Math.min(1,width/c/logicalWidth,height/Math.ceil(n/c)/logicalHeight);if(candidate>packing){cols=c;packing=candidate}}
+  const cellWidth=width/cols,cellHeight=height/Math.ceil(n/cols);
+  cells.forEach((members,index)=>{
+   members.sort((a,b)=>Number(!!a.mother)-Number(!!b.mother));const x0=left+index%cols*cellWidth+(cellWidth-logicalWidth*packing)/2,y0=top+Math.floor(index/cols)*cellHeight+(cellHeight-logicalHeight*packing)/2+18*packing;
+   let child=0;for(const f of members){const isChild=!!f.mother&&byId.get(f.mother)?.zone===zone,slot=isChild?child++:0,scale=(f.type==='lamb'?.57:f.type==='ram'?.85:.78)*packing;figures.push({...f,x:x0+(isChild?30+slot%3*34:0)*packing,y:y0+(isChild?26+Math.floor(slot/3)*30:0)*packing,scale,family:farmHash(f.mother||f.a.id),gatherX:0,gatherY:0})}
+  });
+ }
+ return figures.sort((a,b)=>a.y-b.y);
+}
 function farmProjection(animals=db.animals,records=db.records,forcedId=farmScene.current?.ids[0]||farmTalk.current?.animalId||farmScene.highlight){
  const base=pastureModel(animals),active=animals.filter(isActiveAnimal),byId=new Map(active.map(a=>[a.id,a])),links=new Map(),confirmedFinishing=farmFinishingIds(animals,records);
  for(const r of records){if(!validDate(r.date)||r.date>today())continue;if(r.kind==='birth'&&r.motherId)for(const id of r.childIds||[]){if(!links.has(id))links.set(id,new Set());links.get(id).add(r.motherId)}}
  const motherFor=a=>{const linked=links.get(a.id),id=a.motherId||(linked?.size===1?[...linked][0]:'');if(a.motherId&&linked?.size&&(!linked.has(a.motherId)||linked.size>1))return '';const mother=byId.get(id);return mother?.type==='Koyun'&&mother.sex==='Dişi'?id:''};
  const rows=active.map(a=>{const type=farmType(a),grown=confirmedFinishing.has(a.id),mother=type==='lamb'&&!grown?motherFor(a):'';return {a,type,mother,zone:grown?'feed':mother?'nursery':'pasture',tracked:a.status==='Takipte'}});
- const needed=Math.min(7,rows.filter(r=>r.type==='lamb'&&r.zone==='feed').length)+(rows.some(r=>r.type==='lamb'&&r.zone!=='feed'&&r.a.id===forcedId)?1:0);while(base.visible.lamb<needed){const donor=Object.keys(base.visible).filter(k=>k!=='lamb'&&base.visible[k]>1).sort((a,b)=>base.visible[b]-base.visible[a])[0];if(!donor)break;base.visible[donor]--;base.visible.lamb++}
  const mothers=new Set(rows.map(x=>x.mother).filter(Boolean));for(const r of rows)if(mothers.has(r.a.id)&&r.zone!=='feed')r.zone='nursery';
- const selected=[];for(const type of Object.keys(base.visible)){
-  const buckets=[[],[],[],[],[]];for(const r of rows)if(r.type===type)buckets[r.a.id===forcedId?0:r.zone==='feed'?1:mothers.has(r.a.id)?2:r.mother?3:4].push(r);const candidates=buckets.flat();selected.push(...candidates.slice(0,base.visible[type]));
- }
- const chosenMothers=new Map(),slots={pasture:0,nursery:0,feed:0};
- for(const f of selected.filter(x=>x.type!=='lamb'||!x.mother)){
-  const i=slots[f.zone]++,n=selected.filter(x=>x.zone===f.zone&&(!x.mother||x.type!=='lamb')).length,cols=f.zone==='nursery'?(n>9?4:3):f.zone==='feed'?6:4,col=i%cols,row=Math.floor(i/cols),gap=f.zone==='nursery'?Math.min(60,80/Math.max(1,Math.ceil(n/cols)-1)):0;
-  f.x=f.zone==='nursery'?460+col*(n>9?70:90):f.zone==='feed'?465+col*50:73+col*80;f.y=f.zone==='nursery'?205+row*gap:f.zone==='feed'?365+row*Math.min(45,48/Math.max(1,Math.ceil(n/cols)-1)):220+row*Math.min(65,175/Math.max(1,Math.ceil(n/cols)-1));
-  if(mothers.has(f.a.id)&&f.zone==='nursery')chosenMothers.set(f.a.id,f);
- }
- const siblingSlots=new Map();
- for(const f of selected.filter(x=>x.type==='lamb'&&x.mother)){
-  const parent=chosenMothers.get(f.mother),n=siblingSlots.get(f.mother)||0;siblingSlots.set(f.mother,n+1);
-  if(parent){f.x=parent.x+30+n%4*18;f.y=Math.min(285,parent.y+20+Math.floor(n/4)*15)}else{const i=slots.nursery++;f.x=463+i%5*53;f.y=205+Math.floor(i/5)*19}
- }
- const figures=selected.map(f=>{const family=farmHash(f.mother||f.a.id);return {...f,family,scale:f.type==='lamb'?.57:f.type==='ram'?.85:.78,gatherX:(f.zone==='pasture'?230:f.zone==='nursery'?610:590)-f.x,gatherY:(f.zone==='pasture'?325:f.zone==='nursery'?275:465)-f.y}}).sort((a,b)=>a.y-b.y);
+ const figures=farmPlaceAllFigures(rows);
  // Family members share screen-space offsets, even though lambs have a smaller scale.
  const families=new Map();for(const f of figures){const key=f.zone+':'+(f.mother||f.a.id);if(!families.has(key))families.set(key,[]);families.get(key).push(f)}
  const bounds={pasture:[65,350,205,410],nursery:[450,720,195,290],feed:[455,720,355,420]};
@@ -102,7 +103,7 @@ function renderFarmScene(){
  }
  const button=document.getElementById('pastureMotionButton');button.disabled=reduce;button.setAttribute('aria-pressed',String(pasturePaused||reduce));button.textContent=reduce?tx('Hareket azaltıldı','Reduced motion'):pasturePaused?tx('▶ Hareketi aç','▶ Play'):tx('Ⅱ Durdur','Ⅱ Pause');button.setAttribute('aria-label',reduce?tx('Sistem hareket azaltma tercihi etkin','System reduced-motion preference is on'):pasturePaused?tx('Mera animasyonunu başlat','Play pasture animation'):tx('Mera animasyonunu durdur','Pause pasture animation'));
  document.getElementById('pastureTitle').textContent=tx('Yaşayan çiftliğin','Your living farm');
- document.getElementById('pastureCaption').textContent=(model.representative?tx('Temsili görünüm','Representative view')+' · '+model.shown+' / '+model.total.toLocaleString(appLocale())+' '+tx('aktif hayvan','active animals'):tx('Her figür bir aktif hayvan · güncel kayıtlara göre','One figure per active animal · based on current records'))+(model.unlinked?' · '+model.unlinked+' '+tx('kuzunun aktif anne / büyütme bağlantısı yok','lambs without an active dam / grower link'):'');
+ document.getElementById('pastureCaption').textContent=(model.representative?tx('Temsili görünüm','Representative view')+' · '+model.shown+' / '+model.total.toLocaleString(appLocale())+' '+tx('aktif hayvan','active animals'):tx('Her figür bir aktif hayvan · güncel kayıtlara göre','One figure per active animal · based on current records')+' · '+model.total.toLocaleString(appLocale())+' / '+model.total.toLocaleString(appLocale()))+(model.unlinked?' · '+model.unlinked+' '+tx('kuzunun aktif anne / büyütme bağlantısı yok','lambs without an active dam / grower link'):'');
 }
 function toggleFarmHidden(){farmHidden=!farmHidden;try{localStorage.setItem('suru_farm_hidden',farmHidden?'1':'0')}catch{}renderLivePasture()}
 function farmAnimalClick(event){event.stopPropagation?.();const id=event.target?.closest('[data-farm-animal]')?.dataset.farmAnimal;if(id&&db.animals.some(a=>a.id===id)){farmPauseTimer();animalCard(id);renderLivePasture()}}

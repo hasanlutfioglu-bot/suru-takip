@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.9.7 — Açık Tema</title>
+<title>Sürü Takip V21.9.8 — Açık Tema</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#294f3f">
 <meta name="color-scheme" content="light">
@@ -475,7 +475,7 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
 </head>
 <body><div class="app">
 <div id="syncHealth" class="card" role="status" aria-live="polite" style="margin:8px 14px;font-size:12px"></div>
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.9.7</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.9.8</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -5015,20 +5015,13 @@ function saveHomeShortcuts(){const ids=[...document.querySelectorAll('.homeShort
 // END WEB lookup
 // BEGIN WEB pasture
 // Decorative flock scene. Counts come from current records; no farm data is written.
-const PASTURE_LIMIT=24;
 let pasturePaused=false,pastureRenderKey='';
 try{pasturePaused=localStorage.getItem('suru_pasture_paused')==='1'}catch{}
 function pastureModel(animals){
  const counts={ewe:0,ram:0,lamb:0,unknown:0};
  for(const a of animals)if(isActiveAnimal(a))counts[a.type==='Koyun'?'ewe':a.type==='Koç'?'ram':a.type==='Kuzu'?'lamb':'unknown']++;
- const total=Object.values(counts).reduce((s,n)=>s+n,0),shown=Math.min(PASTURE_LIMIT,total),visible={...counts};
- if(total>PASTURE_LIMIT){
-  const types=Object.keys(counts).filter(k=>counts[k]>0),remaining=shown-types.length;
-  const parts=types.map(k=>{const quota=remaining*counts[k]/total;visible[k]=1+Math.floor(quota);return {k,fraction:quota%1}});
-  let extra=shown-Object.values(visible).reduce((s,n)=>s+n,0);
-  parts.sort((a,b)=>b.fraction-a.fraction);while(extra>0)for(const part of parts){if(extra<=0)break;if(visible[part.k]<counts[part.k]){visible[part.k]++;extra--}}
- }
- return {counts,total,shown,visible,representative:total>PASTURE_LIMIT};
+ const total=Object.values(counts).reduce((s,n)=>s+n,0);
+ return {counts,total,shown:total,visible:{...counts},representative:false};
 }
 function pastureSheep(type,index){return farmAnimalArt(type,index)}
 function setupLivePasture(hero){setupFarmScene(hero)}
@@ -5061,8 +5054,8 @@ function farmTruck(){return '<g class="farmTruck"><ellipse cx="71" cy="62" rx="8
 function farmVet(){return '<g class="farmVet"><ellipse cx="0" cy="45" rx="15" ry="5" fill="#294133" opacity=".2"/><g stroke="#435f69" stroke-width="6" stroke-linecap="round"><path class="farmVetLeg pastureMotion" d="m-6 24-3 18"/><path class="farmVetLeg farmVetLegBack pastureMotion" d="m7 24 4 18"/></g><path d="m-10-2 19-1 5 29-28 1Z" fill="#dce7dd"/><path d="M-2 1v24" stroke="#7c9e96" stroke-width="2"/><path class="farmVetArm pastureMotion" d="m10 3 11 14 13-1" fill="none" stroke="#dce7dd" stroke-width="6" stroke-linecap="round"/><path d="m-10 4-10 14" stroke="#dce7dd" stroke-width="6" stroke-linecap="round"/><circle cx="0" cy="-13" r="10" fill="#d4b28c"/><path d="M-10-14c-1-15 24-14 20 1Z" fill="#526d66"/><rect x="-28" y="17" width="19" height="15" rx="3" fill="#4f7e77"/><path d="M-21 20v9m-4-5h8" stroke="#f1f4dc" stroke-width="2"/></g>'}
 function farmSceneArt(model,phase,prefix='farm'){
  const zoneNames={pasture:tx('Mera','Pasture'),nursery:tx('Anne ve kuzular','Ewes & lambs'),feed:tx('Besi ve büyütme','Finishing & growers'),care:tx('Bakım ve kantar','Care & weighing')};
- let feedSlot=0;
- const animals=model.figures.map((f,i)=>{const event=farmScene.current,working=event?.ids.includes(f.a.id),transfer=event&&(event.kind==='weight'?event.ids[0]===f.a.id:['weaning','finishing'].includes(event.kind)&&event.ids.slice(0,4).includes(f.a.id)),feeding=event?.kind==='feeding'&&(working||event.ids.includes(f.mother)),slot=feeding?feedSlot++:0,dx=feeding?(458+slot%6*45-f.x)/f.scale:0,dy=feeding?(365+Math.floor(slot/6)*17-f.y)/f.scale:0;return `<g class="pastureAnimal pastureAnimal-${f.type} ${f.tracked?'farmTracked':''} ${farmTalk.current?.kind==='care'&&farmTalk.current.animalId===f.a.id?'farmTalkingAnimal':''} ${f.a.id===farmScene.highlight?'farmSelected':''} ${working?'farmWorking':''} ${transfer?'farmTransfer':''} ${feeding?'farmFeedingTarget':''}" data-species="${f.type}" data-zone="${f.zone}" data-mother="${escHtml(f.mother||'')}" data-farm-animal="${escHtml(f.a.id)}" role="button" tabindex="0" aria-label="${escHtml(animalName(f.a)+' · '+zoneNames[f.zone]+(f.tracked?' · '+tx('Takipte','Under observation'):''))}" onclick="farmAnimalClick(event)" onkeydown="farmAnimalKey(event)" transform="translate(${f.x} ${f.y}) scale(${f.scale})" style="--ambient-y:${(355+Math.floor(model.figures.filter(g=>g.zone==='feed').findIndex(g=>g.a.id===f.a.id)/6)*16-f.y)/f.scale}px;--roam-x:${f.roam.dx/f.scale}px;--roam-y:${f.roam.dy/f.scale}px;--roam-time:${f.roam.duration}s;--roam-delay:${f.roam.delay}s;--face-out:${f.roam.dx<0?-1:1};--face-back:${f.roam.dx<0?1:-1};--family-delay:-${f.family%9}s;--family-pace:${13+f.family%5}s;--gather-x:${f.gatherX}px;--gather-y:${f.gatherY}px;--task-x:${dx}px;--task-y:${dy}px" data-day-rest="${f.family%6===0}"><g class="farmGather"><g class="farmTaskShift pastureMotion"><g class="farmRoam pastureMotion"><rect x="-9" y="-19" width="79" height="60" fill="transparent"/><ellipse class="farmSelection" cx="27" cy="17" rx="38" ry="30" fill="none" stroke="#f3d490" stroke-width="3"/><g class="farmFacing pastureMotion">${farmAnimalArt(f.type,f.family)}</g>${f.tracked?'<g transform="translate(41 -22)"><circle r="8" fill="#e6c574"/><text y="4" text-anchor="middle" font-size="12" fill="#536046">!</text></g>':''}</g></g></g></g>`}).join('');
+ const feedPositions=new Map(model.figures.filter(f=>f.zone==='feed').map((f,i)=>[f.a.id,i]));let feedSlot=0;
+ const animals=model.figures.map((f,i)=>{const event=farmScene.current,working=event?.ids.includes(f.a.id),transfer=event&&(event.kind==='weight'?event.ids[0]===f.a.id:['weaning','finishing'].includes(event.kind)&&event.ids.slice(0,4).includes(f.a.id)),feeding=event?.kind==='feeding'&&(working||event.ids.includes(f.mother)),slot=feeding?feedSlot++:0,dx=feeding?(458+slot%6*45-f.x)/f.scale:0,dy=feeding?(365+Math.floor(slot/6)*17-f.y)/f.scale:0;return `<g class="pastureAnimal pastureAnimal-${f.type} ${f.tracked?'farmTracked':''} ${farmTalk.current?.kind==='care'&&farmTalk.current.animalId===f.a.id?'farmTalkingAnimal':''} ${f.a.id===farmScene.highlight?'farmSelected':''} ${working?'farmWorking':''} ${transfer?'farmTransfer':''} ${feeding?'farmFeedingTarget':''}" data-species="${f.type}" data-zone="${f.zone}" data-mother="${escHtml(f.mother||'')}" data-farm-animal="${escHtml(f.a.id)}" role="button" tabindex="0" aria-label="${escHtml(animalName(f.a)+' · '+zoneNames[f.zone]+(f.tracked?' · '+tx('Takipte','Under observation'):''))}" onclick="farmAnimalClick(event)" onkeydown="farmAnimalKey(event)" transform="translate(${f.x} ${f.y}) scale(${f.scale})" style="--ambient-y:${(355+Math.floor((feedPositions.get(f.a.id)||0)/6)*16-f.y)/f.scale}px;--roam-x:${f.roam.dx/f.scale}px;--roam-y:${f.roam.dy/f.scale}px;--roam-time:${f.roam.duration}s;--roam-delay:${f.roam.delay}s;--face-out:${f.roam.dx<0?-1:1};--face-back:${f.roam.dx<0?1:-1};--family-delay:-${f.family%9}s;--family-pace:${13+f.family%5}s;--gather-x:${f.gatherX}px;--gather-y:${f.gatherY}px;--task-x:${dx}px;--task-y:${dy}px" data-day-rest="${f.family%6===0}"><g class="farmGather"><g class="farmTaskShift pastureMotion"><g class="farmRoam pastureMotion"><rect x="-9" y="-19" width="79" height="60" fill="transparent"/><ellipse class="farmSelection" cx="27" cy="17" rx="38" ry="30" fill="none" stroke="#f3d490" stroke-width="3"/><g class="farmFacing pastureMotion">${farmAnimalArt(f.type,f.family)}</g>${f.tracked?'<g transform="translate(41 -22)"><circle r="8" fill="#e6c574"/><text y="4" text-anchor="middle" font-size="12" fill="#536046">!</text></g>':''}</g></g></g></g>`}).join('');
  return farmPaintedSceneArt(model,phase,prefix,animals,zoneNames);
 }
 function farmPaintedSceneArt(model,phase,prefix,animals,zoneNames){
@@ -5160,28 +5153,29 @@ function farmPhaseAt(hour){return hour<farmSettings.dawn||hour>=farmSettings.nig
 function farmHash(s){let n=0;for(const c of String(s))n=(n*31+c.charCodeAt(0))>>>0;return n}
 function farmType(a){return a.type==='Koyun'?'ewe':a.type==='Koç'?'ram':a.type==='Kuzu'?'lamb':'unknown'}
 function openFarmFeedSelection(){openFarmFinishing()}
+function farmPlaceAllFigures(rows){
+ const byId=new Map(rows.map(r=>[r.a.id,r])),areas={pasture:[65,350,205,410],nursery:[450,720,195,290],feed:[455,720,355,420]},groups={pasture:new Map(),nursery:new Map(),feed:new Map()};
+ for(const row of rows){const key=row.zone==='nursery'?(row.mother||row.a.id):row.a.id;if(!groups[row.zone].has(key))groups[row.zone].set(key,[]);groups[row.zone].get(key).push(row)}
+ const figures=[];
+ for(const [zone,map] of Object.entries(groups)){
+  const cells=[...map.values()],n=cells.length;if(!n)continue;const [left,right,top,bottom]=areas[zone],width=right-left,height=bottom-top;
+  const maxKids=cells.reduce((max,m)=>Math.max(max,m.filter(f=>f.mother).length),0),logicalWidth=Math.max(82,30+(Math.min(3,maxKids)-1)*34+44),logicalHeight=65+Math.floor(Math.max(0,maxKids-1)/3)*30;
+  let cols=1,packing=0;for(let c=1;c<=n;c++){const candidate=Math.min(1,width/c/logicalWidth,height/Math.ceil(n/c)/logicalHeight);if(candidate>packing){cols=c;packing=candidate}}
+  const cellWidth=width/cols,cellHeight=height/Math.ceil(n/cols);
+  cells.forEach((members,index)=>{
+   members.sort((a,b)=>Number(!!a.mother)-Number(!!b.mother));const x0=left+index%cols*cellWidth+(cellWidth-logicalWidth*packing)/2,y0=top+Math.floor(index/cols)*cellHeight+(cellHeight-logicalHeight*packing)/2+18*packing;
+   let child=0;for(const f of members){const isChild=!!f.mother&&byId.get(f.mother)?.zone===zone,slot=isChild?child++:0,scale=(f.type==='lamb'?.57:f.type==='ram'?.85:.78)*packing;figures.push({...f,x:x0+(isChild?30+slot%3*34:0)*packing,y:y0+(isChild?26+Math.floor(slot/3)*30:0)*packing,scale,family:farmHash(f.mother||f.a.id),gatherX:0,gatherY:0})}
+  });
+ }
+ return figures.sort((a,b)=>a.y-b.y);
+}
 function farmProjection(animals=db.animals,records=db.records,forcedId=farmScene.current?.ids[0]||farmTalk.current?.animalId||farmScene.highlight){
  const base=pastureModel(animals),active=animals.filter(isActiveAnimal),byId=new Map(active.map(a=>[a.id,a])),links=new Map(),confirmedFinishing=farmFinishingIds(animals,records);
  for(const r of records){if(!validDate(r.date)||r.date>today())continue;if(r.kind==='birth'&&r.motherId)for(const id of r.childIds||[]){if(!links.has(id))links.set(id,new Set());links.get(id).add(r.motherId)}}
  const motherFor=a=>{const linked=links.get(a.id),id=a.motherId||(linked?.size===1?[...linked][0]:'');if(a.motherId&&linked?.size&&(!linked.has(a.motherId)||linked.size>1))return '';const mother=byId.get(id);return mother?.type==='Koyun'&&mother.sex==='Dişi'?id:''};
  const rows=active.map(a=>{const type=farmType(a),grown=confirmedFinishing.has(a.id),mother=type==='lamb'&&!grown?motherFor(a):'';return {a,type,mother,zone:grown?'feed':mother?'nursery':'pasture',tracked:a.status==='Takipte'}});
- const needed=Math.min(7,rows.filter(r=>r.type==='lamb'&&r.zone==='feed').length)+(rows.some(r=>r.type==='lamb'&&r.zone!=='feed'&&r.a.id===forcedId)?1:0);while(base.visible.lamb<needed){const donor=Object.keys(base.visible).filter(k=>k!=='lamb'&&base.visible[k]>1).sort((a,b)=>base.visible[b]-base.visible[a])[0];if(!donor)break;base.visible[donor]--;base.visible.lamb++}
  const mothers=new Set(rows.map(x=>x.mother).filter(Boolean));for(const r of rows)if(mothers.has(r.a.id)&&r.zone!=='feed')r.zone='nursery';
- const selected=[];for(const type of Object.keys(base.visible)){
-  const buckets=[[],[],[],[],[]];for(const r of rows)if(r.type===type)buckets[r.a.id===forcedId?0:r.zone==='feed'?1:mothers.has(r.a.id)?2:r.mother?3:4].push(r);const candidates=buckets.flat();selected.push(...candidates.slice(0,base.visible[type]));
- }
- const chosenMothers=new Map(),slots={pasture:0,nursery:0,feed:0};
- for(const f of selected.filter(x=>x.type!=='lamb'||!x.mother)){
-  const i=slots[f.zone]++,n=selected.filter(x=>x.zone===f.zone&&(!x.mother||x.type!=='lamb')).length,cols=f.zone==='nursery'?(n>9?4:3):f.zone==='feed'?6:4,col=i%cols,row=Math.floor(i/cols),gap=f.zone==='nursery'?Math.min(60,80/Math.max(1,Math.ceil(n/cols)-1)):0;
-  f.x=f.zone==='nursery'?460+col*(n>9?70:90):f.zone==='feed'?465+col*50:73+col*80;f.y=f.zone==='nursery'?205+row*gap:f.zone==='feed'?365+row*Math.min(45,48/Math.max(1,Math.ceil(n/cols)-1)):220+row*Math.min(65,175/Math.max(1,Math.ceil(n/cols)-1));
-  if(mothers.has(f.a.id)&&f.zone==='nursery')chosenMothers.set(f.a.id,f);
- }
- const siblingSlots=new Map();
- for(const f of selected.filter(x=>x.type==='lamb'&&x.mother)){
-  const parent=chosenMothers.get(f.mother),n=siblingSlots.get(f.mother)||0;siblingSlots.set(f.mother,n+1);
-  if(parent){f.x=parent.x+30+n%4*18;f.y=Math.min(285,parent.y+20+Math.floor(n/4)*15)}else{const i=slots.nursery++;f.x=463+i%5*53;f.y=205+Math.floor(i/5)*19}
- }
- const figures=selected.map(f=>{const family=farmHash(f.mother||f.a.id);return {...f,family,scale:f.type==='lamb'?.57:f.type==='ram'?.85:.78,gatherX:(f.zone==='pasture'?230:f.zone==='nursery'?610:590)-f.x,gatherY:(f.zone==='pasture'?325:f.zone==='nursery'?275:465)-f.y}}).sort((a,b)=>a.y-b.y);
+ const figures=farmPlaceAllFigures(rows);
  // Family members share screen-space offsets, even though lambs have a smaller scale.
  const families=new Map();for(const f of figures){const key=f.zone+':'+(f.mother||f.a.id);if(!families.has(key))families.set(key,[]);families.get(key).push(f)}
  const bounds={pasture:[65,350,205,410],nursery:[450,720,195,290],feed:[455,720,355,420]};
@@ -5255,7 +5249,7 @@ function renderFarmScene(){
  }
  const button=document.getElementById('pastureMotionButton');button.disabled=reduce;button.setAttribute('aria-pressed',String(pasturePaused||reduce));button.textContent=reduce?tx('Hareket azaltıldı','Reduced motion'):pasturePaused?tx('▶ Hareketi aç','▶ Play'):tx('Ⅱ Durdur','Ⅱ Pause');button.setAttribute('aria-label',reduce?tx('Sistem hareket azaltma tercihi etkin','System reduced-motion preference is on'):pasturePaused?tx('Mera animasyonunu başlat','Play pasture animation'):tx('Mera animasyonunu durdur','Pause pasture animation'));
  document.getElementById('pastureTitle').textContent=tx('Yaşayan çiftliğin','Your living farm');
- document.getElementById('pastureCaption').textContent=(model.representative?tx('Temsili görünüm','Representative view')+' · '+model.shown+' / '+model.total.toLocaleString(appLocale())+' '+tx('aktif hayvan','active animals'):tx('Her figür bir aktif hayvan · güncel kayıtlara göre','One figure per active animal · based on current records'))+(model.unlinked?' · '+model.unlinked+' '+tx('kuzunun aktif anne / büyütme bağlantısı yok','lambs without an active dam / grower link'):'');
+ document.getElementById('pastureCaption').textContent=(model.representative?tx('Temsili görünüm','Representative view')+' · '+model.shown+' / '+model.total.toLocaleString(appLocale())+' '+tx('aktif hayvan','active animals'):tx('Her figür bir aktif hayvan · güncel kayıtlara göre','One figure per active animal · based on current records')+' · '+model.total.toLocaleString(appLocale())+' / '+model.total.toLocaleString(appLocale()))+(model.unlinked?' · '+model.unlinked+' '+tx('kuzunun aktif anne / büyütme bağlantısı yok','lambs without an active dam / grower link'):'');
 }
 function toggleFarmHidden(){farmHidden=!farmHidden;try{localStorage.setItem('suru_farm_hidden',farmHidden?'1':'0')}catch{}renderLivePasture()}
 function farmAnimalClick(event){event.stopPropagation?.();const id=event.target?.closest('[data-farm-animal]')?.dataset.farmAnimal;if(id&&db.animals.some(a=>a.id===id)){farmPauseTimer();animalCard(id);renderLivePasture()}}
