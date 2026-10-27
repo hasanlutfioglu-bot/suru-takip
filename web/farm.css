@@ -63,3 +63,19 @@
 .farmAccessibleAnimals button{margin:4px;padding:7px 10px}
 .farmIsHidden .farmPixiCanvas{display:none}
 .farmPixiReady .farmMoon,.farmPixiReady .farmStars,.farmPixiReady .farmNightWindows,.farmPixiReady .farmBirds{visibility:visible}
+/* Keep scenery readable on phones and under browser automatic darkening. */
+:root{color-scheme:only light}
+.farmStage{position:relative;max-width:none;min-width:0}
+.farmStage .pastureScene{min-width:0!important;width:100%;max-width:none}
+.farmPixiReady .farmCanvasHost{background-image:none;background-blend-mode:normal;background-color:#b2c39b}
+.farmPixiReady[data-phase] .farmCanvasHost{background-image:none;background-blend-mode:normal;background-color:#b2c39b}
+.farmStage .farmPixiCanvas{width:100%;height:100%}
+.farmCanvasHost.farmCloseView{overflow:auto;max-height:460px;overscroll-behavior:contain;scrollbar-width:thin}
+.farmViewportTools{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;color:#f5f0dc}
+.farmViewportTools button{flex:1;min-height:40px;padding:8px 10px;background:#ffffff12;border:1px solid #d8e3c54d;border-radius:10px;color:#edf1df;font-size:12px;white-space:nowrap}
+.farmViewportTools button[aria-pressed="true"]{background:#e7e7c8;color:#294f3f;border-color:#e7e7c8}
+.farmView[data-phase="dusk"] .farmPaintedBackground{filter:sepia(.12) saturate(.94) brightness(.94)}
+.farmView[data-phase="night"] .farmPaintedBackground{filter:brightness(.65) saturate(.8) hue-rotate(10deg)}
+.farmIsHidden .farmViewportTools{display:none}
+@media(max-width:699px){#home .hasLivingFarm{padding-left:14px;padding-right:14px}.farmCanvasHost.farmCloseView{max-height:380px}.farmView .farmPaintedLabels text{font-size:13px}.farmView .farmClock{font-size:11px}.farmView .pastureHeading{flex-wrap:wrap}.farmViewportTools button{font-size:12px}.farmView .farmStatus,.farmView .pastureCaption,.farmView .farmZoneStats{font-size:12px}}
+.farmViewportTools small{flex-basis:100%;font-size:11px;line-height:1.5;color:#d6e1c8}

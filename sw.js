@@ -1,4 +1,4 @@
-const CACHE='suru-v21100-pixi-farm-20261027';
+const CACHE='suru-v21101-mobile-farm-20261027';
 const APP=new URL('./v21.html',self.location.href).href;
 const ASSETS=['./manifest.webmanifest','./icons/app.svg','./icons/app-192.png','./icons/app-512.png','./assets/farm/anime-countryside-v1.webp','./assets/farm/pixi-8_22_0-min.js'].map(path=>new URL(path,self.location.href).href);
 const SDK='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2';

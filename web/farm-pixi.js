@@ -1,5 +1,15 @@
 // Optional local renderer. All state here is visual; database writes stay in the forms.
-const farmPixiViews=new Map();let farmPixiTextures=null;
+const farmPixiViews=new Map();let farmPixiTextures=null,farmPixiBackdrop=null;
+function farmViewport(view){
+ const host=view.querySelector('.farmCanvasHost');let stage=host.querySelector('.farmStage');
+ if(!stage){stage=document.createElement('div');stage.className='farmStage';while(host.firstChild)stage.append(host.firstChild);host.append(stage)}
+ let tools=view.querySelector('.farmViewportTools');if(!tools){tools=document.createElement('div');tools.className='farmViewportTools';host.before(tools);for(const [key,tr,en] of [['all','Tümü','All'],['pasture','Mera','Pasture'],['nursery','Anne–kuzu','Ewes & lambs'],['feed','Besi','Finishing']]){const b=document.createElement('button');b.type='button';b.dataset.area=key;b.onclick=()=>{view.dataset.camera=key;renderLivePasture();const width=host.querySelector('.farmStage').scrollWidth;host.scrollTo({left:key==='pasture'?0:key==='all'?0:width*.43,top:key==='feed'?width*.21:0,behavior:farmReduced()?'instant':'smooth'})};tools.append(b)}}
+ const mobile=window.innerWidth<700,mode=view.dataset.camera||(mobile?'pasture':'all');stage.style.width=mode==='all'?'100%':Math.max(host.clientWidth,700)+'px';
+ host.classList.toggle('farmCloseView',mode!=='all');for(const b of tools.querySelectorAll('button')){const labels={all:tx('Tümü','All'),pasture:tx('Mera','Pasture'),nursery:tx('Anne–kuzu','Ewes & lambs'),feed:tx('Besi','Finishing')};b.textContent=labels[b.dataset.area];b.setAttribute('aria-pressed',String(b.dataset.area===mode))}
+ let hint=tools.querySelector('small');if(!hint){hint=document.createElement('small');tools.append(hint)}hint.textContent=tx('Diğer alanları görmek için sağa–sola kaydırabilirsin.','Swipe sideways to see the other areas.');hint.hidden=mode==='all';
+ host.setAttribute('aria-label',tx('Çiftlik görünümü; diğer alanlar için yatay kaydırın veya alan düğmelerini kullanın','Farm view; swipe horizontally or use the area buttons'));
+ return stage;
+}
 async function farmPixiArtwork(){
  if(farmPixiTextures)return farmPixiTextures;
  farmPixiTextures=(async()=>{
@@ -57,24 +67,25 @@ function farmPixiFallback(state){
 }
 async function farmPixiSync(view,model,phase){
  if(typeof PIXI==='undefined'||typeof ResizeObserver==='undefined')return;
- if(view.dataset.farmView==='expanded'&&!document.getElementById('modal')?.classList.contains('show')){const old=farmPixiViews.get(view);if(old){old.disposed=true;old.observer?.disconnect();old.app?.destroy(true,{children:true,texture:false});farmPixiViews.delete(view);view.classList.remove('farmPixiReady')}return}
- for(const [el,old] of farmPixiViews)if(!el.isConnected){old.disposed=true;old.observer?.disconnect();old.app?.destroy(true,{children:true,texture:false});farmPixiViews.delete(el)}
+ if(view.dataset.farmView==='expanded'&&!document.getElementById('modal')?.classList.contains('show')){const old=farmPixiViews.get(view);if(old){old.disposed=true;old.observer?.disconnect();old.app?.renderer&&old.app.destroy(true,{children:true,texture:false});farmPixiViews.delete(view);view.classList.remove('farmPixiReady')}return}
+ for(const [el,old] of farmPixiViews)if(!el.isConnected){old.disposed=true;old.observer?.disconnect();old.app?.renderer&&old.app.destroy(true,{children:true,texture:false});farmPixiViews.delete(el)}
  let state=farmPixiViews.get(view);if(state?.failed)return;
  if(!state){
   state={view,model,phase,time:0,units:[],loading:true};farmPixiViews.set(view,state);
   try{
    const app=state.app=new PIXI.Application();await app.init({width:1000,height:620,backgroundAlpha:0,antialias:true,autoStart:false,preference:'webgl',resolution:Math.min(devicePixelRatio||1,2),autoDensity:true});
-   if(!view.isConnected){app.destroy(true);farmPixiViews.delete(view);return}
-   state.textures=await farmPixiArtwork();state.world=new PIXI.Container();state.world.sortableChildren=true;app.stage.addChild(state.world);app.ticker.maxFPS=30;app.ticker.add(t=>farmPixiStep(state,Math.min(t.deltaMS/1000,.05)));
+   if(state.disposed||!view.isConnected){app.destroy(true);farmPixiViews.delete(view);return}
+   state.textures=await farmPixiArtwork();farmPixiBackdrop||=PIXI.Assets.load('assets/farm/anime-countryside-v1.webp');const backdrop=await farmPixiBackdrop;if(state.disposed)return;
+   state.world=new PIXI.Container();state.world.sortableChildren=true;state.background=new PIXI.Sprite(backdrop);state.background.width=1000;state.background.height=620;state.background.zIndex=-1000;state.world.addChild(state.background);app.stage.addChild(state.world);app.ticker.maxFPS=30;app.ticker.add(t=>farmPixiStep(state,Math.min(t.deltaMS/1000,.05)));
    app.canvas.className='farmPixiCanvas';app.canvas.setAttribute('aria-hidden','true');app.canvas.addEventListener('webglcontextlost',()=>farmPixiFallback(state));
-   state.observer=new ResizeObserver(()=>{if(state.failed)return;const width=state.view.querySelector('.farmCanvasHost')?.clientWidth||1000;app.renderer.resize(width,width*.62);state.world.scale.set(width/1000);app.render()});state.observer.observe(view.querySelector('.farmCanvasHost'));state.loading=false;
+   state.resize=()=>{if(state.failed||state.disposed)return;const width=state.view.querySelector('.farmStage')?.clientWidth||1000;app.renderer.resize(width,width*.62);state.world.scale.set(width/1000);app.render()};state.observer=new ResizeObserver(state.resize);state.loading=false;
    farmPixiSync(view,state.model,state.phase);
   }catch(error){farmPixiFallback(state);console.warn('Çiftlik görünümü yedek çizimle devam ediyor.',error.message)}return;
  }
  state.model=model;state.phase=phase;if(state.loading)return;
  const key=JSON.stringify(model.figures.map(f=>[f.a.id,f.x,f.y,f.scale,f.type,f.mother,f.zone,f.a.status]));
  if(state.key!==key){state.key=key;for(const u of state.units)u.root.destroy({children:true,texture:false});state.units=model.figures.map(f=>farmPixiRig(f,state.textures));if(state.units.length)state.world.addChild(...state.units.map(u=>u.root))}
- const host=view.querySelector('.farmCanvasHost');if(!host.contains(state.app.canvas))host.prepend(state.app.canvas);view.classList.add('farmPixiReady');
+ const host=view.querySelector('.farmCanvasHost'),stage=farmViewport(view);if(!stage.contains(state.app.canvas))stage.prepend(state.app.canvas);view.classList.add('farmPixiReady');state.observer.disconnect();state.observer.observe(stage);state.background.tint=phase==='night'?0x94a4c6:phase==='dusk'?0xf5decb:phase==='dawn'?0xffeedb:0xffffff;state.resize();
  // Native record buttons remain available to keyboard and assistive technology.
  for(const el of host.querySelectorAll('[data-farm-animal]')){el.setAttribute('aria-hidden','true');el.setAttribute('tabindex','-1')}
  let list=view.querySelector('.farmAccessibleAnimals');if(!list){list=document.createElement('details');list.className='farmAccessibleAnimals';host.after(list)}
