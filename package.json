@@ -1,10 +1,10 @@
 {
   "name": "suru-takip",
-  "version": "21.9.2",
+  "version": "21.9.3",
   "private": true,
   "scripts": {
-    "test": "node scripts/sync-web.cjs --check && node tests/sync-audit.cjs v21.html && node tests/offline-shell.cjs && node tests/offline-herd.cjs && node tests/menu-flows.cjs && node tests/full-audit.cjs && node tests/billing-audit.cjs && node tests/payment-ui.cjs && node tests/readiness.cjs && node tests/server-readiness.cjs && node tests/flock-mcp.mjs && node tests/language.cjs && node tests/back-navigation.cjs && node tests/herd-usability.cjs && node tests/target-weighing.cjs && node tests/growth-sort.cjs && node tests/feed-allocation.cjs && node tests/herd-redesign.cjs && node tests/operations.cjs && node tests/reminders.mjs && node tests/push-security.cjs && node tests/lamb-sale.cjs && node tests/birth-report-summary.cjs && node tests/reliability.cjs && node tests/business-tools.cjs && node tests/growth-report.cjs && node tests/reporting.cjs && node tests/pasture.cjs && node tests/farm-scene.cjs",
-    "test:browser": "node tests/browser.cjs && node tests/native-back-browser.cjs && node tests/preview-server.cjs && node tests/reporting-browser.cjs && node tests/pasture-browser.cjs && node tests/farm-scene-browser.cjs && node tests/farm-anime-browser.cjs",
+    "test": "node scripts/sync-web.cjs --check && node tests/sync-audit.cjs v21.html && node tests/offline-shell.cjs && node tests/offline-herd.cjs && node tests/menu-flows.cjs && node tests/full-audit.cjs && node tests/billing-audit.cjs && node tests/payment-ui.cjs && node tests/readiness.cjs && node tests/server-readiness.cjs && node tests/flock-mcp.mjs && node tests/language.cjs && node tests/back-navigation.cjs && node tests/herd-usability.cjs && node tests/target-weighing.cjs && node tests/growth-sort.cjs && node tests/feed-allocation.cjs && node tests/herd-redesign.cjs && node tests/operations.cjs && node tests/reminders.mjs && node tests/push-security.cjs && node tests/lamb-sale.cjs && node tests/birth-report-summary.cjs && node tests/reliability.cjs && node tests/business-tools.cjs && node tests/growth-report.cjs && node tests/reporting.cjs && node tests/pasture.cjs && node tests/farm-scene.cjs && node tests/farm-dialogue.cjs",
+    "test:browser": "node tests/browser.cjs && node tests/native-back-browser.cjs && node tests/preview-server.cjs && node tests/reporting-browser.cjs && node tests/pasture-browser.cjs && node tests/farm-scene-browser.cjs && node tests/farm-anime-browser.cjs && node tests/farm-dialogue-browser.cjs",
     "test:all": "npm test && npm run test:browser",
     "build": "node scripts/sync-web.cjs --write && node scripts/stage-site.cjs",
     "check:environment": "node scripts/check-environment.cjs",
