@@ -5,7 +5,7 @@ const write=process.argv.includes('--write'),check=process.argv.includes('--chec
 if(!write&&!check)throw Error('Use --check or --write');
 const lf=s=>s.replace(/\r\n/g,'\n');
 let html=lf(fs.readFileSync('v21.html','utf8'));
-const files=['device-state','change-history','sync-review','weighing-drafts','management','lookup','pasture','farm-art','farm-dialogue','farm-scene','presentation','growth-report','reporting'].map(name=>({file:'web/'+name+'.js',marker:'WEB '+name}));
+const files=['device-state','change-history','sync-review','weighing-drafts','management','lookup','pasture','farm-art','farm-finishing','farm-dialogue','farm-scene','presentation','growth-report','reporting'].map(name=>({file:'web/'+name+'.js',marker:'WEB '+name}));
 files.push({file:'web/theme.css',marker:'WEB THEME',css:true},{file:'web/farm.css',marker:'WEB FARM',css:true});
 files.push({file:'supabase/functions/_shared/sales-policy.mjs',marker:'SHARED SALES POLICY',stripExports:true},{file:'supabase/functions/_shared/change-history.mjs',marker:'SHARED CHANGE HISTORY',stripExports:true});
 const stale=[];

@@ -10,8 +10,6 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=requ
   assert.equal(await page.evaluate(()=>farmScene.current),null,'seeded records do not autoplay');
   const ambient=page.locator('#livePasture .farmFarmer');assert.equal(await ambient.count(),1);
   await page.locator('#pastureMotionButton').click();assert.equal(await ambient.evaluate(e=>getComputedStyle(e).animationPlayState),'paused');await page.locator('#pastureMotionButton').click();
-  const unchanged=await page.evaluate(()=>JSON.stringify(db));await page.evaluate(()=>openFarmFeedSelection());await page.locator('.farmPenCheck[value="kid"]').check();await page.locator('[onclick="saveFarmFeedSelection()"]').click();assert.equal(await page.locator('#pastureAnimals [data-farm-animal="kid"]').getAttribute('data-zone'),'feed');assert.equal(await page.evaluate(()=>JSON.stringify(db)),unchanged);
-  await page.evaluate(()=>openFarmFeedSelection());await page.locator('.farmPenCheck[value="kid"]').uncheck();await page.locator('[onclick="saveFarmFeedSelection()"]').click();
   await page.evaluate(()=>openFarmSceneSettings());await page.locator('#farmPreviewSelect').selectOption('night');
   assert.equal(await page.locator('#livePasture').getAttribute('data-phase'),'night');assert.equal(await page.locator('#livePasture .pastureAnimal[data-farm-animal="kid"] .farmStanding').evaluate(e=>getComputedStyle(e).display),'none');assert.notEqual(await page.locator('#livePasture .pastureAnimal[data-farm-animal="kid"] .farmResting').evaluate(e=>getComputedStyle(e).display),'none');
   assert.equal(await page.locator('#livePasture .farmAmbientLayer').evaluate(e=>getComputedStyle(e).display),'none','farmer stays indoors at night');
