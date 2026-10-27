@@ -12,7 +12,7 @@ const server=http.createServer((req,res)=>{
   if(!['GET','HEAD'].includes(req.method)){res.writeHead(405,{'Allow':'GET, HEAD'});return res.end()}
   const url=new URL(req.url,'http://localhost'),name=decodeURIComponent(url.pathname).replace(/^\//,'')||'index.html';
   if(legacy.has(name)){res.writeHead(302,{'Location':'/v21.html'+url.search});return res.end()}
-  if(!pages.has(name)&&!/^icons\/[A-Za-z0-9_-]+\.(png|svg)$/.test(name)&&!/^assets\/farm\/[A-Za-z0-9_-]+\.webp$/.test(name)){res.writeHead(404);return res.end('Not found')}
+  if(!pages.has(name)&&!/^icons\/[A-Za-z0-9_-]+\.(png|svg)$/.test(name)&&!/^assets\/farm\/[A-Za-z0-9_-]+\.(webp|js|txt)$/.test(name)){res.writeHead(404);return res.end('Not found')}
   const target=path.resolve(root,name);
   if(!target.startsWith(root+path.sep)||!fs.existsSync(target)){res.writeHead(404);return res.end('Not found')}
   let body=fs.readFileSync(target);
