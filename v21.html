@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.9.6 — Açık Tema</title>
+<title>Sürü Takip V21.9.7 — Açık Tema</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#294f3f">
 <meta name="color-scheme" content="light">
@@ -475,7 +475,7 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
 </head>
 <body><div class="app">
 <div id="syncHealth" class="card" role="status" aria-live="polite" style="margin:8px 14px;font-size:12px"></div>
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.9.6</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.9.7</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -5087,15 +5087,22 @@ function farmEventArt(model){
 // BEGIN WEB farm-finishing
 // Three calendar months is a user-defined reminder threshold, never an automatic move.
 function farmFinishingDueDate(a){if(!validDate(a.birth)||a.birth>today())return '';const [year,month,day]=a.birth.split('-').map(Number),start=new Date(Date.UTC(year,month-1+3,1)),last=new Date(Date.UTC(start.getUTCFullYear(),start.getUTCMonth()+1,0)).getUTCDate();return start.getUTCFullYear()+'-'+String(start.getUTCMonth()+1).padStart(2,'0')+'-'+String(Math.min(day,last)).padStart(2,'0')}
-function farmFinishingIds(animals=db.animals,records=db.records){const ids=new Set(records.filter(r=>r.kind==='note'&&r.action==='finishing_start'&&validDate(r.date)&&r.date<=today()).map(r=>r.animalId));for(const a of animals)if(/(?:^|[\s/-])besi\S*(?:$|[\s/-])/iu.test(String(a.group||'').toLocaleLowerCase('tr-TR')))ids.add(a.id);return ids}
+function farmFinishingIds(animals=db.animals,records=db.records){const latest=new Map();for(const r of records){if(r.kind!=='note'||!['finishing_start','finishing_end'].includes(r.action)||!validDate(r.date)||r.date>today()||!r.animalId)continue;const key=r.date+'|'+(r.at||''),previous=latest.get(r.animalId);if(!previous||key>=previous.key)latest.set(r.animalId,{key,action:r.action})}return new Set([...latest].filter(([,r])=>r.action==='finishing_start').map(([id])=>id))}
 function farmFinishingCandidates(){const confirmed=farmFinishingIds();return db.animals.filter(a=>isActiveAnimal(a)&&a.type==='Kuzu'&&!confirmed.has(a.id)&&farmFinishingDueDate(a)&&farmFinishingDueDate(a)<=today()).slice().sort((a,b)=>a.birth.localeCompare(b.birth)||String(a.id).localeCompare(String(b.id)))}
 function farmFinishingClick(event){const id=event.target.closest('[data-finishing-id]')?.dataset.finishingId;openFarmFinishing(id)}
+function farmFinishingPendingCard(a){return `<div class="card" data-finishing-row="${escHtml(a.id)}"><b data-no-i18n>${escHtml(animalName(a))}</b><p>${tx('Doğum: ','Born: ')}${escHtml(a.birth)} · ${tx('3 ayını doldurduğu tarih: ','Three-month date: ')}${farmFinishingDueDate(a)}</p><button type="button" class="primary" data-finishing-id="${escHtml(a.id)}" onclick="startFarmFinishingClick(event)">${tx('Besiye al','Move to finishing')}</button></div>`}
+function farmFinishingConfirmedCard(a){return `<div class="card" data-finishing-row="${escHtml(a.id)}"><b data-no-i18n>${escHtml(animalName(a))}</b><button type="button" data-finishing-id="${escHtml(a.id)}" onclick="endFarmFinishingClick(event)">${tx('Besiden çıkar','Remove from finishing')}</button></div>`}
+function farmFinishingConfirmed(){const ids=farmFinishingIds();return db.animals.filter(a=>isActiveAnimal(a)&&ids.has(a.id))}
 function openFarmFinishing(id=''){
- const candidates=farmFinishingCandidates(),selected=id?candidates.filter(a=>a.id===id):candidates;
- showModal(tx('Besiye geçiş','Move to finishing'),'<p>'+tx('3 ayını dolduran kuzular için hatırlatma. Besiye geçiş sen “Besiye al” dediğinde kaydedilir.','Reminder for lambs that have reached three months. A move is recorded only when you choose “Move to finishing”.')+'</p>'+selected.map(a=>`<div class="card"><b data-no-i18n>${escHtml(animalName(a))}</b><p>${tx('Doğum: ','Born: ')}${escHtml(a.birth)} · ${tx('3 ayını doldurduğu tarih: ','Three-month date: ')}${farmFinishingDueDate(a)}</p><button type="button" class="primary" data-finishing-id="${escHtml(a.id)}" onclick="startFarmFinishingClick(event)">${tx('Besiye al','Move to finishing')}</button></div>`).join('')+(selected.length?'':'<p>'+tx('Besiye geçiş onayı bekleyen kuzu yok.','No lambs awaiting finishing approval.')+'</p>'));
+ const candidates=farmFinishingCandidates(),selected=id?[...candidates.filter(a=>a.id===id),...candidates.filter(a=>a.id!==id)]:candidates;
+ showModal(tx('Besiye geçiş','Move to finishing'),`<div id="farmFinishingPanel" data-scope="${escHtml(activeStorageKey)}"><p>${tx('3 ayını doldurmak yalnızca hatırlatma oluşturur. Kuzular sen onaylayana kadar anne yanındaki alanda kalır. Seçtikçe liste açık kalır.','Reaching three months only creates a reminder. Lambs stay in their family area until you approve. The list stays open as you select.')}</p><b id="farmFinishingCount"></b><div id="farmFinishingPending">${selected.map(farmFinishingPendingCard).join('')}</div><p id="farmFinishingEmpty" hidden>${tx('Besiye geçiş onayı bekleyen kuzu yok.','No lambs awaiting finishing approval.')}</p><details><summary id="farmFinishingConfirmedCount"></summary><div id="farmFinishingConfirmed"></div></details></div>`);
+ refreshFarmFinishingPanel();
 }
-function startFarmFinishingClick(event){const id=event.target.closest('[data-finishing-id]')?.dataset.finishingId;startFarmFinishing(id)}
-function startFarmFinishing(id){if(opCommit(()=>{const a=farmFinishingCandidates().find(a=>a.id===id);if(!a)opFail('Bu kuzu besiye geçiş için uygun değil veya zaten besiye alındı','This lamb is not eligible or is already in finishing');db.records.push({id:uid('rec'),kind:'note',action:'finishing_start',label:tx('Besiye geçiş','Move to finishing'),date:today(),animalId:a.id,note:tx('Kullanıcı onayıyla besiye alındı','Moved to finishing with user approval')})})){closeModal();toast(tx('Kuzu besiye alındı','Lamb moved to finishing'))}}
+function refreshFarmFinishingPanel(){const panel=document.getElementById('farmFinishingPanel');if(!panel||panel.dataset.scope!==activeStorageKey)return;const pending=farmFinishingCandidates(),confirmed=farmFinishingConfirmed();for(const [name,animals,card] of [['Pending',pending,farmFinishingPendingCard],['Confirmed',confirmed,farmFinishingConfirmedCard]]){const list=document.getElementById('farmFinishing'+name),ids=new Set(animals.map(a=>a.id));for(const row of list.querySelectorAll('[data-finishing-row]'))if(!ids.has(row.dataset.finishingRow))row.remove();const present=new Set([...list.querySelectorAll('[data-finishing-row]')].map(row=>row.dataset.finishingRow));for(const a of animals)if(!present.has(a.id))list.insertAdjacentHTML('beforeend',card(a))}document.getElementById('farmFinishingCount').textContent=pending.length+' '+tx('kuzu onay bekliyor','lambs awaiting approval');document.getElementById('farmFinishingConfirmedCount').textContent=tx('Besidekiler','In finishing')+' · '+confirmed.length;document.getElementById('farmFinishingEmpty').hidden=pending.length>0}
+function startFarmFinishingClick(event){const button=event.target.closest('[data-finishing-id]');if(!button||button.disabled)return;const next=button.closest('[data-finishing-row]')?.nextElementSibling?.querySelector('button');button.disabled=true;if(!startFarmFinishing(button.dataset.finishingId))button.disabled=false;else if(next?.isConnected)next.focus({preventScroll:true})}
+function startFarmFinishing(id){const ok=opCommit(()=>{const a=farmFinishingCandidates().find(a=>a.id===id);if(!a)opFail('Bu kuzu besiye geçiş için uygun değil veya zaten besiye alındı','This lamb is not eligible or is already in finishing');db.records.push({id:uid('rec'),kind:'note',action:'finishing_start',label:tx('Besiye geçiş','Move to finishing'),date:today(),at:new Date().toISOString(),animalId:a.id,note:tx('Kullanıcı onayıyla besiye alındı','Moved to finishing with user approval')})});if(ok){refreshFarmFinishingPanel();toast(tx('Kuzu besiye alındı','Lamb moved to finishing'))}return ok}
+function endFarmFinishingClick(event){const id=event.target.closest('[data-finishing-id]')?.dataset.finishingId;endFarmFinishing(id)}
+function endFarmFinishing(id){const ok=opCommit(()=>{const a=farmFinishingConfirmed().find(a=>a.id===id);if(!a)opFail('Bu hayvan besi alanında değil','This animal is not in finishing');db.records.push({id:uid('rec'),kind:'note',action:'finishing_end',label:tx('Besiden çıkarıldı','Removed from finishing'),date:today(),at:new Date().toISOString(),animalId:id,note:tx('Kullanıcı onayıyla besi alanından çıkarıldı','Removed from finishing with user approval')})});if(ok){refreshFarmFinishingPanel();toast(tx('Hayvan besi alanından çıkarıldı','Animal removed from finishing'))}return ok}
 function farmFinishingWarning(){const candidates=farmFinishingCandidates();if(!candidates.length)return '';return `<button type="button" class="farmFinishingNotice" onclick="openFarmFinishing()"><b>${candidates.length} ${tx('kuzu besiye alınabilir','lambs ready for a finishing decision')}</b><span>${tx('3 ayını doldurdu · incele ve besiye al','Three months old · review and move to finishing')} ↗</span></button>`}
 // END WEB farm-finishing
 
@@ -5154,10 +5161,10 @@ function farmHash(s){let n=0;for(const c of String(s))n=(n*31+c.charCodeAt(0))>>
 function farmType(a){return a.type==='Koyun'?'ewe':a.type==='Koç'?'ram':a.type==='Kuzu'?'lamb':'unknown'}
 function openFarmFeedSelection(){openFarmFinishing()}
 function farmProjection(animals=db.animals,records=db.records,forcedId=farmScene.current?.ids[0]||farmTalk.current?.animalId||farmScene.highlight){
- const base=pastureModel(animals),active=animals.filter(isActiveAnimal),byId=new Map(active.map(a=>[a.id,a])),weaned=new Set(),links=new Map(),confirmedFinishing=farmFinishingIds(animals,records);
- for(const r of records){if(!validDate(r.date)||r.date>today())continue;if(r.kind==='weaning')weaned.add(r.animalId);if(r.kind==='birth'&&r.motherId)for(const id of r.childIds||[]){if(!links.has(id))links.set(id,new Set());links.get(id).add(r.motherId)}}
+ const base=pastureModel(animals),active=animals.filter(isActiveAnimal),byId=new Map(active.map(a=>[a.id,a])),links=new Map(),confirmedFinishing=farmFinishingIds(animals,records);
+ for(const r of records){if(!validDate(r.date)||r.date>today())continue;if(r.kind==='birth'&&r.motherId)for(const id of r.childIds||[]){if(!links.has(id))links.set(id,new Set());links.get(id).add(r.motherId)}}
  const motherFor=a=>{const linked=links.get(a.id),id=a.motherId||(linked?.size===1?[...linked][0]:'');if(a.motherId&&linked?.size&&(!linked.has(a.motherId)||linked.size>1))return '';const mother=byId.get(id);return mother?.type==='Koyun'&&mother.sex==='Dişi'?id:''};
- const rows=active.map(a=>{const type=farmType(a),isWeaned=weaned.has(a.id)||validDate(a.weaningDate)&&a.weaningDate<=today(),grown=confirmedFinishing.has(a.id),mother=type==='lamb'&&!grown&&!isWeaned?motherFor(a):'';return {a,type,mother,zone:grown?'feed':mother?'nursery':'pasture',tracked:a.status==='Takipte'}});
+ const rows=active.map(a=>{const type=farmType(a),grown=confirmedFinishing.has(a.id),mother=type==='lamb'&&!grown?motherFor(a):'';return {a,type,mother,zone:grown?'feed':mother?'nursery':'pasture',tracked:a.status==='Takipte'}});
  const needed=Math.min(7,rows.filter(r=>r.type==='lamb'&&r.zone==='feed').length)+(rows.some(r=>r.type==='lamb'&&r.zone!=='feed'&&r.a.id===forcedId)?1:0);while(base.visible.lamb<needed){const donor=Object.keys(base.visible).filter(k=>k!=='lamb'&&base.visible[k]>1).sort((a,b)=>base.visible[b]-base.visible[a])[0];if(!donor)break;base.visible[donor]--;base.visible.lamb++}
  const mothers=new Set(rows.map(x=>x.mother).filter(Boolean));for(const r of rows)if(mothers.has(r.a.id)&&r.zone!=='feed')r.zone='nursery';
  const selected=[];for(const type of Object.keys(base.visible)){
@@ -5182,14 +5189,14 @@ function farmProjection(animals=db.animals,records=db.records,forcedId=farmScene
   for(const f of members){f.roam={dx,dy,duration:32+first.family%11,delay:-(first.family%29),bounds:b};f.gatherX=0;f.gatherY=0}
  }
  const zones={pasture:0,nursery:0,feed:0};rows.forEach(r=>zones[r.zone]++);
- const description=base.counts.ewe+' '+tx('koyun','ewes')+' · '+base.counts.ram+' '+tx('koç','rams')+' · '+base.counts.lamb+' '+tx('kuzu','lambs')+'. '+tx('Besi alanı onaylı besiye geçiş kayıtlarına ve mevcut besi gruplarına dayanır.','Finishing placement uses approved transitions and existing finishing groups.')+(base.representative?' '+tx('Görünüm temsilidir.','Representative view.'):'');
+ const description=base.counts.ewe+' '+tx('koyun','ewes')+' · '+base.counts.ram+' '+tx('koç','rams')+' · '+base.counts.lamb+' '+tx('kuzu','lambs')+'. '+tx('Besi alanı yalnız onaylı besiye geçiş kayıtlarına dayanır.','Finishing placement uses approved transition records only.')+(base.representative?' '+tx('Görünüm temsilidir.','Representative view.'):'');
  return {...base,figures,zones,description,unlinked:rows.filter(r=>r.type==='lamb'&&!r.mother&&r.zone==='pasture').length};
 }
 function farmPauseTimer(){if(farmScene.timer!==null){clearTimeout(farmScene.timer);farmScene.timer=null;farmScene.left=Math.max(0,farmScene.left-(Date.now()-farmScene.started));farmScene.nonce++}}
 function farmClearEvent(){farmPauseTimer();farmScene.current=null;farmScene.left=0;farmScene.nonce++}
 function resetFarmSceneEvents(){farmClearEvent();farmScene.queue=[];farmScene.highlight=''}
 function farmScopeCheck(){if(farmScene.scope!==activeStorageKey){farmClearEvent();farmScene.scope=activeStorageKey;farmScene.queue=[];farmScene.highlight='';farmScene.key='';farmScene.preview='auto'}}
-function farmEventSignature(r){return JSON.stringify([r.id,r.kind,r.date,r.animalId,r.animalIds,r.childIds,r.motherId,r.count,r.note,r.weight])}
+function farmEventSignature(r){return JSON.stringify([r.id,r.kind,r.date,r.animalId,r.animalIds,r.childIds,r.motherId,r.count,r.note,r.weight,r.action])}
 function farmEventsFor(records,subjects=db.animals){
  const map=new Map(subjects.map(a=>[a.id,a])),groups=new Map();
  for(const r of records){if(!r.id||!(['birth','weaning','feeding','health','weight','sale'].includes(r.kind)||r.kind==='note'&&r.action==='finishing_start')||!validDate(r.date)||r.date>today()||r.weaningRecordId)continue;
@@ -5198,7 +5205,7 @@ function farmEventsFor(records,subjects=db.animals){
  }
  return [...groups.values()].map(rows=>{const first=rows[0],ids=[...new Set(rows.flatMap(r=>r.kind==='birth'?[r.motherId,...r.childIds||[]]:r.animalIds||[r.animalId]).filter(Boolean))];return {id:first.id,recordIds:rows.map(r=>r.id),signatures:rows.map(farmEventSignature),kind:first.kind==='note'&&first.action==='finishing_start'?'finishing':first.kind,date:first.date,ids,count:first.kind==='birth'?rows.reduce((s,r)=>s+(+r.count||0),0):ids.length,weight:first.kind==='weight'?weightValueFromRecord(first):null,subjects:ids.map(id=>map.get(id)).filter(Boolean).map(a=>({id:a.id,type:a.type,tag:a.tag})),stage:0,replay:false}}).filter(e=>e.ids.length);
 }
-function farmEventValid(e){const rows=new Map(db.records.map(r=>[r.id,r]));return e.recordIds.every((id,i)=>rows.has(id)&&farmEventSignature(rows.get(id))===e.signatures[i])&&(e.kind!=='sale'||e.ids.every(id=>!db.animals.some(a=>a.id===id&&isActiveAnimal(a))))}
+function farmEventValid(e){const rows=new Map(db.records.map(r=>[r.id,r]));return e.recordIds.every((id,i)=>rows.has(id)&&farmEventSignature(rows.get(id))===e.signatures[i])&&(e.kind!=='finishing'||e.ids.every(id=>farmFinishingIds().has(id)&&db.animals.some(a=>a.id===id&&isActiveAnimal(a))))&&(e.kind!=='sale'||e.ids.every(id=>!db.animals.some(a=>a.id===id&&isActiveAnimal(a))))}
 function notifyFarmSceneCommit(before,after){
  farmScopeCheck();if(!before||before===after)return;
  const old=new Set((before.records||[]).map(r=>r.id)),fresh=after.records.filter(r=>!old.has(r.id));

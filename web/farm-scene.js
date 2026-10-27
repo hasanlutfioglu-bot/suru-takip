@@ -8,10 +8,10 @@ function farmHash(s){let n=0;for(const c of String(s))n=(n*31+c.charCodeAt(0))>>
 function farmType(a){return a.type==='Koyun'?'ewe':a.type==='Koç'?'ram':a.type==='Kuzu'?'lamb':'unknown'}
 function openFarmFeedSelection(){openFarmFinishing()}
 function farmProjection(animals=db.animals,records=db.records,forcedId=farmScene.current?.ids[0]||farmTalk.current?.animalId||farmScene.highlight){
- const base=pastureModel(animals),active=animals.filter(isActiveAnimal),byId=new Map(active.map(a=>[a.id,a])),weaned=new Set(),links=new Map(),confirmedFinishing=farmFinishingIds(animals,records);
- for(const r of records){if(!validDate(r.date)||r.date>today())continue;if(r.kind==='weaning')weaned.add(r.animalId);if(r.kind==='birth'&&r.motherId)for(const id of r.childIds||[]){if(!links.has(id))links.set(id,new Set());links.get(id).add(r.motherId)}}
+ const base=pastureModel(animals),active=animals.filter(isActiveAnimal),byId=new Map(active.map(a=>[a.id,a])),links=new Map(),confirmedFinishing=farmFinishingIds(animals,records);
+ for(const r of records){if(!validDate(r.date)||r.date>today())continue;if(r.kind==='birth'&&r.motherId)for(const id of r.childIds||[]){if(!links.has(id))links.set(id,new Set());links.get(id).add(r.motherId)}}
  const motherFor=a=>{const linked=links.get(a.id),id=a.motherId||(linked?.size===1?[...linked][0]:'');if(a.motherId&&linked?.size&&(!linked.has(a.motherId)||linked.size>1))return '';const mother=byId.get(id);return mother?.type==='Koyun'&&mother.sex==='Dişi'?id:''};
- const rows=active.map(a=>{const type=farmType(a),isWeaned=weaned.has(a.id)||validDate(a.weaningDate)&&a.weaningDate<=today(),grown=confirmedFinishing.has(a.id),mother=type==='lamb'&&!grown&&!isWeaned?motherFor(a):'';return {a,type,mother,zone:grown?'feed':mother?'nursery':'pasture',tracked:a.status==='Takipte'}});
+ const rows=active.map(a=>{const type=farmType(a),grown=confirmedFinishing.has(a.id),mother=type==='lamb'&&!grown?motherFor(a):'';return {a,type,mother,zone:grown?'feed':mother?'nursery':'pasture',tracked:a.status==='Takipte'}});
  const needed=Math.min(7,rows.filter(r=>r.type==='lamb'&&r.zone==='feed').length)+(rows.some(r=>r.type==='lamb'&&r.zone!=='feed'&&r.a.id===forcedId)?1:0);while(base.visible.lamb<needed){const donor=Object.keys(base.visible).filter(k=>k!=='lamb'&&base.visible[k]>1).sort((a,b)=>base.visible[b]-base.visible[a])[0];if(!donor)break;base.visible[donor]--;base.visible.lamb++}
  const mothers=new Set(rows.map(x=>x.mother).filter(Boolean));for(const r of rows)if(mothers.has(r.a.id)&&r.zone!=='feed')r.zone='nursery';
  const selected=[];for(const type of Object.keys(base.visible)){
@@ -36,14 +36,14 @@ function farmProjection(animals=db.animals,records=db.records,forcedId=farmScene
   for(const f of members){f.roam={dx,dy,duration:32+first.family%11,delay:-(first.family%29),bounds:b};f.gatherX=0;f.gatherY=0}
  }
  const zones={pasture:0,nursery:0,feed:0};rows.forEach(r=>zones[r.zone]++);
- const description=base.counts.ewe+' '+tx('koyun','ewes')+' · '+base.counts.ram+' '+tx('koç','rams')+' · '+base.counts.lamb+' '+tx('kuzu','lambs')+'. '+tx('Besi alanı onaylı besiye geçiş kayıtlarına ve mevcut besi gruplarına dayanır.','Finishing placement uses approved transitions and existing finishing groups.')+(base.representative?' '+tx('Görünüm temsilidir.','Representative view.'):'');
+ const description=base.counts.ewe+' '+tx('koyun','ewes')+' · '+base.counts.ram+' '+tx('koç','rams')+' · '+base.counts.lamb+' '+tx('kuzu','lambs')+'. '+tx('Besi alanı yalnız onaylı besiye geçiş kayıtlarına dayanır.','Finishing placement uses approved transition records only.')+(base.representative?' '+tx('Görünüm temsilidir.','Representative view.'):'');
  return {...base,figures,zones,description,unlinked:rows.filter(r=>r.type==='lamb'&&!r.mother&&r.zone==='pasture').length};
 }
 function farmPauseTimer(){if(farmScene.timer!==null){clearTimeout(farmScene.timer);farmScene.timer=null;farmScene.left=Math.max(0,farmScene.left-(Date.now()-farmScene.started));farmScene.nonce++}}
 function farmClearEvent(){farmPauseTimer();farmScene.current=null;farmScene.left=0;farmScene.nonce++}
 function resetFarmSceneEvents(){farmClearEvent();farmScene.queue=[];farmScene.highlight=''}
 function farmScopeCheck(){if(farmScene.scope!==activeStorageKey){farmClearEvent();farmScene.scope=activeStorageKey;farmScene.queue=[];farmScene.highlight='';farmScene.key='';farmScene.preview='auto'}}
-function farmEventSignature(r){return JSON.stringify([r.id,r.kind,r.date,r.animalId,r.animalIds,r.childIds,r.motherId,r.count,r.note,r.weight])}
+function farmEventSignature(r){return JSON.stringify([r.id,r.kind,r.date,r.animalId,r.animalIds,r.childIds,r.motherId,r.count,r.note,r.weight,r.action])}
 function farmEventsFor(records,subjects=db.animals){
  const map=new Map(subjects.map(a=>[a.id,a])),groups=new Map();
  for(const r of records){if(!r.id||!(['birth','weaning','feeding','health','weight','sale'].includes(r.kind)||r.kind==='note'&&r.action==='finishing_start')||!validDate(r.date)||r.date>today()||r.weaningRecordId)continue;
@@ -52,7 +52,7 @@ function farmEventsFor(records,subjects=db.animals){
  }
  return [...groups.values()].map(rows=>{const first=rows[0],ids=[...new Set(rows.flatMap(r=>r.kind==='birth'?[r.motherId,...r.childIds||[]]:r.animalIds||[r.animalId]).filter(Boolean))];return {id:first.id,recordIds:rows.map(r=>r.id),signatures:rows.map(farmEventSignature),kind:first.kind==='note'&&first.action==='finishing_start'?'finishing':first.kind,date:first.date,ids,count:first.kind==='birth'?rows.reduce((s,r)=>s+(+r.count||0),0):ids.length,weight:first.kind==='weight'?weightValueFromRecord(first):null,subjects:ids.map(id=>map.get(id)).filter(Boolean).map(a=>({id:a.id,type:a.type,tag:a.tag})),stage:0,replay:false}}).filter(e=>e.ids.length);
 }
-function farmEventValid(e){const rows=new Map(db.records.map(r=>[r.id,r]));return e.recordIds.every((id,i)=>rows.has(id)&&farmEventSignature(rows.get(id))===e.signatures[i])&&(e.kind!=='sale'||e.ids.every(id=>!db.animals.some(a=>a.id===id&&isActiveAnimal(a))))}
+function farmEventValid(e){const rows=new Map(db.records.map(r=>[r.id,r]));return e.recordIds.every((id,i)=>rows.has(id)&&farmEventSignature(rows.get(id))===e.signatures[i])&&(e.kind!=='finishing'||e.ids.every(id=>farmFinishingIds().has(id)&&db.animals.some(a=>a.id===id&&isActiveAnimal(a))))&&(e.kind!=='sale'||e.ids.every(id=>!db.animals.some(a=>a.id===id&&isActiveAnimal(a))))}
 function notifyFarmSceneCommit(before,after){
  farmScopeCheck();if(!before||before===after)return;
  const old=new Set((before.records||[]).map(r=>r.id)),fresh=after.records.filter(r=>!old.has(r.id));
