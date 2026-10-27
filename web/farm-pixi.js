@@ -1,11 +1,13 @@
 // Optional local renderer. All state here is visual; database writes stay in the forms.
 const farmPixiViews=new Map();let farmPixiTextures=null,farmPixiBackdrop=null;
+let farmBright=true;try{farmBright=localStorage.getItem('suru_farm_bright')!=='0'}catch{}
 function farmViewport(view){
  const host=view.querySelector('.farmCanvasHost');let stage=host.querySelector('.farmStage');
- if(!stage){stage=document.createElement('div');stage.className='farmStage';while(host.firstChild)stage.append(host.firstChild);host.append(stage)}
- let tools=view.querySelector('.farmViewportTools');if(!tools){tools=document.createElement('div');tools.className='farmViewportTools';host.before(tools);for(const [key,tr,en] of [['all','Tümü','All'],['pasture','Mera','Pasture'],['nursery','Anne–kuzu','Ewes & lambs'],['feed','Besi','Finishing']]){const b=document.createElement('button');b.type='button';b.dataset.area=key;b.onclick=()=>{view.dataset.camera=key;renderLivePasture();const width=host.querySelector('.farmStage').scrollWidth;host.scrollTo({left:key==='pasture'?0:key==='all'?0:width*.43,top:key==='feed'?width*.21:0,behavior:farmReduced()?'instant':'smooth'})};tools.append(b)}}
- const mobile=window.innerWidth<700,mode=view.dataset.camera||(mobile?'pasture':'all');stage.style.width=mode==='all'?'100%':Math.max(host.clientWidth,700)+'px';
- host.classList.toggle('farmCloseView',mode!=='all');for(const b of tools.querySelectorAll('button')){const labels={all:tx('Tümü','All'),pasture:tx('Mera','Pasture'),nursery:tx('Anne–kuzu','Ewes & lambs'),feed:tx('Besi','Finishing')};b.textContent=labels[b.dataset.area];b.setAttribute('aria-pressed',String(b.dataset.area===mode))}
+ const fresh=!stage;if(!stage){stage=document.createElement('div');stage.className='farmStage';while(host.firstChild)stage.append(host.firstChild);host.append(stage)}
+ let tools=view.querySelector('.farmViewportTools');if(!tools){tools=document.createElement('div');tools.className='farmViewportTools';host.before(tools);for(const [key,tr,en] of [['all','Tümü','All'],['pasture','Mera','Pasture'],['nursery','Anne–kuzu','Ewes & lambs'],['feed','Besi','Finishing']]){const b=document.createElement('button');b.type='button';b.dataset.area=key;b.onclick=()=>{view.dataset.camera=key;renderLivePasture();const width=host.querySelector('.farmStage').scrollWidth;host.scrollTo({left:key==='pasture'?0:key==='all'?0:width*.43,top:0,behavior:farmReduced()?'instant':'smooth'})};tools.append(b)}}
+ const mobile=window.innerWidth<700,mode=view.dataset.camera||(mobile?'pasture':'all');stage.style.width=mode==='all'?'100%':Math.max(host.clientWidth*1.8,900)+'px';stage.style.transform=mode==='all'?'none':'translateY(-'+Math.min((mode==='feed'?290:140)*stage.clientWidth/1000,Math.max(0,stage.clientWidth*.62-(mobile?380:390)))+'px)';
+ host.classList.toggle('farmCloseView',mode!=='all');if(fresh||view.dataset.lastCamera!==mode){host.scrollLeft=mode==='feed'||mode==='nursery'?stage.clientWidth*.43:0;host.scrollTop=0;view.dataset.lastCamera=mode}for(const b of tools.querySelectorAll('[data-area]')){const labels={all:tx('Tümü','All'),pasture:tx('Mera','Pasture'),nursery:tx('Anne–kuzu','Ewes & lambs'),feed:tx('Besi','Finishing')};b.textContent=labels[b.dataset.area];b.setAttribute('aria-pressed',String(b.dataset.area===mode))}
+ let light=tools.querySelector('.farmLightToggle');if(!light){light=document.createElement('button');light.type='button';light.className='farmLightToggle';light.onclick=()=>{farmBright=!farmBright;try{localStorage.setItem('suru_farm_bright',farmBright?'1':'0')}catch{}renderLivePasture()};tools.append(light)}view.dataset.bright=String(farmBright);light.textContent=farmBright?tx('☀ Aydınlık açık','☀ Bright view on'):tx('☀ Aydınlat','☀ Brighten');light.setAttribute('aria-pressed',String(farmBright));
  let hint=tools.querySelector('small');if(!hint){hint=document.createElement('small');tools.append(hint)}hint.textContent=tx('Diğer alanları görmek için sağa–sola kaydırabilirsin.','Swipe sideways to see the other areas.');hint.hidden=mode==='all';
  host.setAttribute('aria-label',tx('Çiftlik görünümü; diğer alanlar için yatay kaydırın veya alan düğmelerini kullanın','Farm view; swipe horizontally or use the area buttons'));
  return stage;
@@ -16,10 +18,10 @@ async function farmPixiArtwork(){
   const result={};
   for(const type of ['ewe','ram','lamb','unknown']){
    const doc=new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">'+farmAnimalArt(type,0)+'</svg>','image/svg+xml'),bob=doc.querySelector('.pastureBob'),head=bob.querySelector('.pastureHead'),rest=doc.querySelector('.farmResting');
-   const headMarkup=head.outerHTML;head.remove();bob.children[0].remove();bob.children[0].remove();
+   const definitions=doc.querySelector('defs')?.outerHTML||'';const headMarkup=head.outerHTML;head.remove();bob.children[0].remove();bob.children[0].remove();
    result[type]={};
    for(const [part,markup] of Object.entries({body:bob.innerHTML,head:headMarkup,rest:rest.innerHTML})){
-    const image=new Image();image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="192" height="160" viewBox="-12 -28 96 80">'+markup+'</svg>');await image.decode();result[type][part]=PIXI.Texture.from(image);
+    const image=new Image();image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" style="color-scheme:only light" width="384" height="320" viewBox="-12 -28 96 80">'+definitions+markup+'</svg>');await image.decode();result[type][part]=PIXI.Texture.from(image);
    }
   }
   return result;
@@ -28,7 +30,7 @@ async function farmPixiArtwork(){
 function farmPixiRig(f,textures){
  const root=new PIXI.Container(),face=new PIXI.Container(),body=new PIXI.Container(),legs=[];
  const shadow=new PIXI.Graphics().ellipse(27,34,29,7).fill({color:0x263c30,alpha:.18});root.addChild(shadow,face);face.pivot.x=27;face.x=27;face.addChild(body);
- for(let i=0;i<4;i++){const leg=new PIXI.Graphics().moveTo(0,0).lineTo(0,14).stroke({color:i<2?0x7c806c:0x48584b,width:4.5,cap:'round'});leg.position.set([12,34,7,37][i],18);body.addChild(leg);legs.push(leg)}
+ for(let i=0;i<4;i++){const leg=new PIXI.Graphics().moveTo(0,0).lineTo(1.5,7).lineTo(-1,14).stroke({color:i<2?0xb49e80:0x967f65,width:4,cap:'round'}).roundRect(-3,12,5,4,1.5).fill(0x6e5b49);leg.position.set([12,34,7,37][i],18);body.addChild(leg);legs.push(leg)}
  const sprite=part=>{const s=new PIXI.Sprite(textures[f.type][part]);s.position.set(-12,-28);s.width=96;s.height=80;return s};
  const wool=sprite('body'),headPivot=new PIXI.Container(),head=sprite('head'),rest=sprite('rest');headPivot.pivot.set(43,3);headPivot.position.set(43,3);headPivot.addChild(head);body.addChild(wool,headPivot);face.addChild(rest);rest.visible=false;
  root.eventMode='static';root.cursor='pointer';root.hitArea=new PIXI.Rectangle(-12,-28,96,80);root.on('pointertap',()=>{if(db.animals.some(a=>a.id===f.a.id))animalCard(f.a.id);renderLivePasture()});
@@ -43,22 +45,22 @@ function farmPixiStep(state,dt){
   let x=f.x+(night||working?0:r.dx*progress),y=f.y+(night||working?0:r.dy*progress);
   if(event?.kind==='feeding'&&working){const slot=state.units.filter(u=>event.ids.includes(u.f.a.id)||event.ids.includes(u.f.mother)).indexOf(unit),targetX=470+slot%7*35,targetY=327+Math.floor(slot/7)*10,p=event.stage===1?1:event.stage===0?Math.min(1,(Date.now()-farmScene.started)/3000):Math.max(0,1-(Date.now()-farmScene.started)/3000);x=f.x+(targetX-f.x)*p;y=f.y+(targetY-f.y)*p}
   unit.root.visible=!transfer;unit.root.position.set(x,y);unit.x=x;unit.y=y;unit.root.zIndex=y;
-  const moving=walk&&!night&&!working&&dt>0,desired=phase<.5?1:-1;unit.direction+=(desired-unit.direction)*Math.min(1,dt*7);unit.face.scale.x=Math.abs(unit.direction)<.08?.08:unit.direction;
+  const moving=walk&&!night&&!working&&dt>0,desired=(phase<.5?1:-1)*(r.dx<0?-1:1);unit.direction=desired;unit.face.scale.x=desired;unit.face.rotation=moving?Math.sin(state.time*7+unit.seed)*.012:0;
   unit.body.visible=!night;unit.rest.visible=night;const stride=state.time*7+unit.seed;
   unit.body.y=moving?Math.sin(stride*2)*1.1:Math.sin(state.time*1.8+unit.seed)*.35;
   unit.legs.forEach((leg,i)=>leg.rotation=moving?Math.sin(stride+(i===0||i===3?0:Math.PI))*.36:0);
-  unit.headPivot.rotation=!moving&&!night?(.14+Math.sin(state.time*2+unit.seed)*.12):Math.sin(stride)*.025;
+  unit.headPivot.rotation=!moving&&!night?(.28+Math.sin(state.time*1.6+unit.seed)*.22):Math.sin(stride)*.025;
   if(farmScene.highlight===f.a.id){unit.root.tint=0xffe4a4}else unit.root.tint=0xffffff;
  }
- // A spatial grid keeps nearby families apart without separating nursing lambs.
+ // Resolve visible footprints as families, then ease corrections to avoid sudden jumps.
  if(!night&&!event){
-  const groups=new Map(),grid=new Map();
-  for(const u of state.units){const key=u.f.zone+':'+u.f.family;let g=groups.get(key);if(!g){g={units:[],x:u.x,y:u.y,r:Math.max(3,22*u.f.scale)};groups.set(key,g)}g.units.push(u)}
-  for(const g of groups.values()){const cellX=Math.floor(g.x/50),cellY=Math.floor(g.y/50);let dx=0,dy=0;
-   for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)for(const other of grid.get((cellX+i)+','+(cellY+j))||[]){if(other.units[0].f.zone!==g.units[0].f.zone)continue;const x=g.x-other.x,y=g.y-other.y,d=Math.hypot(x,y),min=g.r+other.r;if(d<min){dx+=(d?x/d:1)*(min-d)*.45;dy+=(d?y/d:.3)*(min-d)*.45}}
-   let left=-Infinity,right=Infinity,top=-Infinity,bottom=Infinity;for(const u of g.units){const b=u.f.roam?.bounds;if(b){left=Math.max(left,b[0]-u.x);right=Math.min(right,b[1]-u.x);top=Math.max(top,b[2]-u.y);bottom=Math.min(bottom,b[3]-u.y)}}dx=Math.max(left,Math.min(right,dx));dy=Math.max(top,Math.min(bottom,dy));
-   for(const u of g.units){u.root.position.set(u.x+dx,u.y+dy);u.root.zIndex=u.y+dy}g.x+=dx;g.y+=dy;const key=Math.floor(g.x/50)+','+Math.floor(g.y/50);if(!grid.has(key))grid.set(key,[]);grid.get(key).push(g);
+  const families=new Map();for(const u of state.units){const key=u.f.zone+':'+u.f.family;if(!families.has(key))families.set(key,[]);families.get(key).push(u)}
+  const groups=[...families.values()].map((units,index)=>{const g={units,index,zone:units[0].f.zone,ox:units[0].avoidX||0,oy:units[0].avoidY||0,l:-Infinity,r:Infinity,t:-Infinity,b:Infinity};let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;for(const u of units){minX=Math.min(minX,u.x-6*u.f.scale);maxX=Math.max(maxX,u.x+65*u.f.scale);minY=Math.min(minY,u.y-19*u.f.scale);maxY=Math.max(maxY,u.y+32*u.f.scale);const b=u.f.roam.bounds;g.l=Math.max(g.l,b[0]-u.x);g.r=Math.min(g.r,b[1]-u.x);g.t=Math.max(g.t,b[2]-u.y);g.b=Math.min(g.b,b[3]-u.y)}g.cx=(minX+maxX)/2;g.cy=(minY+maxY)/2;g.rx=(maxX-minX)/2+1;g.ry=(maxY-minY)/2+1;return g});
+  const cell=Math.max(8,...groups.map(g=>Math.max(g.rx,g.ry)*2)),move=(g,x,y)=>{g.ox=Math.max(g.l,Math.min(g.r,g.ox+x));g.oy=Math.max(g.t,Math.min(g.b,g.oy+y))};
+  for(let pass=0;pass<4;pass++){const grid=new Map();for(const g of groups){const key=Math.floor((g.cx+g.ox)/cell)+','+Math.floor((g.cy+g.oy)/cell);if(!grid.has(key))grid.set(key,[]);grid.get(key).push(g)}
+   for(const g of groups){const cx=Math.floor((g.cx+g.ox)/cell),cy=Math.floor((g.cy+g.oy)/cell);for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)for(const other of grid.get((cx+i)+','+(cy+j))||[]){if(other.index<=g.index||other.zone!==g.zone)continue;const dx=g.cx+g.ox-other.cx-other.ox,dy=g.cy+g.oy-other.cy-other.oy,px=g.rx+other.rx-Math.abs(dx),py=g.ry+other.ry-Math.abs(dy);if(px<=0||py<=0)continue;if(px<py){const push=(dx<0?-1:1)*px*.55;move(g,push,0);move(other,-push,0)}else{const push=(dy<0?-1:1)*py*.55;move(g,0,push);move(other,0,-push)}}}
   }
+  for(const g of groups){const first=g.units[0],blend=first.hasAvoid?(dt?Math.min(1,dt*9):0):1,x=Math.max(g.l,Math.min(g.r,(first.avoidX||0)+(g.ox-(first.avoidX||0))*blend)),y=Math.max(g.t,Math.min(g.b,(first.avoidY||0)+(g.oy-(first.avoidY||0))*blend));for(const u of g.units){u.avoidX=x;u.avoidY=y;u.hasAvoid=true;u.root.position.set(u.x+x,u.y+y);u.root.zIndex=u.y+y}}
  }
  state.world.sortChildren();
 }
@@ -77,7 +79,7 @@ async function farmPixiSync(view,model,phase){
    if(state.disposed||!view.isConnected){app.destroy(true);farmPixiViews.delete(view);return}
    state.textures=await farmPixiArtwork();farmPixiBackdrop||=PIXI.Assets.load('assets/farm/anime-countryside-v1.webp');const backdrop=await farmPixiBackdrop;if(state.disposed)return;
    state.world=new PIXI.Container();state.world.sortableChildren=true;state.background=new PIXI.Sprite(backdrop);state.background.width=1000;state.background.height=620;state.background.zIndex=-1000;state.world.addChild(state.background);app.stage.addChild(state.world);app.ticker.maxFPS=30;app.ticker.add(t=>farmPixiStep(state,Math.min(t.deltaMS/1000,.05)));
-   app.canvas.className='farmPixiCanvas';app.canvas.setAttribute('aria-hidden','true');app.canvas.addEventListener('webglcontextlost',()=>farmPixiFallback(state));
+   app.renderer.events.autoPreventDefault=false;app.canvas.style.touchAction='auto';app.canvas.className='farmPixiCanvas';app.canvas.setAttribute('aria-hidden','true');app.canvas.addEventListener('webglcontextlost',()=>farmPixiFallback(state));
    state.resize=()=>{if(state.failed||state.disposed)return;const width=state.view.querySelector('.farmStage')?.clientWidth||1000;app.renderer.resize(width,width*.62);state.world.scale.set(width/1000);app.render()};state.observer=new ResizeObserver(state.resize);state.loading=false;
    farmPixiSync(view,state.model,state.phase);
   }catch(error){farmPixiFallback(state);console.warn('Çiftlik görünümü yedek çizimle devam ediyor.',error.message)}return;
@@ -85,7 +87,7 @@ async function farmPixiSync(view,model,phase){
  state.model=model;state.phase=phase;if(state.loading)return;
  const key=JSON.stringify(model.figures.map(f=>[f.a.id,f.x,f.y,f.scale,f.type,f.mother,f.zone,f.a.status]));
  if(state.key!==key){state.key=key;for(const u of state.units)u.root.destroy({children:true,texture:false});state.units=model.figures.map(f=>farmPixiRig(f,state.textures));if(state.units.length)state.world.addChild(...state.units.map(u=>u.root))}
- const host=view.querySelector('.farmCanvasHost'),stage=farmViewport(view);if(!stage.contains(state.app.canvas))stage.prepend(state.app.canvas);view.classList.add('farmPixiReady');state.observer.disconnect();state.observer.observe(stage);state.background.tint=phase==='night'?0x94a4c6:phase==='dusk'?0xf5decb:phase==='dawn'?0xffeedb:0xffffff;state.resize();
+ const host=view.querySelector('.farmCanvasHost'),stage=farmViewport(view);if(!stage.contains(state.app.canvas))stage.prepend(state.app.canvas);view.classList.add('farmPixiReady');state.observer.disconnect();state.observer.observe(stage);state.background.tint=farmBright?0xffffff:phase==='night'?0xcbd7eb:phase==='dusk'?0xffeddf:phase==='dawn'?0xfff6e9:0xffffff;state.resize();
  // Native record buttons remain available to keyboard and assistive technology.
  for(const el of host.querySelectorAll('[data-farm-animal]')){el.setAttribute('aria-hidden','true');el.setAttribute('tabindex','-1')}
  let list=view.querySelector('.farmAccessibleAnimals');if(!list){list=document.createElement('details');list.className='farmAccessibleAnimals';host.after(list)}

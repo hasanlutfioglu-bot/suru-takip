@@ -1,0 +1,9 @@
+# 21.10.2 — Dokunma, aydınlık ve hayvan çizimleri
+
+- Kök kaydırma hatası: Pixi EventSystem varsayılan olarak autoPreventDefault=true ve canvas üzerinde touch-action:none kullanıyordu. Yerel event ayarı false yapıldı, canvas touch-action:auto oldu. Dikey iç kaydırma ve overscroll-behavior:contain kaldırıldı. Yakın görünüm dikey kırpılır; yukarı/aşağı hareket sayfaya gider, yatay kaydırma çiftlik alanında kalır.
+- Varsayılan Aydınlık görünüm eklendi. Arka plana gece/akşam karartma çarpanı uygulanmaz; gece hayvanların yatması ve saat bilgisi korunur. Kullanıcı düğmeden daha hafif saat ışığına geçebilir; yalnız sunum tercihi localStorage içinde saklanır.
+- Kaydırma testi yeni bir gerçek dokunmatik Chrome bağlamında (isMobile/hasTouch, DPR 2) CDP touchStart/touchMove/touchEnd gönderir. Mera, Besi ve Tümü üzerinde iki yönde sayfa kaydırma ve yanlışlıkla hayvan kartı açılmaması doğrulanır.
+- Koyun/kuzu/koç çizimleri aydınlık yün hacimleri, ten rengi yüz, kulak/kupe, boynuz ve toynak ayrıntılarıyla yenilendi. Rasterleştirilen vektör parçaları 4x çözünürlüğe çıkarıldı; görünür yaş oranları değiştirilmedi. Dönüşlerde gövdeyi kâğıt gibi incelten yatay ara ölçek kaldırıldı.
+- Hayvanların üst üste yığılmasını azaltmak için ailelerin görünür alanları birlikte düzeltilir. Dört yerel geçiş ve yumuşatılmış konum düzeltmesi anne ile kuzuya aynı farkı uygular; bölge sınırları korunur. Bu fizik simülasyonu değildir.
+- GPU'dan çıkarılan ayakta/yatan koyun piksellerinde açık yün oranı ölçülür; varsayılan aydınlatma, tercih kalıcılığı, veri değişmezliği ve önceki 121 kimlik testleri korunur. Önceki ekran genişliği testleri gerçek dokunma hareketini kapsamıyordu; bu eksik kapatıldı.
+- Yerel yalıtılmış örneklerle doğrulandı. Fiziksel Samsung cihazına uzaktan erişilmedi; canlı Supabase verisine erişilmedi/değişiklik yapılmadı.

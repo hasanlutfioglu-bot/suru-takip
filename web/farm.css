@@ -79,3 +79,12 @@
 .farmIsHidden .farmViewportTools{display:none}
 @media(max-width:699px){#home .hasLivingFarm{padding-left:14px;padding-right:14px}.farmCanvasHost.farmCloseView{max-height:380px}.farmView .farmPaintedLabels text{font-size:13px}.farmView .farmClock{font-size:11px}.farmView .pastureHeading{flex-wrap:wrap}.farmViewportTools button{font-size:12px}.farmView .farmStatus,.farmView .pastureCaption,.farmView .farmZoneStats{font-size:12px}}
 .farmViewportTools small{flex-basis:100%;font-size:11px;line-height:1.5;color:#d6e1c8}
+/* Vertical gestures always scroll the page; only horizontal panning belongs here. */
+.farmCanvasHost.farmCloseView{height:390px;max-height:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior:auto;touch-action:auto}
+.farmCanvasHost,.farmStage,.farmPixiCanvas{touch-action:auto!important;overscroll-behavior:auto}
+.farmStage{transform-origin:top left}
+.farmView[data-bright="true"] .farmPaintedBackground{filter:none!important}
+.farmView[data-bright="true"] .farmDaylight{fill:#fff9e8;opacity:.04}
+.farmView[data-bright="true"] .pastureAnimal{filter:drop-shadow(0 2px 1px #263c3022)}
+.farmViewportTools .farmLightToggle{flex:0 0 auto;background:#f2edcf;color:#315440;border-color:#f2edcf}
+@media(max-width:699px){.farmCanvasHost.farmCloseView{height:380px;max-height:none}.farmViewportTools .farmLightToggle{min-height:36px;font-size:12px}}
