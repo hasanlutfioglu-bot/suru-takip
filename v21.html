@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sürü Takip V21.10.2 — Açık Tema</title>
+<title>Sürü Takip V21.11.0 — Açık Tema</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#294f3f">
 <meta name="color-scheme" content="only light">
@@ -509,6 +509,25 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
 .farmView[data-bright="true"] .pastureAnimal{filter:drop-shadow(0 2px 1px #263c3022)}
 .farmViewportTools .farmLightToggle{flex:0 0 auto;background:#f2edcf;color:#315440;border-color:#f2edcf}
 @media(max-width:699px){.farmCanvasHost.farmCloseView{height:380px;max-height:none}.farmViewportTools .farmLightToggle{min-height:36px;font-size:12px}}
+/* The camera transforms scenery and actors together; gestures remain native. */
+.farmStage{transition:transform .7s cubic-bezier(.2,.7,.25,1);will-change:transform}
+.farmCanvasHost.farmFollowView{overflow:hidden;touch-action:auto}
+.farmFocusPanel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0;padding:12px;border:1px solid #d8e1ba66;border-radius:12px;background:#ffffff0d;color:#f0eed8;font-size:13px}
+.farmFocusPanel .farmFocusName{flex:1;min-width:140px;overflow-wrap:anywhere}
+.farmFocusPanel button{min-height:40px;padding:9px 12px}
+.farmExperienceControls{display:flex;align-items:flex-end;flex-wrap:wrap;gap:8px;margin:8px 0 12px;color:#e5ebd5}
+.farmExperienceControls label{margin:0;flex:1;min-width:135px;font-size:11px;line-height:1.5}
+.farmExperienceControls label>span{display:block;margin-bottom:4px}
+.farmExperienceControls select{margin:0;width:100%;min-height:40px;border:1px solid #d5e0ba55;background:#ffffff12;color:#f5f1df;border-radius:10px;padding:8px;font-size:12px}
+.farmExperienceControls select option{color:#294f3f;background:#f5f5eb}
+.farmExperienceControls .farmAudioToggle{min-height:40px;background:#e6e8c6;color:#294f3f;font-size:12px}
+.farmExperienceControls .farmVolumeLabel{min-width:90px;max-width:130px}
+.farmExperienceControls input[type="range"]{min-height:32px;height:32px;width:100%;padding:0;accent-color:#e8d598;background:transparent}
+.farmPixiReady .farmBirds{display:none}
+.farmView[data-quality="battery"] .farmBirds,.farmView[data-quality="battery"] .farmTractorExhaust{animation:none}
+.farmIsHidden .farmExperienceControls,.farmIsHidden .farmFocusPanel{display:none}
+@media(prefers-reduced-motion:reduce){.farmStage{transition:none;will-change:auto}}
+.farmFollowView .farmPaintedLabels{visibility:hidden}
 /* END WEB FARM */
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
@@ -516,7 +535,7 @@ input:focus,select:focus,textarea:focus{background:#fff;border-color:#a6b893}
 </head>
 <body><div class="app">
 <div id="syncHealth" class="card" role="status" aria-live="polite" style="margin:8px 14px;font-size:12px"></div>
-<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.10.2</span></div></header>
+<header><div class="brand"><h1>🐑 Sürü Takip</h1><button class="pill" id="planStatus" onclick="openPlans()" aria-label="Üyelik">FREE</button></div><div class="headerMeta"><span id="cloudStatus">Yerel mod</span><span>V21.11.0</span></div></header>
 <main>
 <section id="home" class="screen active">
  <div class="card" id="welcomeAccountCard">
@@ -5082,8 +5101,8 @@ function farmAnimalArt(type,index){
  const face=ram?'#c4a98c':lamb?'#e7c5a7':'#dbc2a0',paint='sheep-'+type+'-'+index;
  const paints=`<defs><radialGradient id="${paint}-wool" cx="32%" cy="22%" r="80%"><stop stop-color="#fffef5"/><stop offset=".48" stop-color="${wool}"/><stop offset="1" stop-color="#c7b99a"/></radialGradient><linearGradient id="${paint}-face" x2=".8" y2="1"><stop stop-color="#f1dac0"/><stop offset=".5" stop-color="${face}"/><stop offset="1" stop-color="#b99a7b"/></linearGradient></defs>`;
  const body=`<path d="M2 6c-5-9 1-16 9-14 2-10 13-14 20-7 9-6 21 1 19 11 10 4 9 16 1 20-1 10-14 14-21 9-9 7-23 2-24-5-8 0-12-9-4-14Z" fill="url(#${paint}-wool)" stroke="#b3a58b" stroke-width=".9"/><path d="M4 13q10 13 24 7 14 4 24-9c2 13-15 22-24 15-12 6-22-1-24-13" fill="#b9ac8e" opacity=".22"/>${[[10,-3,10,9],[23,-10,10,9],[37,-8,10,9],[46,3,10,9],[12,11,11,9],[26,7,12,12],[38,12,11,10],[25,19,9,8]].map(([x,y,rx,ry])=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="url(#${paint}-wool)"/>`).join('')}<path d="M5-1q0-6 7-7m4-2q3-8 10-5m7 2q8-4 12 3M7 9q2-6 8-5m6 5q3-7 9-5m4 12q5-7 12-3M14 18q4-5 9-2" fill="none" stroke="#fffef5" stroke-opacity=".85" stroke-width="1.5" stroke-linecap="round"/>`;
- const head=`<path d="m43 0-10-8q-9-2-7 3c3 7 11 9 17 7m13-1 9-5q7 1 4 5l-12 6" fill="${face}" stroke="#b18c70" stroke-width=".8"/><path d="m30-4 10 5m21 0 5-2" stroke="#e9b6a5" stroke-width="2.5" stroke-linecap="round"/>${ram?'<path d="M42-2C35-21 18-12 23 2c3 12 19 13 18 0-1-10-14-9-11 0" fill="none" stroke="#9d825c" stroke-width="7"/><path d="M40-5C32-18 22-8 27 2c2 5 7 6 10 3" fill="none" stroke="#edd6a8" stroke-width="4"/><path d="m26-8 4 3m-6 4 5 2m0 6 4-2" stroke="#b39566" stroke-width="1.2"/>':''}<path d="M43-4q12-4 18 7l3 13q-1 11-13 11c-11-1-15-8-12-17Z" fill="url(#${paint}-face)" stroke="#a98c70" stroke-width=".8"/><path d="M42 16q10 5 21-1l-1 6q-9 10-17 0Z" fill="#f5dfc3" opacity=".85"/><path d="M39-3q-3-9 5-10 6-4 10 1 8-1 9 7l-5 4-5-2-6 2-3-3Z" fill="url(#${paint}-wool)" stroke="#b6a98c" stroke-width=".7"/><path d="M43-7q1-5 5-5m4 2q5-2 8 2" stroke="#fffdf0" stroke-width="1.5" fill="none"/><ellipse cx="54" cy="7" rx="3.8" ry="4.6" fill="#fffdf6"/><ellipse cx="55" cy="7.8" rx="2.4" ry="3.2" fill="#493a31"/><ellipse cx="55.6" cy="6.8" rx="1" ry="1.2" fill="#ffffff"/><path d="M50 2q4-3 8 1" stroke="#957454" stroke-width=".8" fill="none"/><path d="m55 20 4 .5-2 2Z" fill="#9b6e60"/><path d="M57 23q-3 2-5 0" stroke="#ab8068" stroke-width=".8" fill="none"/><ellipse cx="47" cy="16" rx="3.5" ry="2" fill="#eab4a1" opacity=".55"/><path d="m34 0 1 9 5-1-1-8Z" fill="#f2cd69" stroke="#b3964f" stroke-width=".6"/><circle cx="37" cy="3" r=".7" fill="#ad8e45"/>`;
- return `<g class="pastureWander pastureMotion" style="--pace:${13+index%5}s;--delay:-${index%13}s">${paints}<ellipse cx="28" cy="33" rx="29" ry="7" fill="#263c30" opacity=".17"/><g class="farmStanding"><g class="pastureBob pastureMotion"><g stroke="#b49e80" stroke-width="4.5" stroke-linecap="round"><path d="M11 17v14m23-14v14"/></g><g stroke="#8b755d" stroke-width="4.5" stroke-linecap="round"><path class="pastureLeg pastureMotion" d="M7 16v17"/><path class="pastureLeg pastureLegBack pastureMotion" d="M36 17v17"/></g><path d="M2 6q-12-10-13-3-1 7 12 9Z" fill="${wool}"/>${body}<g fill="none" stroke="#fffdf0" stroke-width="2" opacity=".65"><path d="M9 4q-3-7 5-8m5 4q-2-7 6-8m4 10q-2-7 6-7m1 11q2-7 8-4M12 14q0-6 6-5m7 8q-2-6 5-7"/></g><g class="pastureHead pastureMotion">${head}</g></g></g><g class="farmResting"><ellipse cx="25" cy="21" rx="27" ry="14" fill="url(#${paint}-wool)"/><path d="m9 28 9 3m13-2 10 1" stroke="#737a62" stroke-width="3" stroke-linecap="round"/><g transform="translate(0 12)">${head}<path d="m51 8 6 1" stroke="#f8ecc9" stroke-width="2"/><circle cx="54" cy="8" r="2" fill="${face}"/><path d="m51 9 6 1" stroke="#d8dbbd" stroke-width="1.3"/></g><path d="M8 16c9-7 20-7 29-1" fill="none" stroke="#fff9e8" stroke-opacity=".5" stroke-width="3"/></g>${unknown?'<text x="19" y="15" fill="#73816b" font-size="15" font-weight="700">?</text>':''}</g>`;
+ const head=`<g class="farmEars"><path d="m43 0-10-8q-9-2-7 3c3 7 11 9 17 7m13-1 9-5q7 1 4 5l-12 6" fill="${face}" stroke="#b18c70" stroke-width=".8"/><path d="m30-4 10 5m21 0 5-2" stroke="#e9b6a5" stroke-width="2.5" stroke-linecap="round"/></g>${ram?'<path d="M42-2C35-21 18-12 23 2c3 12 19 13 18 0-1-10-14-9-11 0" fill="none" stroke="#9d825c" stroke-width="7"/><path d="M40-5C32-18 22-8 27 2c2 5 7 6 10 3" fill="none" stroke="#edd6a8" stroke-width="4"/><path d="m26-8 4 3m-6 4 5 2m0 6 4-2" stroke="#b39566" stroke-width="1.2"/>':''}<path d="M43-4q12-4 18 7l3 13q-1 11-13 11c-11-1-15-8-12-17Z" fill="url(#${paint}-face)" stroke="#a98c70" stroke-width=".8"/><path d="M42 16q10 5 21-1l-1 6q-9 10-17 0Z" fill="#f5dfc3" opacity=".85"/><path d="M39-3q-3-9 5-10 6-4 10 1 8-1 9 7l-5 4-5-2-6 2-3-3Z" fill="url(#${paint}-wool)" stroke="#b6a98c" stroke-width=".7"/><path d="M43-7q1-5 5-5m4 2q5-2 8 2" stroke="#fffdf0" stroke-width="1.5" fill="none"/><ellipse cx="54" cy="7" rx="3.8" ry="4.6" fill="#fffdf6"/><ellipse cx="55" cy="7.8" rx="2.4" ry="3.2" fill="#493a31"/><ellipse cx="55.6" cy="6.8" rx="1" ry="1.2" fill="#ffffff"/><path d="M50 2q4-3 8 1" stroke="#957454" stroke-width=".8" fill="none"/><path d="m55 20 4 .5-2 2Z" fill="#9b6e60"/><path d="M57 23q-3 2-5 0" stroke="#ab8068" stroke-width=".8" fill="none"/><ellipse cx="47" cy="16" rx="3.5" ry="2" fill="#eab4a1" opacity=".55"/><path d="m34 0 1 9 5-1-1-8Z" fill="#f2cd69" stroke="#b3964f" stroke-width=".6"/><circle cx="37" cy="3" r=".7" fill="#ad8e45"/>`;
+ return `<g class="pastureWander pastureMotion" style="--pace:${13+index%5}s;--delay:-${index%13}s">${paints}<ellipse cx="28" cy="33" rx="29" ry="7" fill="#263c30" opacity=".17"/><g class="farmStanding"><g class="pastureBob pastureMotion"><g stroke="#b49e80" stroke-width="4.5" stroke-linecap="round"><path d="M11 17v14m23-14v14"/></g><g stroke="#8b755d" stroke-width="4.5" stroke-linecap="round"><path class="pastureLeg pastureMotion" d="M7 16v17"/><path class="pastureLeg pastureLegBack pastureMotion" d="M36 17v17"/></g><path class="farmTail" d="M2 6q-12-10-13-3-1 7 12 9Z" fill="${wool}"/>${body}<g fill="none" stroke="#fffdf0" stroke-width="2" opacity=".65"><path d="M9 4q-3-7 5-8m5 4q-2-7 6-8m4 10q-2-7 6-7m1 11q2-7 8-4M12 14q0-6 6-5m7 8q-2-6 5-7"/></g><g class="pastureHead pastureMotion">${head}</g></g></g><g class="farmResting"><ellipse cx="25" cy="21" rx="27" ry="14" fill="url(#${paint}-wool)"/><path d="m9 28 9 3m13-2 10 1" stroke="#737a62" stroke-width="3" stroke-linecap="round"/><g transform="translate(0 12)">${head}<path d="m51 8 6 1" stroke="#f8ecc9" stroke-width="2"/><circle cx="54" cy="8" r="2" fill="${face}"/><path d="m51 9 6 1" stroke="#d8dbbd" stroke-width="1.3"/></g><path d="M8 16c9-7 20-7 29-1" fill="none" stroke="#fff9e8" stroke-opacity=".5" stroke-width="3"/></g>${unknown?'<text x="19" y="15" fill="#73816b" font-size="15" font-weight="700">?</text>':''}</g>`;
 }
 function farmFence(x,y,width){return `<g transform="translate(${x} ${y})" stroke="#bfa67b" stroke-width="4" stroke-linecap="round"><path d="M0 4v26m${width} -26v26M${width/2} 0v26M0 10H${width}M0 20H${width}"/><path d="M0 3h${width}" stroke="#e8d6ad" stroke-width="2"/></g>`}
 function farmBuilding(x,y,small=false){
@@ -5185,20 +5204,97 @@ function farmDialogueArt(model){
 }
 // END WEB farm-dialogue
 
+// BEGIN WEB farm-experience
+// Presentation only: quality, camera and opt-in local synthesized ambience.
+const farmQualityModes={battery:{fps:20,resolution:1,detail:0,zoom:1.8},balanced:{fps:30,resolution:1.5,detail:1,zoom:2.15},high:{fps:45,resolution:2,detail:2,zoom:2.6}};
+let farmQuality='balanced',farmVolume=20;
+try{const q=localStorage.getItem('suru_farm_quality');if(farmQualityModes[q])farmQuality=q;const v=localStorage.getItem('suru_farm_volume');if(v!==null&&Number.isFinite(Number(v)))farmVolume=Math.max(0,Math.min(100,Number(v)))}catch{}
+const farmAudio={enabled:false,context:null,master:null,timer:null,voices:new Set(),serial:0};
+function farmReplaceArt(host,markup){
+ const stage=host.querySelector('.farmStage');if(!stage){host.innerHTML=markup;return}
+ // Keep the camera surface and canvas alive while labels/events are refreshed.
+ const holder=document.createElement('div');holder.innerHTML=markup;const next=holder.querySelector('.pastureScene'),old=stage.querySelector('.pastureScene');if(next){if(old)old.replaceWith(next);else stage.append(next)}
+}
+function setFarmQuality(value){if(!farmQualityModes[value])return;farmQuality=value;try{localStorage.setItem('suru_farm_quality',value)}catch{}renderLivePasture()}
+function setFarmVolume(value){const n=Number(value);if(!Number.isFinite(n))return;farmVolume=Math.max(0,Math.min(100,n));try{localStorage.setItem('suru_farm_volume',String(farmVolume))}catch{}if(farmAudio.master)farmAudio.master.gain.setTargetAtTime(farmVolume/100*.35,farmAudio.context.currentTime,.08);farmAudioSync()}
+function farmAudioStop(){if(farmAudio.timer!==null){clearTimeout(farmAudio.timer);farmAudio.timer=null}for(const voice of farmAudio.voices){try{voice.stop()}catch{}}farmAudio.voices.clear();if(farmAudio.context?.state==='running')farmAudio.context.suspend().catch(()=>{})}
+async function toggleFarmAudio(){
+ if(farmAudio.enabled){farmAudio.enabled=false;farmAudio.serial++;farmAudioStop();renderLivePasture();return}
+ const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return toast(tx('Bu tarayıcı çiftlik seslerini desteklemiyor.','This browser does not support farm sounds.'));
+ const serial=++farmAudio.serial;
+ try{if(!farmAudio.context){farmAudio.context=new Audio();farmAudio.master=farmAudio.context.createGain();farmAudio.master.gain.value=farmVolume/100*.35;farmAudio.master.connect(farmAudio.context.destination)}await farmAudio.context.resume();if(serial!==farmAudio.serial)return;farmAudio.enabled=true;renderLivePasture();if(farmAudioAllowed())farmAudioPulse()}catch{farmAudio.enabled=false;farmAudioStop();toast(tx('Ses açılamadı. Yeniden Sesleri aç düğmesine dokunabilirsin.','Sound could not start. You can try Enable sounds again.'));renderLivePasture()}
+}
+function farmAudioTone(frequency,end,duration,type='sine',strength=.3,delay=0){
+ const ctx=farmAudio.context;if(!ctx||ctx.state!=='running')return;const oscillator=ctx.createOscillator(),gain=ctx.createGain(),at=ctx.currentTime+delay;oscillator.type=type;oscillator.frequency.setValueAtTime(frequency,at);oscillator.frequency.exponentialRampToValueAtTime(Math.max(20,end),at+duration);gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(strength,at+Math.min(.07,duration/4));gain.gain.exponentialRampToValueAtTime(.0001,at+duration);oscillator.connect(gain);gain.connect(farmAudio.master);farmAudio.voices.add(oscillator);oscillator.onended=()=>{farmAudio.voices.delete(oscillator);oscillator.disconnect();gain.disconnect()};oscillator.start(at);oscillator.stop(at+duration+.02);
+}
+function farmAudioPulse(){
+ if(!farmAudio.enabled||!farmCanPlay()||farmVolume===0)return;const view=document.querySelector('.farmExpanded.farmPixiReady')&&document.getElementById('modal')?.classList.contains('show')?document.querySelector('.farmExpanded'):document.getElementById('livePasture'),night=view?.dataset.phase==='night',tractor=view?.querySelector('.farmTractorPass');
+ const road=tractor&&!night&&!farmScene.current&&!farmTalk.current&&typeof DOMMatrix!=='undefined'?new DOMMatrix(getComputedStyle(tractor).transform).m41:-300;
+ if(road>-80&&road<1000){for(const frequency of [42,84,126])farmAudioTone(frequency,frequency*.95,2.4,'triangle',.12);return}
+ if(night)return;
+ if(Math.random()<.72){farmAudioTone(1700,2900,.17,'sine',.3);farmAudioTone(2400,1800,.2,'sine',.2,.24);farmAudioTone(1900,2600,.15,'sine',.16,.5)}
+ else if(db.animals.some(isActiveAnimal)){farmAudioTone(360,270,.65,'triangle',.28);farmAudioTone(720,540,.6,'sine',.1,.06)}
+}
+function farmAudioAllowed(){const phase=farmScene.preview==='auto'?farmPhaseAt(new Date().getHours()):farmScene.preview;return farmAudio.enabled&&farmCanPlay()&&farmVolume>0&&phase!=='night'}
+function farmAudioSync(){
+ const active=farmAudioAllowed();
+ if(!active){farmAudioStop();return}
+ const ctx=farmAudio.context;if(!ctx)return;
+ if(ctx.state==='suspended')ctx.resume().then(()=>{if(!farmAudioAllowed())farmAudioStop()}).catch(()=>{farmAudio.enabled=false;farmAudioStop()});
+ if(farmAudio.timer===null)farmAudio.timer=setTimeout(()=>{farmAudio.timer=null;farmAudioPulse();farmAudioSync()},6000+Math.random()*5000);
+}
+function farmExperienceControls(view){
+ view.dataset.quality=farmQuality;let controls=view.querySelector('.farmExperienceControls');
+ if(!controls){controls=document.createElement('div');controls.className='farmExperienceControls';const label=document.createElement('label'),name=document.createElement('span'),select=document.createElement('select');name.className='farmQualityLabel';select.className='farmQualitySelect';select.onchange=()=>setFarmQuality(select.value);label.append(name,select);controls.append(label);for(const value of Object.keys(farmQualityModes)){const option=document.createElement('option');option.value=value;select.append(option)}const audio=document.createElement('button');audio.type='button';audio.className='farmAudioToggle';audio.onclick=toggleFarmAudio;controls.append(audio);const volumeLabel=document.createElement('label');volumeLabel.className='farmVolumeLabel';const volumeName=document.createElement('span'),volume=document.createElement('input');volumeName.className='farmVolumeName';volume.type='range';volume.min='0';volume.max='100';volume.step='5';volume.className='farmVolume';volume.oninput=()=>setFarmVolume(volume.value);volumeLabel.append(volumeName,volume);controls.append(volumeLabel);view.querySelector('.farmViewportTools').after(controls)}
+ controls.querySelector('.farmQualityLabel').textContent=tx('Görüntü kalitesi','Visual quality');const select=controls.querySelector('select'),labels={battery:tx('Pil tasarrufu','Battery saver'),balanced:tx('Dengeli','Balanced'),high:tx('Yüksek kalite','High quality')};for(const option of select.options)if(option.textContent!==labels[option.value])option.textContent=labels[option.value];if(select.value!==farmQuality)select.value=farmQuality;select.setAttribute('aria-label',tx('Çiftlik görüntü kalitesi','Farm visual quality'));const audio=controls.querySelector('.farmAudioToggle');audio.textContent=farmAudio.enabled?tx('Sesleri kapat','Disable sounds'):tx('Sesleri aç','Enable sounds');audio.setAttribute('aria-pressed',String(farmAudio.enabled));audio.title=tx('Gece ve duraklatıldığında sesler susar.','Sounds are silent at night and while paused.');controls.querySelector('.farmVolumeName').textContent=tx('Ses düzeyi','Volume');const volume=controls.querySelector('.farmVolume');volume.value=String(farmVolume);volume.disabled=!farmAudio.enabled;volume.setAttribute('aria-label',tx('Çiftlik ses düzeyi','Farm sound volume'));farmAudioSync();
+}
+function farmApplyQuality(state){const config=farmQualityModes[farmQuality],base=Math.min(window.devicePixelRatio||1,config.resolution),zoom=state.view.dataset.camera==='focus'?Math.max(1,state.cameraZoom||1):1,resolution=Math.min(farmQuality==='battery'?1:farmQuality==='high'?3:2,base*zoom);state.app.ticker.maxFPS=config.fps;if(state.app.renderer.resolution!==resolution){state.app.renderer.resolution=resolution;state.resize?.()}state.quality=farmQuality;if(state.environment)state.environment.root.visible=config.detail>0;}
+function farmInspectAnimal(id,view){
+ if(!db.animals.some(a=>a.id===id&&isActiveAnimal(a)))return;
+ view||=document.getElementById('modal')?.classList.contains('show')?document.querySelector('.farmExpanded'):document.getElementById('livePasture');if(!view)return;farmScene.highlight=id;view.dataset.followId=id;view.dataset.camera='focus';renderLivePasture();
+}
+function farmFocusPanel(view){
+ const id=view.dataset.followId,animal=db.animals.find(a=>a.id===id&&isActiveAnimal(a));let panel=view.querySelector('.farmFocusPanel');
+ if(!animal||view.dataset.camera!=='focus'){panel?.remove();if(!animal){delete view.dataset.followId;if(view.dataset.camera==='focus')view.dataset.camera='all'}return}
+ if(!panel){panel=document.createElement('div');panel.className='farmFocusPanel';panel.setAttribute('aria-live','polite');const text=document.createElement('span');text.className='farmFocusName';const record=document.createElement('button');record.type='button';record.className='farmFocusRecord';record.onclick=()=>{const a=db.animals.find(a=>a.id===view.dataset.followId&&isActiveAnimal(a));if(a){animalCard(a.id);renderLivePasture()}};const back=document.createElement('button');back.type='button';back.className='farmFocusBack';back.onclick=()=>{delete view.dataset.followId;view.dataset.camera='all';renderLivePasture()};panel.append(text,record,back);view.querySelector('.farmCanvasHost').after(panel)}
+ const name=tx('Yakından izleniyor: ','Following: ')+(animal.tag||animal.id);if(panel.querySelector('.farmFocusName').textContent!==name)panel.querySelector('.farmFocusName').textContent=name;panel.querySelector('.farmFocusRecord').textContent=tx('Kartı aç','Open card');panel.querySelector('.farmFocusBack').textContent=tx('Uzaklaş','Zoom out');
+}
+function farmCameraFrame(state){
+ const {view}=state;if(view.dataset.camera!=='focus')return;const target=state.units.find(u=>u.f.a.id===view.dataset.followId);if(!target)return;const family=state.units.filter(u=>u.f.family===target.f.family&&u.f.zone===target.f.zone),host=view.querySelector('.farmCanvasHost'),stage=host?.querySelector('.farmStage');if(!stage||!host.clientWidth)return;
+ let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity;for(const u of family){left=Math.min(left,u.root.x-12*u.f.scale);right=Math.max(right,u.root.x+84*u.f.scale);top=Math.min(top,u.root.y-28*u.f.scale);bottom=Math.max(bottom,u.root.y+52*u.f.scale)}
+ const base=stage.clientWidth/1000,zoom=Math.min(farmQualityModes[farmQuality].zoom,host.clientWidth/((right-left+38)*base),host.clientHeight/((bottom-top+35)*base)),x=host.clientWidth/2-(left+right)/2*base*zoom,y=host.clientHeight/2-(top+bottom)/2*base*zoom;
+ stage.style.transform='translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0) scale('+zoom.toFixed(4)+')';host.scrollLeft=0;host.scrollTop=0;state.cameraTargets=family.map(u=>u.f.a.id);state.cameraZoom=zoom;if(state.app)farmApplyQuality(state);
+}
+function farmEnvironmentCreate(){
+ const root=new PIXI.Container(),leaves=[],water=[],birds=[],grass=[];root.zIndex=-900;
+ for(let i=0;i<7;i++){const leaf=new PIXI.Graphics();for(let j=0;j<4;j++)leaf.ellipse(j*8-12,Math.sin(j)*7,11,5).fill({color:j%2?0x94aa5c:0x698e4c,alpha:.55});leaf.position.set(i<4?28+i*28:880+(i-4)*38,58+(i%3)*18);leaf.pivot.set(0,12);root.addChild(leaf);leaves.push(leaf)}
+ for(let i=0;i<3;i++){const ripple=new PIXI.Graphics().ellipse(0,0,10+i*3,1.5+i*.25).stroke({color:0xe5f7e5,width:1,alpha:.6});ripple.position.set(728,342);root.addChild(ripple);water.push(ripple)}
+ for(let i=0;i<4;i++){const bird=new PIXI.Graphics().moveTo(-8,0).quadraticCurveTo(-4,-5,0,0).quadraticCurveTo(4,-5,8,0).stroke({color:0x526b62,width:1.4,alpha:.7});root.addChild(bird);birds.push(bird)}
+ for(let i=0;i<12;i++){const tuft=new PIXI.Graphics().moveTo(-5,0).quadraticCurveTo(-5,-6,-8,-9).moveTo(0,0).quadraticCurveTo(1,-8,0,-13).moveTo(4,0).quadraticCurveTo(5,-5,9,-8).stroke({color:i%2?0x91a34c:0x6b8a44,width:1.4,alpha:.65});tuft.position.set(48+(i*79)%710,465+(i%3)*8);root.addChild(tuft);grass.push(tuft)}
+ return {root,leaves,water,birds,grass};
+}
+function farmEnvironmentStep(state){
+ const env=state.environment;if(!env)return;const quality=farmQualityModes[farmQuality].detail,t=state.time,night=state.phase==='night';env.root.visible=quality>0;if(!quality)return;
+ env.leaves.forEach((leaf,i)=>{leaf.visible=quality>0;leaf.rotation=Math.sin(t*.6+i)*.05});env.grass.forEach((g,i)=>{g.visible=quality>0;g.rotation=Math.sin(t*.9+i)*.08});
+ env.water.forEach((r,i)=>{r.visible=quality>0;const p=(t*.35+i/3)%1;r.scale.set(.6+p*.6);r.alpha=(1-p)*.6});env.birds.forEach((b,i)=>{b.visible=quality>0&&!night&&(quality===2||i<2);b.position.set(((t*(16+i*2)+i*240)%1200)-100,48+i*9+Math.sin(t*.4+i)*6);b.scale.y=.4+Math.abs(Math.sin(t*4+i))*.6});
+}
+if(typeof window!=='undefined')window.addEventListener('pagehide',()=>{farmAudioStop()});
+// END WEB farm-experience
 // BEGIN WEB farm-pixi
 // Optional local renderer. All state here is visual; database writes stay in the forms.
 const farmPixiViews=new Map();let farmPixiTextures=null,farmPixiBackdrop=null;
 let farmBright=true;try{farmBright=localStorage.getItem('suru_farm_bright')!=='0'}catch{}
 function farmViewport(view){
+ if(view.dataset.experienceScope!==activeStorageKey){view.dataset.experienceScope=activeStorageKey;delete view.dataset.followId;if(view.dataset.camera==='focus')view.dataset.camera='all'}
  const host=view.querySelector('.farmCanvasHost');let stage=host.querySelector('.farmStage');
- const fresh=!stage;if(!stage){stage=document.createElement('div');stage.className='farmStage';while(host.firstChild)stage.append(host.firstChild);host.append(stage)}
- let tools=view.querySelector('.farmViewportTools');if(!tools){tools=document.createElement('div');tools.className='farmViewportTools';host.before(tools);for(const [key,tr,en] of [['all','Tümü','All'],['pasture','Mera','Pasture'],['nursery','Anne–kuzu','Ewes & lambs'],['feed','Besi','Finishing']]){const b=document.createElement('button');b.type='button';b.dataset.area=key;b.onclick=()=>{view.dataset.camera=key;renderLivePasture();const width=host.querySelector('.farmStage').scrollWidth;host.scrollTo({left:key==='pasture'?0:key==='all'?0:width*.43,top:0,behavior:farmReduced()?'instant':'smooth'})};tools.append(b)}}
- const mobile=window.innerWidth<700,mode=view.dataset.camera||(mobile?'pasture':'all');stage.style.width=mode==='all'?'100%':Math.max(host.clientWidth*1.8,900)+'px';stage.style.transform=mode==='all'?'none':'translateY(-'+Math.min((mode==='feed'?290:140)*stage.clientWidth/1000,Math.max(0,stage.clientWidth*.62-(mobile?380:390)))+'px)';
- host.classList.toggle('farmCloseView',mode!=='all');if(fresh||view.dataset.lastCamera!==mode){host.scrollLeft=mode==='feed'||mode==='nursery'?stage.clientWidth*.43:0;host.scrollTop=0;view.dataset.lastCamera=mode}for(const b of tools.querySelectorAll('[data-area]')){const labels={all:tx('Tümü','All'),pasture:tx('Mera','Pasture'),nursery:tx('Anne–kuzu','Ewes & lambs'),feed:tx('Besi','Finishing')};b.textContent=labels[b.dataset.area];b.setAttribute('aria-pressed',String(b.dataset.area===mode))}
+ farmFocusPanel(view);const fresh=!stage;if(!stage){stage=document.createElement('div');stage.className='farmStage';while(host.firstChild)stage.append(host.firstChild);host.append(stage)}
+ let tools=view.querySelector('.farmViewportTools');if(!tools){tools=document.createElement('div');tools.className='farmViewportTools';host.before(tools);for(const [key,tr,en] of [['all','Tümü','All'],['pasture','Mera','Pasture'],['nursery','Anne–kuzu','Ewes & lambs'],['feed','Besi','Finishing']]){const b=document.createElement('button');b.type='button';b.dataset.area=key;b.onclick=()=>{delete view.dataset.followId;view.dataset.camera=key;renderLivePasture();const width=host.querySelector('.farmStage').scrollWidth;host.scrollTo({left:key==='pasture'?0:key==='all'?0:width*.43,top:0,behavior:farmReduced()?'instant':'smooth'})};tools.append(b)}}
+ const mobile=window.innerWidth<700,mode=view.dataset.camera||(mobile?'pasture':'all');stage.style.width=mode==='all'?'100%':Math.max(host.clientWidth*1.8,900)+'px';if(mode!=='focus'||fresh)stage.style.transform=mode==='all'?'none':'translateY(-'+Math.min((mode==='feed'?290:140)*stage.clientWidth/1000,Math.max(0,stage.clientWidth*.62-(mobile?380:390)))+'px)';
+ host.classList.toggle('farmCloseView',mode!=='all');host.classList.toggle('farmFollowView',mode==='focus');if(fresh||view.dataset.lastCamera!==mode){host.scrollLeft=mode==='feed'||mode==='nursery'?stage.clientWidth*.43:0;host.scrollTop=0;view.dataset.lastCamera=mode}for(const b of tools.querySelectorAll('[data-area]')){const labels={all:tx('Tümü','All'),pasture:tx('Mera','Pasture'),nursery:tx('Anne–kuzu','Ewes & lambs'),feed:tx('Besi','Finishing')};b.textContent=labels[b.dataset.area];b.setAttribute('aria-pressed',String(b.dataset.area===mode))}
  let light=tools.querySelector('.farmLightToggle');if(!light){light=document.createElement('button');light.type='button';light.className='farmLightToggle';light.onclick=()=>{farmBright=!farmBright;try{localStorage.setItem('suru_farm_bright',farmBright?'1':'0')}catch{}renderLivePasture()};tools.append(light)}view.dataset.bright=String(farmBright);light.textContent=farmBright?tx('☀ Aydınlık açık','☀ Bright view on'):tx('☀ Aydınlat','☀ Brighten');light.setAttribute('aria-pressed',String(farmBright));
- let hint=tools.querySelector('small');if(!hint){hint=document.createElement('small');tools.append(hint)}hint.textContent=tx('Diğer alanları görmek için sağa–sola kaydırabilirsin.','Swipe sideways to see the other areas.');hint.hidden=mode==='all';
+ let hint=tools.querySelector('small');if(!hint){hint=document.createElement('small');tools.append(hint)}hint.textContent=tx('Diğer alanları görmek için sağa–sola kaydırabilirsin.','Swipe sideways to see the other areas.');hint.hidden=mode==='all'||mode==='focus';
  host.setAttribute('aria-label',tx('Çiftlik görünümü; diğer alanlar için yatay kaydırın veya alan düğmelerini kullanın','Farm view; swipe horizontally or use the area buttons'));
- return stage;
+ farmExperienceControls(view);if(mode==='focus'&&(typeof PIXI==='undefined'||farmPixiViews.get(view)?.failed))farmCameraFrame({view,units:farmProjection().figures.map(f=>({f,root:{x:f.x,y:f.y}}))});return stage;
 }
 async function farmPixiArtwork(){
  if(farmPixiTextures)return farmPixiTextures;
@@ -5206,30 +5302,30 @@ async function farmPixiArtwork(){
   const result={};
   for(const type of ['ewe','ram','lamb','unknown']){
    const doc=new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">'+farmAnimalArt(type,0)+'</svg>','image/svg+xml'),bob=doc.querySelector('.pastureBob'),head=bob.querySelector('.pastureHead'),rest=doc.querySelector('.farmResting');
-   const definitions=doc.querySelector('defs')?.outerHTML||'';const headMarkup=head.outerHTML;head.remove();bob.children[0].remove();bob.children[0].remove();
+   const definitions=doc.querySelector('defs')?.outerHTML||'',ears=head.querySelector('.farmEars'),tail=bob.querySelector('.farmTail'),earsMarkup=ears?.outerHTML||'',tailMarkup=tail?.outerHTML||'';ears?.remove();tail?.remove();const headMarkup=head.outerHTML;head.remove();bob.children[0].remove();bob.children[0].remove();
    result[type]={};
-   for(const [part,markup] of Object.entries({body:bob.innerHTML,head:headMarkup,rest:rest.innerHTML})){
+   for(const [part,markup] of Object.entries({body:bob.innerHTML,head:headMarkup,rest:rest.innerHTML,ears:earsMarkup,tail:tailMarkup})){
     const image=new Image();image.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" style="color-scheme:only light" width="384" height="320" viewBox="-12 -28 96 80">'+definitions+markup+'</svg>');await image.decode();result[type][part]=PIXI.Texture.from(image);
    }
   }
   return result;
  })();return farmPixiTextures;
 }
-function farmPixiRig(f,textures){
+function farmPixiRig(f,textures,view){
  const root=new PIXI.Container(),face=new PIXI.Container(),body=new PIXI.Container(),legs=[];
- const shadow=new PIXI.Graphics().ellipse(27,34,29,7).fill({color:0x263c30,alpha:.18});root.addChild(shadow,face);face.pivot.x=27;face.x=27;face.addChild(body);
+ const shadow=new PIXI.Graphics().ellipse(27,34,32,9).fill({color:0x263c30,alpha:.04}).ellipse(27,34,27,6).fill({color:0x263c30,alpha:.07}).ellipse(27,34,22,4).fill({color:0x263c30,alpha:.08});const selection=new PIXI.Graphics().ellipse(27,35,34,10).stroke({color:0xf4d477,width:2.5,alpha:.95});selection.visible=false;root.addChild(shadow,selection,face);face.pivot.x=27;face.x=27;face.addChild(body);
  for(let i=0;i<4;i++){const leg=new PIXI.Graphics().moveTo(0,0).lineTo(1.5,7).lineTo(-1,14).stroke({color:i<2?0xb49e80:0x967f65,width:4,cap:'round'}).roundRect(-3,12,5,4,1.5).fill(0x6e5b49);leg.position.set([12,34,7,37][i],18);body.addChild(leg);legs.push(leg)}
  const sprite=part=>{const s=new PIXI.Sprite(textures[f.type][part]);s.position.set(-12,-28);s.width=96;s.height=80;return s};
- const wool=sprite('body'),headPivot=new PIXI.Container(),head=sprite('head'),rest=sprite('rest');headPivot.pivot.set(43,3);headPivot.position.set(43,3);headPivot.addChild(head);body.addChild(wool,headPivot);face.addChild(rest);rest.visible=false;
- root.eventMode='static';root.cursor='pointer';root.hitArea=new PIXI.Rectangle(-12,-28,96,80);root.on('pointertap',()=>{if(db.animals.some(a=>a.id===f.a.id))animalCard(f.a.id);renderLivePasture()});
- root.scale.set(f.scale);return {root,face,body,headPivot,rest,legs,f,seed:farmHash(f.family||f.a.id)%1000,direction:1,x:f.x,y:f.y};
+ const wool=sprite('body'),headPivot=new PIXI.Container(),head=sprite('head'),rest=sprite('rest');headPivot.pivot.set(43,3);headPivot.position.set(43,3);headPivot.addChild(head);const ears=new PIXI.Container(),tail=new PIXI.Container(),blink=new PIXI.Graphics().ellipse(54,7,4,5).fill(0xdbc2a0).moveTo(50,8).lineTo(58,8).stroke({color:0x92745b,width:.7});ears.pivot.set(43,1);ears.position.set(43,1);ears.addChild(sprite('ears'));tail.pivot.set(0,6);tail.position.set(0,6);tail.addChild(sprite('tail'));headPivot.addChildAt(ears,0);headPivot.addChild(blink);blink.visible=false;body.addChildAt(tail,0);body.addChild(wool,headPivot);face.addChild(rest);rest.visible=false;
+ root.eventMode='static';root.cursor='pointer';root.hitArea=new PIXI.Rectangle(-12,-28,96,80);root.on('pointertap',()=>farmInspectAnimal(f.a.id,view));
+ root.scale.set(f.scale);const months=farmVisualAgeMonths(f.a);return {root,face,body,headPivot,rest,legs,ears,tail,blink,shadow,selection,young:f.type==='lamb'&&months!==null&&months<6,f,seed:farmHash(f.family||f.a.id)%1000,direction:1,x:f.x,y:f.y};
 }
 function farmPixiStep(state,dt){
  state.time+=dt;const night=state.phase==='night',event=farmScene.current;
  for(const unit of state.units){
   const f=unit.f,r=f.roam||{dx:0,dy:0,duration:36,delay:0},phase=(state.time+unit.seed%31)/(r.duration||36)%1,walk=phase<.32||phase>.65&&phase<.88;
   const ease=t=>t*t*(3-2*t),progress=phase<.32?ease(phase/.32):phase<.65?1:phase<.88?1-ease((phase-.65)/.23):0;
-  const working=event?.ids.includes(f.a.id)||event?.ids.includes(f.mother),transfer=working&&['weight','weaning','finishing'].includes(event?.kind);
+  const working=event?.ids.includes(f.a.id)||event?.ids.includes(f.mother)||farmTalk.current?.animalId===f.a.id||!!f.mother&&farmTalk.current?.animalId===f.mother,transfer=working&&['weight','weaning','finishing'].includes(event?.kind);
   let x=f.x+(night||working?0:r.dx*progress),y=f.y+(night||working?0:r.dy*progress);
   if(event?.kind==='feeding'&&working){const slot=state.units.filter(u=>event.ids.includes(u.f.a.id)||event.ids.includes(u.f.mother)).indexOf(unit),targetX=470+slot%7*35,targetY=327+Math.floor(slot/7)*10,p=event.stage===1?1:event.stage===0?Math.min(1,(Date.now()-farmScene.started)/3000):Math.max(0,1-(Date.now()-farmScene.started)/3000);x=f.x+(targetX-f.x)*p;y=f.y+(targetY-f.y)*p}
   unit.root.visible=!transfer;unit.root.position.set(x,y);unit.x=x;unit.y=y;unit.root.zIndex=y;
@@ -5238,7 +5334,8 @@ function farmPixiStep(state,dt){
   unit.body.y=moving?Math.sin(stride*2)*1.1:Math.sin(state.time*1.8+unit.seed)*.35;
   unit.legs.forEach((leg,i)=>leg.rotation=moving?Math.sin(stride+(i===0||i===3?0:Math.PI))*.36:0);
   unit.headPivot.rotation=!moving&&!night?(.28+Math.sin(state.time*1.6+unit.seed)*.22):Math.sin(stride)*.025;
-  if(farmScene.highlight===f.a.id){unit.root.tint=0xffe4a4}else unit.root.tint=0xffffff;
+  const quiet=f.a.status==='Takipte',play=unit.young&&moving&&!quiet&&phase>.04&&phase<.2,hop=play?Math.max(0,Math.sin(state.time*9+unit.seed))*5:0;unit.face.y=-hop;unit.shadow.alpha=hop?Math.max(.45,1-hop*.08):1;unit.tail.rotation=!night&&!quiet?Math.sin(state.time*5+unit.seed)*((state.time+unit.seed)%8<1.5?.25:.04):0;unit.ears.rotation=!night&&((state.time+unit.seed)%7<1)?Math.sin(state.time*14)*.12:0;unit.blink.visible=!night&&(state.time+unit.seed)%6<.14;const watch=!moving&&(Math.floor(state.time/5+unit.seed)%3===1);if(watch)unit.headPivot.rotation=-.06+Math.sin(state.time*.8)*.04;if(quiet){unit.body.y*=.3;unit.headPivot.rotation*=.4}unit.behaviour=night?'sleep':play?'play':moving?'walk':watch?'watch':'graze';
+  unit.root.tint=0xffffff;unit.selection.visible=farmScene.highlight===f.a.id;
  }
  // Resolve visible footprints as families, then ease corrections to avoid sudden jumps.
  if(!night&&!event){
@@ -5250,7 +5347,7 @@ function farmPixiStep(state,dt){
   }
   for(const g of groups){const first=g.units[0],blend=first.hasAvoid?(dt?Math.min(1,dt*9):0):1,x=Math.max(g.l,Math.min(g.r,(first.avoidX||0)+(g.ox-(first.avoidX||0))*blend)),y=Math.max(g.t,Math.min(g.b,(first.avoidY||0)+(g.oy-(first.avoidY||0))*blend));for(const u of g.units){u.avoidX=x;u.avoidY=y;u.hasAvoid=true;u.root.position.set(u.x+x,u.y+y);u.root.zIndex=u.y+y}}
  }
- state.world.sortChildren();
+ farmEnvironmentStep(state);state.cameraElapsed=(state.cameraElapsed||0)+dt;if(dt===0||state.cameraElapsed>.08){state.cameraElapsed=0;farmCameraFrame(state)}state.world.sortChildren();
 }
 function farmPixiFallback(state){
  if(state.disposed)return;state.failed=true;state.app?.ticker?.stop();state.view.classList.remove('farmPixiReady');state.view.querySelectorAll('[data-farm-animal]').forEach(el=>{el.removeAttribute('aria-hidden');el.setAttribute('tabindex','0')});state.app?.canvas?.remove();
@@ -5263,10 +5360,10 @@ async function farmPixiSync(view,model,phase){
  if(!state){
   state={view,model,phase,time:0,units:[],loading:true};farmPixiViews.set(view,state);
   try{
-   const app=state.app=new PIXI.Application();await app.init({width:1000,height:620,backgroundAlpha:0,antialias:true,autoStart:false,preference:'webgl',resolution:Math.min(devicePixelRatio||1,2),autoDensity:true});
+   const app=state.app=new PIXI.Application();await app.init({width:1000,height:620,backgroundAlpha:0,antialias:true,autoStart:false,preference:'webgl',resolution:Math.min(devicePixelRatio||1,farmQualityModes[farmQuality].resolution),autoDensity:true});
    if(state.disposed||!view.isConnected){app.destroy(true);farmPixiViews.delete(view);return}
    state.textures=await farmPixiArtwork();farmPixiBackdrop||=PIXI.Assets.load('assets/farm/anime-countryside-v1.webp');const backdrop=await farmPixiBackdrop;if(state.disposed)return;
-   state.world=new PIXI.Container();state.world.sortableChildren=true;state.background=new PIXI.Sprite(backdrop);state.background.width=1000;state.background.height=620;state.background.zIndex=-1000;state.world.addChild(state.background);app.stage.addChild(state.world);app.ticker.maxFPS=30;app.ticker.add(t=>farmPixiStep(state,Math.min(t.deltaMS/1000,.05)));
+   state.world=new PIXI.Container();state.world.sortableChildren=true;state.background=new PIXI.Sprite(backdrop);state.background.width=1000;state.background.height=620;state.background.zIndex=-1000;state.world.addChild(state.background);state.environment=farmEnvironmentCreate();state.world.addChild(state.environment.root);app.stage.addChild(state.world);app.ticker.maxFPS=30;app.ticker.add(t=>farmPixiStep(state,Math.min(t.deltaMS/1000,.05)));
    app.renderer.events.autoPreventDefault=false;app.canvas.style.touchAction='auto';app.canvas.className='farmPixiCanvas';app.canvas.setAttribute('aria-hidden','true');app.canvas.addEventListener('webglcontextlost',()=>farmPixiFallback(state));
    state.resize=()=>{if(state.failed||state.disposed)return;const width=state.view.querySelector('.farmStage')?.clientWidth||1000;app.renderer.resize(width,width*.62);state.world.scale.set(width/1000);app.render()};state.observer=new ResizeObserver(state.resize);state.loading=false;
    farmPixiSync(view,state.model,state.phase);
@@ -5274,12 +5371,12 @@ async function farmPixiSync(view,model,phase){
  }
  state.model=model;state.phase=phase;if(state.loading)return;
  const key=JSON.stringify(model.figures.map(f=>[f.a.id,f.x,f.y,f.scale,f.type,f.mother,f.zone,f.a.status]));
- if(state.key!==key){state.key=key;for(const u of state.units)u.root.destroy({children:true,texture:false});state.units=model.figures.map(f=>farmPixiRig(f,state.textures));if(state.units.length)state.world.addChild(...state.units.map(u=>u.root))}
- const host=view.querySelector('.farmCanvasHost'),stage=farmViewport(view);if(!stage.contains(state.app.canvas))stage.prepend(state.app.canvas);view.classList.add('farmPixiReady');state.observer.disconnect();state.observer.observe(stage);state.background.tint=farmBright?0xffffff:phase==='night'?0xcbd7eb:phase==='dusk'?0xffeddf:phase==='dawn'?0xfff6e9:0xffffff;state.resize();
+ if(state.key!==key){state.key=key;for(const u of state.units)u.root.destroy({children:true,texture:false});state.units=model.figures.map(f=>farmPixiRig(f,state.textures,view));if(state.units.length)state.world.addChild(...state.units.map(u=>u.root))}
+ const host=view.querySelector('.farmCanvasHost'),stage=farmViewport(view);if(!stage.contains(state.app.canvas))stage.prepend(state.app.canvas);view.classList.add('farmPixiReady');state.observer.disconnect();state.observer.observe(stage);farmApplyQuality(state);state.background.tint=farmBright?0xffffff:phase==='night'?0xcbd7eb:phase==='dusk'?0xffeddf:phase==='dawn'?0xfff6e9:0xffffff;state.resize();
  // Native record buttons remain available to keyboard and assistive technology.
  for(const el of host.querySelectorAll('[data-farm-animal]')){el.setAttribute('aria-hidden','true');el.setAttribute('tabindex','-1')}
  let list=view.querySelector('.farmAccessibleAnimals');if(!list){list=document.createElement('details');list.className='farmAccessibleAnimals';host.after(list)}
- const listKey=model.figures.map(f=>f.a.id+':'+f.a.tag).join('|')+appLanguage;if(list.dataset.key!==listKey){list.dataset.key=listKey;list.innerHTML='<summary>'+tx('Hayvan kayıtlarını aç','Open animal records')+'</summary>';for(const f of model.figures){const b=document.createElement('button');b.type='button';b.textContent=f.a.tag||f.a.id;b.onclick=()=>{animalCard(f.a.id);renderLivePasture()};list.append(b)}}
+ const listKey=model.figures.map(f=>f.a.id+':'+f.a.tag).join('|')+appLanguage;if(list.dataset.key!==listKey){list.dataset.key=listKey;list.innerHTML='<summary>'+tx('Hayvan kayıtlarını aç','Open animal records')+'</summary>';for(const f of model.figures){const b=document.createElement('button');b.type='button';b.textContent=f.a.tag||f.a.id;b.onclick=()=>farmInspectAnimal(f.a.id,view);list.append(b)}}
  const sleeping=phase==='night',running=farmCanPlay()&&!view.classList.contains('pasturePaused')&&!sleeping;state.app.ticker[running?'start':'stop']();farmPixiStep(state,0);state.app.render();
 }
 if(typeof window!=='undefined')window.addEventListener('DOMContentLoaded',()=>{if(typeof renderLivePasture==='function')renderLivePasture()});
@@ -5380,7 +5477,7 @@ function renderFarmScene(){
  for(const view of document.querySelectorAll('[data-farm-view]')){
   const modalOpen=document.getElementById('modal')?.classList.contains('show'),expanded=view.dataset.farmView==='expanded',visible=expanded?modalOpen:document.getElementById('home')?.classList.contains('active')&&!modalOpen&&!farmScene.offscreen;
   view.dataset.talking=String(!!farmTalk.current);view.dataset.phase=phase;view.dataset.event=event?.kind||'';view.dataset.stage=event?String(event.stage):'';view.classList.toggle('pasturePaused',pasturePaused||reduce||!visible||document.hidden===true||farmHidden);view.classList.toggle('farmIsHidden',farmHidden);
-  const viewKey=key;if(view.dataset.sceneKey!==viewKey){view.dataset.sceneKey=viewKey;const host=view.querySelector('.farmCanvasHost');if(host){const duration=event?.stage===1?4500:3000,elapsed=event?Math.max(0,duration-farmScene.left+(farmScene.timer!==null?Date.now()-farmScene.started:0)):0;host.style.setProperty('--stage-time',duration+'ms');host.style.setProperty('--stage-delay',-elapsed+'ms');host.innerHTML=farmSceneArt(model,phase,expanded?'farmExpanded':'farm')}}
+  const viewKey=key;if(view.dataset.sceneKey!==viewKey){view.dataset.sceneKey=viewKey;const host=view.querySelector('.farmCanvasHost');if(host){const duration=event?.stage===1?4500:3000,elapsed=event?Math.max(0,duration-farmScene.left+(farmScene.timer!==null?Date.now()-farmScene.started:0)):0;host.style.setProperty('--stage-time',duration+'ms');host.style.setProperty('--stage-delay',-elapsed+'ms');farmReplaceArt(host,farmSceneArt(model,phase,expanded?'farmExpanded':'farm'))}}
   if(typeof ResizeObserver!=='undefined')farmViewport(view);farmPixiSync(view,model,phase);
   let speech=view.querySelector('.farmSpeechHost');if(!speech){speech=document.createElement('div');speech.className='farmSpeechHost';view.querySelector('.farmCanvasHost').after(speech)}speech.hidden=!visible;const speechKey=JSON.stringify([farmTalk.current,appLanguage]);if(speech.dataset.key!==speechKey){speech.dataset.key=speechKey;speech.innerHTML=farmDialogueCard()}for(const talkButton of view.querySelectorAll('.farmTalkToggle')){talkButton.textContent=farmTalk.muted?tx('Konuşmaları aç','Enable dialogue'):tx('Konuşmaları sustur','Mute dialogue');talkButton.setAttribute('aria-pressed',String(farmTalk.muted))}
   let finishing=view.querySelector('.farmFinishingHost');if(!finishing){finishing=document.createElement('div');finishing.className='farmFinishingHost';view.querySelector('.farmCanvasHost').after(finishing)}const warning=farmFinishingWarning();if(finishing.dataset.markup!==warning){finishing.dataset.markup=warning;finishing.innerHTML=warning}
@@ -5390,6 +5487,7 @@ function renderFarmScene(){
   const result=view.querySelector('.farmSearchResult'),found=db.animals.find(a=>a.id===farmScene.highlight&&isActiveAnimal(a));const resultKey=JSON.stringify([found?.id,found?.tag,appLanguage]);if(result&&result.dataset.resultKey!==resultKey){result.dataset.resultKey=resultKey;result.innerHTML=found?`<button type="button" data-farm-animal="${escHtml(found.id)}" onclick="farmAnimalClick(event)">${escHtml(animalName(found))} · ${tx('Kartı aç','Open card')} ↗</button>`:'';}
   const hide=view.querySelector('.farmHideButton');if(hide){hide.textContent=farmHidden?tx('Göster','Show'):tx('Gizle','Hide');hide.setAttribute('aria-expanded',String(!farmHidden))}
  }
+ farmAudioSync();
  const button=document.getElementById('pastureMotionButton');button.disabled=reduce;button.setAttribute('aria-pressed',String(pasturePaused||reduce));button.textContent=reduce?tx('Hareket azaltıldı','Reduced motion'):pasturePaused?tx('▶ Hareketi aç','▶ Play'):tx('Ⅱ Durdur','Ⅱ Pause');button.setAttribute('aria-label',reduce?tx('Sistem hareket azaltma tercihi etkin','System reduced-motion preference is on'):pasturePaused?tx('Mera animasyonunu başlat','Play pasture animation'):tx('Mera animasyonunu durdur','Pause pasture animation'));
  document.getElementById('pastureTitle').textContent=tx('Yaşayan çiftliğin','Your living farm');
  document.getElementById('pastureCaption').textContent=(model.representative?tx('Temsili görünüm','Representative view')+' · '+model.shown+' / '+model.total.toLocaleString(appLocale())+' '+tx('aktif hayvan','active animals'):tx('Her figür bir aktif hayvan · güncel kayıtlara göre','One figure per active animal · based on current records')+' · '+model.total.toLocaleString(appLocale())+' / '+model.total.toLocaleString(appLocale()))+' · '+tx('Boyutlar yaşa göre oranlıdır','Sizes are proportional to age')+(model.unlinked?' · '+model.unlinked+' '+tx('kuzunun aktif anne / büyütme bağlantısı yok','lambs without an active dam / grower link'):'');
@@ -5397,7 +5495,7 @@ function renderFarmScene(){
 function toggleFarmHidden(){farmHidden=!farmHidden;try{localStorage.setItem('suru_farm_hidden',farmHidden?'1':'0')}catch{}renderLivePasture()}
 function farmAnimalClick(event){event.stopPropagation?.();const id=event.target?.closest('[data-farm-animal]')?.dataset.farmAnimal;if(id&&db.animals.some(a=>a.id===id)){farmPauseTimer();animalCard(id);renderLivePasture()}}
 function farmAnimalKey(event){if(['Enter',' '].includes(event.key)){event.preventDefault();farmAnimalClick(event)}}
-function highlightFarmAnimal(tag){const key=String(tag||'').trim().toLocaleLowerCase('tr-TR'),matches=db.animals.filter(a=>isActiveAnimal(a)&&String(a.tag||'').trim().toLocaleLowerCase('tr-TR')===key);if(!key||matches.length!==1)return toast(tx('Tek bir aktif hayvana ait küpe gir','Enter a tag matching one active animal'));farmScene.highlight=matches[0].id;renderLivePasture()}
+function highlightFarmAnimal(tag){const key=String(tag||'').trim().toLocaleLowerCase('tr-TR'),matches=db.animals.filter(a=>isActiveAnimal(a)&&String(a.tag||'').trim().toLocaleLowerCase('tr-TR')===key);if(!key||matches.length!==1)return toast(tx('Tek bir aktif hayvana ait küpe gir','Enter a tag matching one active animal'));farmInspectAnimal(matches[0].id)}
 function openFarmSceneExpanded(){showModal(tx('Yaşayan çiftlik','Living farm'),'<div class="farmExpanded farmView" data-farm-view="expanded"><div class="farmExpandedActions"><small class="farmClock"></small><button type="button" onclick="togglePastureMotion()">'+tx('Hareketi durdur / başlat','Pause / resume')+'</button></div><div class="farmCanvasHost"></div><div class="farmStatus" role="status" aria-live="polite"></div><div class="farmZoneStats"></div><div class="farmSearchResult"></div>'+farmControls()+'</div>');renderLivePasture()}
 function openFarmSceneHistory(){
  farmPauseTimer();const events=farmEventsFor(db.records).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,30);
